@@ -1,16 +1,23 @@
 "use client";
 
-import { useState } from "react";
-import Sidebar from "./components/Sidebar";
-import Header from "./components/Header";
-import MetricCard from "./components/MetricCard";
-import AttendanceChart from "./components/AttendanceChart";
-import ScheduleList from "./components/ScheduleList";
-import Announcements from "./components/Announcements";
+import { AppShell } from "@/components/layout";
+import { Card } from "@/components/ui";
+import {
+  KPICard,
+  AttendanceTrendChart,
+  QuickActions,
+  ActivityTimeline,
+  StudentDistributionChart,
+} from "@/components/dashboard";
+import {
+  Users,
+  UserRound,
+  CalendarCheck,
+  GraduationCap,
+} from "lucide-react";
 
-export default function Dashboard() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
+export default function DashboardPage() {
+  // Sample data
   const studentData = [
     { value: 1200 },
     { value: 1220 },
@@ -41,69 +48,95 @@ export default function Dashboard() {
     { value: 88.5 },
   ];
 
+  const assessmentData = [
+    { value: 65 },
+    { value: 70 },
+    { value: 72 },
+    { value: 68 },
+    { value: 75 },
+    { value: 78 },
+    { value: 82 },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar */}
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Header with Greeting */}
-        <Header onMenuClick={() => setSidebarOpen(true)} />
-
-        {/* Dashboard Content */}
-        <main className="flex-1 p-5 overflow-auto">
-          {/* School Info Banner */}
-          <div className="mb-5 flex items-center gap-2 text-xs text-gray-500">
-            <span className="font-medium text-gray-700">SMA Negeri 1 Yogyakarta</span>
-            <span>•</span>
-            <span>Tahun Ajaran 2023/2024</span>
-          </div>
-
-          {/* Metrics Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-5">
-            <MetricCard
-              title="Jumlah Siswa"
-              value="1.248"
-              trend="dari bulan lalu"
-              trendValue="↑ 2.4%"
-              isPositive={true}
-              color="blue"
-              data={studentData}
-            />
-            <MetricCard
-              title="Guru & Staff"
-              value="87"
-              trend="dari bulan lalu"
-              trendValue="↑ 1.6%"
-              isPositive={true}
-              color="emerald"
-              data={teacherData}
-            />
-            <MetricCard
-              title="Presensi Hari Ini"
-              value="88.5%"
-              trend="dari kemarin"
-              trendValue="↑ 3.2%"
-              isPositive={true}
-              color="purple"
-              data={attendanceData}
-            />
-          </div>
-
-          {/* Content Grid - Attendance & Schedule */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5">
-            {/* Attendance Chart */}
-            <AttendanceChart />
-
-            {/* Schedule List */}
-            <ScheduleList />
-          </div>
-
-          {/* Announcements */}
-          <Announcements />
-        </main>
+    <AppShell showHeader={true}>
+      {/* School Info Banner */}
+      <div className="mb-[24px] flex items-center gap-2 text-[13px] text-[var(--text-muted)]">
+        <span className="font-medium text-[var(--text-secondary)]">
+          SMA Negeri 1 Yogyakarta
+        </span>
+        <span>•</span>
+        <span>Tahun Ajaran 2024/2025</span>
+        <span>•</span>
+        <span>Semester Genap</span>
       </div>
-    </div>
+
+      {/* KPI Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[24px] mb-[24px]">
+        <KPICard
+          title="Total Siswa"
+          value="1.248"
+          subtitle="siswa aktif"
+          trend="dari bulan lalu"
+          trendValue="+2.4%"
+          isPositive={true}
+          icon={<Users className="w-6 h-6" />}
+          color="primary"
+          data={studentData}
+        />
+        <KPICard
+          title="Guru & Staff"
+          value="87"
+          subtitle="46 guru, 41 staff"
+          trend="dari tahun lalu"
+          trendValue="+3.2%"
+          isPositive={true}
+          icon={<UserRound className="w-6 h-6" />}
+          color="success"
+          data={teacherData}
+        />
+        <KPICard
+          title="Presensi Hari Ini"
+          value="88.5%"
+          subtitle="1.102 dari 1.248 siswa"
+          trend="dari kemarin"
+          trendValue="+3.2%"
+          isPositive={true}
+          icon={<CalendarCheck className="w-6 h-6" />}
+          color="info"
+          data={attendanceData}
+        />
+        <KPICard
+          title="Penilaian"
+          value="82%"
+          subtitle="rapor terisi"
+          trend="dari target"
+          trendValue="-8%"
+          isPositive={false}
+          icon={<GraduationCap className="w-6 h-6" />}
+          color="warning"
+          data={assessmentData}
+        />
+      </div>
+
+      {/* Quick Actions */}
+      <QuickActions className="mb-[24px]" />
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-[24px] mb-[24px]">
+        {/* Attendance Trend Chart - 2 columns */}
+        <div className="lg:col-span-2">
+          <AttendanceTrendChart />
+        </div>
+
+        {/* Student Distribution Chart - 1 column */}
+        <div>
+          <StudentDistributionChart />
+        </div>
+      </div>
+
+      {/* Activity Timeline */}
+      <ActivityTimeline />
+    </AppShell>
   );
 }

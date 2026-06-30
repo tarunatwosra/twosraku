@@ -1,6 +1,7 @@
 "use client";
 
 import { TrendingUp } from "lucide-react";
+import { Card } from "@/components/ui";
 import { LineChart, Line, ResponsiveContainer } from "recharts";
 
 interface MetricCardProps {
@@ -15,23 +16,20 @@ interface MetricCardProps {
 
 const colorMap = {
   blue: {
-    bg: "bg-blue-50",
-    border: "border-blue-100",
-    chart: "#3b82f6",
+    bg: "bg-[var(--primary-soft)]",
+    chart: "var(--primary)",
   },
   emerald: {
-    bg: "bg-emerald-50",
-    border: "border-emerald-100",
-    chart: "#10b981",
+    bg: "bg-[var(--success-soft)]",
+    chart: "var(--success)",
   },
   purple: {
     bg: "bg-purple-50",
-    border: "border-purple-100",
     chart: "#8b5cf6",
   },
 };
 
-export default function MetricCard({
+export function MetricCard({
   title,
   value,
   trend,
@@ -55,28 +53,37 @@ export default function MetricCard({
   const chartData = data || defaultData;
 
   return (
-    <div
-      className={`${colors.bg} ${colors.border} border rounded-xl p-4`}
+    <Card
+      className={`
+        ${colors.bg}
+        hover:shadow-[var(--shadow-md)]
+        transition-all duration-200
+      `}
+      padding="md"
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-xs font-medium text-gray-500 mb-1">{title}</p>
-          <p className="text-2xl font-bold text-gray-800 mb-1.5">{value}</p>
-          <div className="flex items-center gap-1">
+          <p className="text-[13px] font-medium text-[var(--text-secondary)] mb-1">
+            {title}
+          </p>
+          <p className="text-[28px] font-bold text-[var(--text-primary)] mb-2">
+            {value}
+          </p>
+          <div className="flex items-center gap-1.5">
             {isPositive && (
-              <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
+              <TrendingUp className="w-4 h-4 text-[var(--success)]" />
             )}
             <span
-              className={`text-xs font-semibold ${
-                isPositive ? "text-emerald-500" : "text-red-500"
+              className={`text-[13px] font-semibold ${
+                isPositive ? "text-[var(--success)]" : "text-[var(--danger)]"
               }`}
             >
               {trendValue}
             </span>
-            <span className="text-xs text-gray-400">{trend}</span>
+            <span className="text-[13px] text-[var(--text-muted)]">{trend}</span>
           </div>
         </div>
-        <div className="w-20 h-10">
+        <div className="w-20 h-12">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData}>
               <Line
@@ -90,6 +97,6 @@ export default function MetricCard({
           </ResponsiveContainer>
         </div>
       </div>
-    </div>
+    </Card>
   );
 }

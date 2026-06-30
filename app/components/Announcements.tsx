@@ -1,7 +1,14 @@
 "use client";
 
 import { Megaphone, ChevronRight, Clock } from "lucide-react";
-import { Announcement } from "../types";
+import { Card } from "@/components/ui";
+
+interface Announcement {
+  id: string;
+  title: string;
+  date: string;
+  isNew: boolean;
+}
 
 const announcements: Announcement[] = [
   {
@@ -24,49 +31,51 @@ const announcements: Announcement[] = [
   },
 ];
 
-export default function Announcements() {
+export function Announcements() {
   return (
-    <div className="bg-white rounded-xl border border-gray-100 p-4">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-gray-800">Pengumuman Terbaru</h3>
+    <Card padding="md">
+      <div className="flex items-center justify-between mb-[20px]">
+        <h3 className="text-[16px] font-semibold text-[var(--text-primary)]">
+          Pengumuman Terbaru
+        </h3>
         <a
           href="#"
-          className="flex items-center gap-0.5 text-xs text-blue-500 hover:text-blue-600 font-medium"
+          className="flex items-center gap-0.5 text-[13px] text-[var(--primary)] hover:text-[var(--primary-hover)] font-medium transition-colors"
         >
           Lihat semua
-          <ChevronRight className="w-3.5 h-3.5" />
+          <ChevronRight className="w-4 h-4" />
         </a>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-[12px]">
         {announcements.map((announcement) => (
           <div
             key={announcement.id}
-            className="flex items-start gap-2.5 p-2.5 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer group"
+            className="flex items-start gap-[12px] p-[12px] rounded-[18px] hover:bg-[var(--surface-secondary)] transition-colors cursor-pointer group"
           >
-            <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
-              <Megaphone className="w-4 h-4 text-amber-500" />
+            <div className="w-10 h-10 rounded-[16px] bg-[var(--warning-soft)] flex items-center justify-center flex-shrink-0">
+              <Megaphone className="w-5 h-5 text-[var(--warning)]" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5">
-                <h4 className="text-xs font-medium text-gray-700 truncate group-hover:text-blue-500 transition-colors">
+              <div className="flex items-center gap-[10px]">
+                <h4 className="text-[14px] font-medium text-[var(--text-primary)] truncate group-hover:text-[var(--primary)] transition-colors">
                   {announcement.title}
                 </h4>
                 {announcement.isNew && (
-                  <span className="px-1.5 py-0.5 bg-red-50 text-red-500 text-[10px] font-semibold rounded flex-shrink-0">
+                  <span className="px-2 py-0.5 bg-[var(--danger-soft)] text-[var(--danger)] text-[11px] font-semibold rounded-full flex-shrink-0">
                     Baru
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-1 mt-0.5 text-[10px] text-gray-400">
-                <Clock className="w-2.5 h-2.5" />
+              <div className="flex items-center gap-1 mt-1 text-[12px] text-[var(--text-muted)]">
+                <Clock className="w-3 h-3" />
                 <span>{announcement.date}</span>
               </div>
             </div>
-            <ChevronRight className="w-3.5 h-3.5 text-gray-300 flex-shrink-0 mt-1.5 group-hover:text-blue-400 transition-colors" />
+            <ChevronRight className="w-4 h-4 text-[var(--text-muted)] flex-shrink-0 mt-1.5 group-hover:text-[var(--primary)] transition-colors" />
           </div>
         ))}
       </div>
-    </div>
+    </Card>
   );
 }

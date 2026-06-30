@@ -1,26 +1,388 @@
 @import "tailwindcss";
 
+/* ============================================
+   Design Tokens - School Information System
+   Version: 1.0
+   ============================================ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* ============================================
+     Background Colors
+     ============================================ */
+  --background-primary: #F5F7FB;
+  --background-secondary: #FFFFFF;
+  --background-tertiary: #F8FAFC;
+
+  /* ============================================
+     Surface Colors
+     ============================================ */
+  --surface-primary: #FFFFFF;
+  --surface-secondary: #FAFBFD;
+  --surface-hover: #F3F6FA;
+  --surface-active: #EDF3FF;
+
+  /* ============================================
+     Border Colors
+     ============================================ */
+  --border-light: #EDF1F6;
+  --border-default: #E3EAF3;
+  --border-strong: #D3DCE8;
+  --border-focus: #4F7CFF;
+
+  /* ============================================
+     Primary Colors
+     ============================================ */
+  --primary: #4F7CFF;
+  --primary-hover: #3E6CF2;
+  --primary-active: #2F5AE8;
+  --primary-soft: #EEF4FF;
+
+  /* ============================================
+     Status Colors
+     ============================================ */
+  --success: #22C55E;
+  --success-soft: #ECFDF3;
+  --warning: #F59E0B;
+  --warning-soft: #FFF7E6;
+  --danger: #EF4444;
+  --danger-soft: #FEF2F2;
+  --info: #06B6D4;
+  --info-soft: #ECFEFF;
+
+  /* ============================================
+     Text Colors
+     ============================================ */
+  --text-primary: #172033;
+  --text-secondary: #64748B;
+  --text-muted: #94A3B8;
+  --text-disabled: #CBD5E1;
+  --text-white: #FFFFFF;
+
+  /* ============================================
+     Icon Colors
+     ============================================ */
+  --icon-default: #5B6B83;
+  --icon-muted: #94A3B8;
+  --icon-primary: #4F7CFF;
+
+  /* ============================================
+     Spacing Scale
+     ============================================ */
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-5: 20px;
+  --spacing-6: 24px;
+  --spacing-8: 32px;
+  --spacing-10: 40px;
+  --spacing-12: 48px;
+  --spacing-14: 56px;
+  --spacing-16: 64px;
+  --spacing-20: 80px;
+  --spacing-24: 96px;
+  --spacing-32: 128px;
+
+  /* ============================================
+     Border Radius
+     ============================================ */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 20px;
+  --radius-2xl: 28px;
+  --radius-3xl: 32px;
+  --radius-full: 999px;
+
+  /* ============================================
+     Shadows
+     ============================================ */
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 16px 40px rgba(15, 23, 42, 0.08);
+
+  /* ============================================
+     Layout
+     ============================================ */
+  --sidebar-width: 280px;
+  --sidebar-collapsed-width: 88px;
+  --topbar-height: 80px;
+  --content-padding: 40px;
+  --card-gap: 24px;
+  --section-gap: 32px;
+  --max-width: 1600px;
+
+  /* ============================================
+     Component Sizes
+     ============================================ */
+  --button-height-sm: 36px;
+  --button-height-md: 44px;
+  --button-height-lg: 52px;
+  --input-height: 48px;
+  --input-height-lg: 56px;
+  --card-padding-sm: 20px;
+  --card-padding-md: 28px;
+  --card-padding-lg: 36px;
+
+  /* ============================================
+     Z-Index Scale
+     ============================================ */
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-sidebar: 300;
+  --z-modal: 1000;
+  --z-toast: 1200;
+  --z-tooltip: 1300;
+
+  /* ============================================
+     Animation
+     ============================================ */
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+  --ease-out: cubic-bezier(0.33, 1, 0.68, 1);
+  --ease-in: cubic-bezier(0.32, 0, 0.67, 0);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* ============================================
+     Tailwind Theme Integration
+     ============================================ */
+
+  /* Colors */
+  --color-background: var(--background-primary);
+  --color-foreground: var(--text-primary);
+
+  /* Primary */
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-active: var(--primary-active);
+  --color-primary-soft: var(--primary-soft);
+
+  /* Success */
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+
+  /* Warning */
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+
+  /* Danger */
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+
+  /* Info */
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+
+  /* Border */
+  --color-border-light: var(--border-light);
+  --color-border-default: var(--border-default);
+  --color-border-strong: var(--border-strong);
+
+  /* Surface */
+  --color-surface-primary: var(--surface-primary);
+  --color-surface-secondary: var(--surface-secondary);
+  --color-surface-hover: var(--surface-hover);
+  --color-surface-active: var(--surface-active);
+
+  /* Text */
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-disabled: var(--text-disabled);
+
+  /* Icon */
+  --color-icon-default: var(--icon-default);
+  --color-icon-muted: var(--icon-muted);
+
+  /* Radius */
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+  --radius-3xl: var(--radius-3xl);
+  --radius-full: var(--radius-full);
+
+  /* Spacing */
+  --spacing-1: var(--spacing-1);
+  --spacing-2: var(--spacing-2);
+  --spacing-3: var(--spacing-3);
+  --spacing-4: var(--spacing-4);
+  --spacing-5: var(--spacing-5);
+  --spacing-6: var(--spacing-6);
+  --spacing-8: var(--spacing-8);
+  --spacing-10: var(--spacing-10);
+  --spacing-12: var(--spacing-12);
+
+  /* Font Family - set by Next.js */
+  --font-sans: var(--font-sans), "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-heading: var(--font-heading), "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ============================================
+   Base Styles
+   ============================================ */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--background-primary);
+  color: var(--text-primary);
+  font-family: var(--font-sans), "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================
+   Typography
+   ============================================ */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading), "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text-primary);
+}
+
+h1 { font-size: 36px; }
+h2 { font-size: 28px; }
+h3 { font-size: 24px; }
+h4 { font-size: 20px; }
+
+/* ============================================
+   Selection & Scrollbar
+   ============================================ */
+
+::selection {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-strong);
+}
+
+/* ============================================
+   Focus Styles (Accessibility)
+   ============================================ */
+
+:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+/* ============================================
+   Form Elements Reset
+   ============================================ */
+
+input, textarea, select, button {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+/* ============================================
+   Utility Classes
+   ============================================ */
+
+/* Card base */
+.card {
+  background: var(--surface-primary);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-sm);
+  padding: var(--card-padding-md);
+}
+
+/* Glass effect for sidebar/navbar */
+.glass {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Focus ring */
+.focus-ring {
+  focus-visible: outline 2px solid var(--border-focus);
+  focus-visible: outline-offset 2px;
+}
+
+/* ============================================
+   Animation Utilities
+   ============================================ */
+
+.transition-default {
+  transition: all var(--duration-normal) var(--ease-out);
+}
+
+.transition-fast {
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.transition-slow {
+  transition: all var(--duration-slow) var(--ease-out);
+}
+
+/* Hover lift effect */
+.hover-lift {
+  transition: transform var(--duration-normal) var(--ease-out),
+              box-shadow var(--duration-normal) var(--ease-out);
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Hover scale effect */
+.hover-scale {
+  transition: transform var(--duration-normal) var(--ease-out);
+}
+
+.hover-scale:hover {
+  transform: scale(1.02);
+}
+
+/* ============================================
+   Reduced Motion
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
