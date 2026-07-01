@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
@@ -9,12 +9,12 @@ import {
   Loader2,
   AlertCircle,
   CheckCircle,
-  UserPlus,
+  User,
 } from "lucide-react"
 import { AppShell } from "@/components/layout"
-import { Card, Button, Input, Select } from "@/components/ui"
-import { createStudent, checkDuplicateNIS } from "../lib/supabase"
-import type { Student } from "@/types/database"
+import { Card, Button, Input, Select, Avatar } from "@/components/ui"
+import { fetchStudent, updateStudent, checkDuplicateNIS } from "../../lib/supabase"
+import type { StudentWithClass } from "@/types/database"
 import { cn } from "@/lib/utils"
 
 // ============================================
@@ -46,6 +46,8 @@ const BLOOD_TYPES = [
 const STATUSES = [
   { value: "prospective", label: "Calon Siswa" },
   { value: "active", label: "Aktif" },
+  { value: "transferred", label: "Pindah" },
+  { value: "graduated", label: "Lulus" },
 ]
 
 // ============================================
@@ -57,7 +59,7 @@ interface FormData {
   national_id: string
   full_name: string
   nickname: string
-  gender: "male" | "female"
+  gender: "male" | "female" | ""
   birth_place: string
   birth_date: string
   religion: string
@@ -66,39 +68,16 @@ interface FormData {
   address: string
   phone: string
   email: string
-  status: "prospective" | "active"
+  status: "prospective" | "active" | "transferred" | "graduated" | "archived"
   enrollment_year: number
+  graduation_year: number | null
+  transfer_date: string
+  transfer_reason: string
   notes: string
 }
 
 interface FormErrors {
   [key: string]: string
-}
-
-// ============================================
-// DEFAULT FORM DATA
-// ============================================
-
-function getDefaultFormData(): FormData {
-  const currentYear = new Date().getFullYear()
-  return {
-    student_number: "",
-    national_id: "",
-    full_name: "",
-    nickname: "",
-    gender: "" as "male" | "female",
-    birth_place: "",
-    birth_date: "",
-    religion: "",
-    nationality: "Indonesia",
-    blood_type: "",
-    address: "",
-    phone: "",
-    email: "",
-    status: "prospective",
-    enrollment_year: currentYear,
-    notes: "",
-  }
 }
 
 // ============================================
@@ -127,10 +106,8 @@ function validateForm(data: FormData): FormErrors {
     errors.gender = "Jenis kelamin wajib dipilih"
   }
 
-  // Tanggal Lahir (required)
-  if (!data.birth_date) {
-    errors.birth_date = "Tanggal lahir wajib diisi"
-  } else {
+  // Tanggal Lahir (optional but must be valid if provided)
+  if (data.birth_date) {
     const birthDate = new Date(data.birth_date)
     const today = new Date()
     if (birthDate > today) {
@@ -196,13 +173,95 @@ function FormField({
 // MAIN PAGE COMPONENT
 // ============================================
 
-export default function NewStudentPage() {
+interface EditStudentPageProps {
+  params: Promise<{ id: string }>
+}
+
+export default function EditStudentPage({ params }: EditStudentPageProps) {
   const router = useRouter()
-  const [formData, setFormData] = useState<FormData>(getDefaultFormData())
+  const [studentId, setStudentId] = useState<string | null>(null)
+  const [student, setStudent] = useState<StudentWithClass | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const [formData, setFormData] = useState<FormData>({
+    student_number: "",
+    national_id: "",
+    full_name: "",
+    nickname: "",
+    gender: "",
+    birth_place: "",
+    birth_date: "",
+    religion: "",
+    nationality: "Indonesia",
+    blood_type: "",
+    address: "",
+    phone: "",
+    email: "",
+    status: "active",
+    enrollment_year: new Date().getFullYear(),
+    graduation_year: null,
+    transfer_date: "",
+    transfer_reason: "",
+    notes: "",
+  })
   const [errors, setErrors] = useState<FormErrors>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitSuccess, setSubmitSuccess] = useState(false)
+
+  // Resolve params
+  useEffect(() => {
+    params.then((p) => setStudentId(p.id))
+  }, [params])
+
+  // Fetch student data
+  useEffect(() => {
+    if (!studentId) return
+
+    const loadStudent = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        const data = await fetchStudent(studentId)
+        if (!data) {
+          setError("Siswa tidak ditemukan")
+          return
+        }
+        setStudent(data)
+
+        // Pre-fill form
+        setFormData({
+          student_number: data.student_number || "",
+          national_id: data.national_id || "",
+          full_name: data.full_name || "",
+          nickname: data.nickname || "",
+          gender: data.gender || "",
+          birth_place: data.birth_place || "",
+          birth_date: data.birth_date ? data.birth_date.split("T")[0] : "",
+          religion: data.religion || "",
+          nationality: data.nationality || "Indonesia",
+          blood_type: data.blood_type || "",
+          address: data.address || "",
+          phone: data.phone || "",
+          email: data.email || "",
+          status: data.status || "active",
+          enrollment_year: data.enrollment_year || new Date().getFullYear(),
+          graduation_year: data.graduation_year,
+          transfer_date: data.transfer_date ? data.transfer_date.split("T")[0] : "",
+          transfer_reason: data.transfer_reason || "",
+          notes: data.notes || "",
+        })
+      } catch (err) {
+        console.error("Error loading student:", err)
+        setError("Gagal memuat data siswa")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadStudent()
+  }, [studentId])
 
   // Handle input change
   const handleChange = (
@@ -224,6 +283,8 @@ export default function NewStudentPage() {
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!studentId) return
+
     setSubmitError(null)
     setSubmitSuccess(false)
 
@@ -231,7 +292,6 @@ export default function NewStudentPage() {
     const validationErrors = validateForm(formData)
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors)
-      // Focus on first error
       const firstErrorField = Object.keys(validationErrors)[0]
       const element = document.querySelector(`[name="${firstErrorField}"]`)
       if (element instanceof HTMLElement) {
@@ -241,7 +301,7 @@ export default function NewStudentPage() {
     }
 
     // Check for duplicate NIS
-    const isDuplicate = await checkDuplicateNIS(formData.student_number)
+    const isDuplicate = await checkDuplicateNIS(formData.student_number, studentId)
     if (isDuplicate) {
       setErrors({ student_number: "NIS sudah terdaftar" })
       return
@@ -250,7 +310,7 @@ export default function NewStudentPage() {
     setIsSubmitting(true)
 
     try {
-      const result = await createStudent({
+      const updates: Record<string, unknown> = {
         student_number: formData.student_number,
         full_name: formData.full_name,
         nickname: formData.nickname || null,
@@ -266,20 +326,25 @@ export default function NewStudentPage() {
         national_id: formData.national_id || null,
         status: formData.status,
         enrollment_year: formData.enrollment_year,
+        graduation_year: formData.graduation_year || null,
+        transfer_date: formData.transfer_date || null,
+        transfer_reason: formData.transfer_reason || null,
         notes: formData.notes || null,
-      })
+        updated_at: new Date().toISOString(),
+      }
 
-      if (result.success && result.student) {
+      const result = await updateStudent(studentId, updates)
+
+      if (result.success) {
         setSubmitSuccess(true)
-        // Redirect to student detail page after short delay
         setTimeout(() => {
-          router.push(`/buku-induk/${result.student!.id}`)
+          router.push(`/buku-induk/${studentId}`)
         }, 1500)
       } else {
         setSubmitError(result.error || "Terjadi kesalahan saat menyimpan data")
       }
     } catch (err) {
-      console.error("Error creating student:", err)
+      console.error("Error updating student:", err)
       setSubmitError("Terjadi kesalahan saat menyimpan data")
     } finally {
       setIsSubmitting(false)
@@ -288,7 +353,61 @@ export default function NewStudentPage() {
 
   // Handle cancel
   const handleCancel = () => {
-    router.push("/buku-induk")
+    router.push(`/buku-induk/${studentId}`)
+  }
+
+  // Loading state
+  if (loading) {
+    return (
+      <AppShell showHeader={true}>
+        <div className="mb-6">
+          <Link
+            href={`/buku-induk/${studentId}`}
+            className="inline-flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Kembali ke Detail Siswa
+          </Link>
+        </div>
+
+        <div className="animate-pulse space-y-6">
+          <div className="h-16 bg-[var(--surface-hover)] rounded-[28px]" />
+          <div className="h-96 bg-[var(--surface-hover)] rounded-[28px]" />
+        </div>
+      </AppShell>
+    )
+  }
+
+  // Error state
+  if (error || !student) {
+    return (
+      <AppShell showHeader={true}>
+        <div className="mb-6">
+          <Link
+            href="/buku-induk"
+            className="inline-flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Kembali ke Buku Induk
+          </Link>
+        </div>
+
+        <Card padding="lg" className="text-center py-16">
+          <div className="w-20 h-20 rounded-full bg-[var(--danger-soft)] flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="w-10 h-10 text-[var(--danger)]" />
+          </div>
+          <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-2">
+            {error || "Siswa Tidak Ditemukan"}
+          </h2>
+          <p className="text-sm text-[var(--text-muted)] mb-6">
+            Data siswa tidak dapat dimuat
+          </p>
+          <Button onClick={() => router.push("/buku-induk")}>
+            Kembali ke Buku Induk
+          </Button>
+        </Card>
+      </AppShell>
+    )
   }
 
   return (
@@ -296,22 +415,30 @@ export default function NewStudentPage() {
       {/* Breadcrumb */}
       <div className="mb-6">
         <Link
-          href="/buku-induk"
+          href={`/buku-induk/${studentId}`}
           className="inline-flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          Kembali ke Buku Induk
+          Kembali ke Detail Siswa
         </Link>
       </div>
 
       {/* Page Header */}
-      <div className="mb-6">
-        <h1 className="text-[24px] font-bold text-[var(--text-primary)]">
-          Tambah Siswa Baru
-        </h1>
-        <p className="text-[14px] text-[var(--text-muted)] mt-1">
-          Masukkan data siswa untuk添加到 buku induk
-        </p>
+      <div className="mb-6 flex items-center gap-4">
+        <Avatar
+          fallback={student.full_name}
+          src={student.photo_url}
+          size="lg"
+          className="w-16 h-16 text-xl bg-[var(--primary-soft)] text-[var(--primary)]"
+        />
+        <div>
+          <h1 className="text-[24px] font-bold text-[var(--text-primary)]">
+            Edit Data Siswa
+          </h1>
+          <p className="text-[14px] text-[var(--text-muted)]">
+            {student.full_name} • NIS: {student.student_number}
+          </p>
+        </div>
       </div>
 
       {/* Form */}
@@ -329,7 +456,7 @@ export default function NewStudentPage() {
             <div className="mb-6 p-4 bg-[var(--success-soft)] border border-[var(--success)] rounded-[18px] flex items-center gap-3">
               <CheckCircle className="w-5 h-5 text-[var(--success)] flex-shrink-0" />
               <p className="text-[14px] text-[var(--success)]">
-                Data siswa berhasil disimpan! Mengalihkan ke halaman detail...
+                Data berhasil disimpan! Mengalihkan ke halaman detail...
               </p>
             </div>
           )}
@@ -337,7 +464,7 @@ export default function NewStudentPage() {
           {/* Section 1: Data Pribadi */}
           <FormSection
             title="Data Pribadi Siswa"
-            description="Informasi pribadi siswa yang akan didaftarkan"
+            description="Informasi pribadi siswa"
           >
             <FormField>
               <Input
@@ -416,7 +543,6 @@ export default function NewStudentPage() {
                 value={formData.birth_date}
                 onChange={handleChange}
                 error={errors.birth_date}
-                required
               />
             </FormField>
 
@@ -489,12 +615,12 @@ export default function NewStudentPage() {
           {/* Section 2: Data Akademik */}
           <FormSection
             title="Data Akademik"
-            description="Informasi akademik awal siswa"
+            description="Informasi akademik siswa"
           >
             <FormField>
               <Select
                 name="status"
-                label="Status Pendaftaran"
+                label="Status"
                 value={formData.status}
                 onChange={handleChange}
                 options={STATUSES}
@@ -518,6 +644,47 @@ export default function NewStudentPage() {
                 required
               />
             </FormField>
+
+            {formData.status === "graduated" && (
+              <FormField>
+                <Input
+                  name="graduation_year"
+                  label="Tahun Lulus"
+                  type="number"
+                  placeholder="Contoh: 2027"
+                  value={formData.graduation_year?.toString() || ""}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      graduation_year: parseInt(e.target.value) || null,
+                    }))
+                  }
+                />
+              </FormField>
+            )}
+
+            {formData.status === "transferred" && (
+              <>
+                <FormField>
+                  <Input
+                    name="transfer_date"
+                    label="Tanggal Pindah"
+                    type="date"
+                    value={formData.transfer_date}
+                    onChange={handleChange}
+                  />
+                </FormField>
+                <FormField fullWidth>
+                  <Input
+                    name="transfer_reason"
+                    label="Alasan Pindah"
+                    placeholder="Masukkan alasan perpindahan"
+                    value={formData.transfer_reason}
+                    onChange={handleChange}
+                  />
+                </FormField>
+              </>
+            )}
           </FormSection>
 
           {/* Section 3: Catatan */}
@@ -562,10 +729,7 @@ export default function NewStudentPage() {
             >
               Batal
             </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting || submitSuccess}
-            >
+            <Button type="submit" disabled={isSubmitting || submitSuccess}>
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -574,7 +738,7 @@ export default function NewStudentPage() {
               ) : (
                 <>
                   <Save className="w-4 h-4" />
-                  Simpan Siswa
+                  Simpan Perubahan
                 </>
               )}
             </Button>

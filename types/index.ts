@@ -1,12 +1,4 @@
-export * from "./student";
-
-// Schedule type for dashboard
-export interface Schedule {
-  id: string;
-  time: string;
-  endTime: string;
-  subject: string;
-  class: string;
-  teacher: string;
-  room: string;
-}
+// Types barrel export
+export * from "./database"
+export * from "./buku-induk"
+// Note: ./student exports are not re-exported to avoid conflicts with database Student type

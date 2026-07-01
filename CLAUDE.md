@@ -2,7 +2,35 @@
 
 ## Context Utama
 
-Selalu baca dan gunakan folder **panduan/** sebagai referensi utama untuk setiap tugas.
+Baca dan gunakan file panduan yang **RELEVAN** dengan fitur/halaman yang sedang dikerjakan. Tidak perlu membaca semua file di folder panduan.
+
+### Cara Memilih Panduan yang Relevan
+
+Identifikasi fitur/halaman yang terlibat, lalu baca hanya panduan yang berkaitan:
+
+| Fitur / Halaman | Panduan yang Relevan |
+|-----------------|---------------------|
+| **buku-induk** | `student-registry.md`, `design-tokens.md`, `component-library.md` |
+| **absensi** | `attendance.md`, `design-tokens.md`, `form-guidelines.md` |
+| **dashboard** | `dashboard.md`, `design-tokens.md`, `layout-system.md` |
+| **tabungan** | `savings.md`, `design-tokens.md`, `data-table.md` |
+| **autentikasi** | `authentication.md`, `14-authentication.md` |
+| **statistik** | `statistics.md`, `design-tokens.md`, `charts.md` |
+| **penilaian** | `assessment.md`, `design-tokens.md`, `form-guidelines.md` |
+| **impor/ekspor** | `import-export.md`, `design-tokens.md` |
+| **setelan/aplikasi** | `settings.md`, `design-tokens.md` |
+| **komponen UI umum** | `design-tokens.md`, `component-library.md`, `layout-system.md` |
+| **form/input** | `form-guidelines.md`, `design-tokens.md` |
+| **tabel data** | `data-table.md`, `design-tokens.md` |
+
+> **Catatan:** Design tokens (`design-tokens.md`) hampir selalu relevan untuk setiap perubahan tampilan.
+
+### Mekanisme Fallback
+
+Jika informasi tidak ditemukan di file panduan yang dimaksud, cari di file panduan lain yang mungkin relevan. Contoh:
+
+- Fitur tabungan tidak ada di `savings.md` → cek `data-table.md` atau `component-library.md`
+- Pattern halaman tidak ada di `page-patterns.md` → cek `component-library.md`
 
 ### Struktur Panduan
 
@@ -221,4 +249,4 @@ panduan/backup/
 
 - Twosraku adalah aplikasi Flutter (mobile-first)
 - Menggunakan Clean Architecture
-- Selalu konsultasikan panduan terkait sebelum mengimplementasi fitur baru
+- Selalu konsultasikan panduan **yang relevan** sebelum mengimplementasi fitur baru

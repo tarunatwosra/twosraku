@@ -4,7 +4,7 @@ import { forwardRef, type HTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
 export interface AvatarProps extends HTMLAttributes<HTMLDivElement> {
-  src?: string;
+  src?: string | null;
   alt?: string;
   fallback?: string;
   size?: "sm" | "md" | "lg";

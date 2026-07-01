@@ -1,13 +1,26 @@
 /**
- * Student Constants - Twosraku
- * Version: 2.0
+ * Constants for Student Registry
+ *
+ * Konstanta yang digunakan di Buku Induk
  */
 
-// Gender options - matches database schema (male/female)
+// Re-export from database types
+export type { Student, StudentWithClass, StudentFilters, StudentSortOptions } from "./database"
+
+// Gender options for forms
 export const GENDERS = [
   { value: "male", label: "Laki-laki" },
   { value: "female", label: "Perempuan" },
-]
+] as const
+
+// Student status options
+export const STUDENT_STATUSES = [
+  { value: "prospective", label: "Calon Siswa" },
+  { value: "active", label: "Aktif" },
+  { value: "transferred", label: "Pindah" },
+  { value: "graduated", label: "Lulus" },
+  { value: "archived", label: "Diarsipkan" },
+] as const
 
 // Religion options
 export const RELIGIONS = [
@@ -17,29 +30,17 @@ export const RELIGIONS = [
   { value: "Hindu", label: "Hindu" },
   { value: "Buddha", label: "Buddha" },
   { value: "Konghucu", label: "Konghucu" },
-]
+] as const
 
-// Student status options - matches database schema
-export const STUDENT_STATUSES = [
-  { value: "prospective", label: "Calon Siswa" },
-  { value: "active", label: "Aktif" },
-  { value: "transferred", label: "Pindah" },
-  { value: "graduated", label: "Lulus" },
-  { value: "archived", label: "Diarsipkan" },
-]
-
-// Class levels
-export const CLASS_LEVELS = ["X", "XI", "XII"]
-
-// Blood types
+// Blood type options
 export const BLOOD_TYPES = [
   { value: "A", label: "A" },
   { value: "B", label: "B" },
   { value: "AB", label: "AB" },
   { value: "O", label: "O" },
-]
+] as const
 
-// Education levels for parents
+// Education level options
 export const EDUCATION_LEVELS = [
   { value: "SD", label: "SD/Sederajat" },
   { value: "SMP", label: "SMP/Sederajat" },
@@ -51,45 +52,34 @@ export const EDUCATION_LEVELS = [
   { value: "S1", label: "Sarjana (S1)" },
   { value: "S2", label: "Magister (S2)" },
   { value: "S3", label: "Doktor (S3)" },
-]
+] as const
 
-// Parent types
+// Parent type options
 export const PARENT_TYPES = [
   { value: "father", label: "Ayah" },
   { value: "mother", label: "Ibu" },
   { value: "guardian", label: "Wali" },
-]
+] as const
 
-// Academic years
-export const ACADEMIC_YEARS = [
-  { value: "2024/2025", label: "2024/2025" },
-  { value: "2025/2026", label: "2025/2026" },
-  { value: "2026/2027", label: "2026/2027" },
-]
-
-// Pagination defaults
-export const DEFAULT_PAGE_SIZE = 25
-export const PAGE_SIZE_OPTIONS = [10, 25, 50, 100]
-
-// Gender label helper
+// Helper function to get gender label
 export function getGenderLabel(gender: string): string {
   const found = GENDERS.find((g) => g.value === gender)
   return found?.label || gender
 }
 
-// Status label helper
+// Helper function to get status label
 export function getStatusLabel(status: string): string {
   const found = STUDENT_STATUSES.find((s) => s.value === status)
   return found?.label || status
 }
 
-// Religion label helper
+// Helper function to get religion label
 export function getReligionLabel(religion: string): string {
   const found = RELIGIONS.find((r) => r.value === religion)
   return found?.label || religion
 }
 
-// Blood type label helper
+// Helper function to get blood type label
 export function getBloodTypeLabel(bloodType: string): string {
   const found = BLOOD_TYPES.find((b) => b.value === bloodType)
   return found?.label || bloodType

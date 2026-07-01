@@ -5,3 +5,4 @@ export * from "./select";
 export * from "./badge";
 export * from "./avatar";
 export * from "./pagination";
+export * from "./modal";
