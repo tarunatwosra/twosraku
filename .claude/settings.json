@@ -1,0 +1,12 @@
+{
+  "project": {
+    "readme": "CLAUDE.md",
+    "alwaysIncludeContext": [
+      "CLAUDE.md",
+      "panduan/**/*.md"
+    ]
+  },
+  "permissions": {
+    "allow": []
+  }
+}
