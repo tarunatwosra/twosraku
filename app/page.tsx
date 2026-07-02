@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from "react"
 import { AppShell } from "@/components/layout"
-import { Card } from "@/components/ui"
+import { useAuth } from "@/hooks/useAuth"
+import { useSettings } from "@/hooks/useSettings"
+import { useDashboardStats } from "@/hooks"
+import { useRouter } from "next/navigation"
 import {
   KPICard,
   AttendanceTrendChart,
@@ -10,7 +13,6 @@ import {
   ActivityTimeline,
   StudentDistributionChart,
 } from "@/components/dashboard"
-import { useDashboardStats, useAcademicYear } from "@/hooks"
 import {
   Users,
   UserRound,
@@ -22,9 +24,42 @@ import {
 import { cn } from "@/lib/utils"
 
 export default function DashboardPage() {
+  const router = useRouter()
+  const { isAuthenticated, isLoading: authLoading } = useAuth()
+  const { settings } = useSettings()
   const { stats, loading, error, refetch } = useDashboardStats()
-  const { academicYear, semester } = useAcademicYear()
   const [isRefreshing, setIsRefreshing] = useState(false)
+
+  const academicYear = settings.academic.academicYears.find(
+    (y) => y.id === settings.academic.activeAcademicYear
+  )
+  const semester = settings.academic.semesters.find(
+    (s) => s.id === settings.academic.activeSemester
+  )
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push("/login")
+    }
+  }, [isAuthenticated, authLoading, router])
+
+  // Show loading while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[var(--background-primary)]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
+          <p className="text-[var(--text-secondary)]">Memuat...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Don't render dashboard if not authenticated
+  if (!isAuthenticated) {
+    return null
+  }
 
   const handleRefresh = async () => {
     setIsRefreshing(true)
@@ -33,8 +68,8 @@ export default function DashboardPage() {
   }
 
   // Format tahun ajaran dan semester
-  const academicYearName = academicYear?.name || "2024/2025"
-  const semesterName = semester?.name || "Semester Genap"
+  const academicYearName = academicYear?.name || "2025/2026"
+  const semesterName = semester?.name || "Semester Ganjil"
 
   // Sample trend data (karena belum ada data historical)
   const studentTrendData = [
@@ -104,7 +139,7 @@ export default function DashboardPage() {
       <div className="mb-[24px] flex items-center justify-between">
         <div className="flex items-center gap-2 text-[13px] text-[var(--text-muted)]">
           <span className="font-medium text-[var(--text-secondary)]">
-            SMKN 2 Sragen
+            {settings.school.name}
           </span>
           <span>•</span>
           <span>{academicYearName}</span>

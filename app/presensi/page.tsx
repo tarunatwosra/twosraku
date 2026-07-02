@@ -1,282 +1,285 @@
-"use client";
+"use client"
 
-import { useState, useEffect, useCallback } from "react";
-import { Download, Eye, Calendar, ClipboardCheck } from "lucide-react";
-import { AppLayout } from "@/components/layout";
-import { ListPageTemplate } from "@/components/templates";
-import { Badge } from "@/components/ui";
-import { KPICard } from "@/components/dashboard";
-import { getAttendance, getAllClasses, getTodaySummary, type Attendance } from "./lib/data";
+import { useState, useEffect } from "react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { AppShell } from "@/components/layout"
+import { Card } from "@/components/ui"
+import { Button } from "@/components/ui/button"
+import { useAuth } from "@/hooks/useAuth"
+import { useAttendance, useAttendanceRecap } from "@/hooks/useAttendance"
+import { ATTENDANCE_STATUS_CONFIG, type AttendanceStatus } from "@/types/attendance"
+import {
+  Calendar,
+  Clock,
+  Users,
+  CheckCircle2,
+  AlertCircle,
+  ChevronRight,
+  Plus,
+  FileText,
+  TrendingUp,
+} from "lucide-react"
+import { cn } from "@/lib/utils"
 
 export default function AttendancePage() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [attendance, setAttendance] = useState<Attendance[]>([]);
-  const [pagination, setPagination] = useState({
-    page: 1,
-    pageSize: 10,
-    total: 0,
-    totalPages: 0,
-  });
-  const [todaySummary, setTodaySummary] = useState({
-    totalRecords: 0,
-    totalStudents: 0,
-    present: 0,
-    absent: 0,
-    averageRate: 0,
-  });
+  const router = useRouter()
+  const { isAuthenticated, isLoading: authLoading } = useAuth()
+  const {
+    summary,
+    classId,
+    date,
+    isSubmitted,
+    classes,
+    loading,
+    setClass,
+    setDate,
+    markAllPresent,
+  } = useAttendance()
+  const { getDailyRecap } = useAttendanceRecap()
 
-  // Filters
-  const [searchQuery, setSearchQuery] = useState("");
-  const [classFilter, setClassFilter] = useState("");
-  const [dateFilter, setDateFilter] = useState("");
-  const [classes, setClasses] = useState<string[]>([]);
-
-  // Debounced search
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-
+  // Redirect if not authenticated
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
-
-  // Fetch attendance
-  const fetchAttendance = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const result = await getAttendance(pagination.page, pagination.pageSize, {
-        search: debouncedSearch || undefined,
-        class: classFilter || undefined,
-        date: dateFilter || undefined,
-      });
-      setAttendance(result.data);
-      setPagination((prev) => ({ ...prev, ...result.pagination }));
-    } catch (error) {
-      console.error("Failed to fetch attendance:", error);
-    } finally {
-      setIsLoading(false);
+    if (!authLoading && !isAuthenticated) {
+      router.push("/login")
     }
-  }, [pagination.page, pagination.pageSize, debouncedSearch, classFilter, dateFilter]);
+  }, [isAuthenticated, authLoading, router])
 
-  useEffect(() => {
-    fetchAttendance();
-  }, [fetchAttendance]);
-
-  useEffect(() => {
-    setClasses(getAllClasses());
-    setTodaySummary(getTodaySummary());
-  }, []);
-
-  // Handle page change
-  const handlePageChange = (page: number) => {
-    setPagination((prev) => ({ ...prev, page }));
-  };
-
-  const handlePageSizeChange = (pageSize: number) => {
-    setPagination((prev) => ({ ...prev, pageSize, page: 1 }));
-  };
-
-  // Columns
-  const columns = [
-    {
-      key: "date",
-      header: "Tanggal",
-      render: (item: Attendance) => (
-        <div className="flex items-center gap-[10px]">
-          <div className="w-10 h-10 rounded-[12px] bg-[var(--primary-soft)] flex items-center justify-center">
-            <Calendar className="w-5 h-5 text-[var(--primary)]" />
-          </div>
-          <div>
-            <p className="text-[14px] font-medium text-[var(--text-primary)]">
-              {new Date(item.date).toLocaleDateString("id-ID", {
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-              })}
-            </p>
-            <p className="text-[12px] text-[var(--text-muted)]">
-              {item.recordedBy}
-            </p>
-          </div>
+  // Show loading while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[var(--background-primary)]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
+          <p className="text-[var(--text-secondary)]">Memuat...</p>
         </div>
-      ),
-    },
-    {
-      key: "class",
-      header: "Kelas",
-      render: (item: Attendance) => (
-        <div>
-          <p className="text-[14px] font-medium text-[var(--text-primary)]">
-            {item.class}
-          </p>
-          {item.subject && (
-            <p className="text-[12px] text-[var(--text-muted)]">
-              {item.subject}
-            </p>
-          )}
-        </div>
-      ),
-    },
-    {
-      key: "present",
-      header: "Kehadiran",
-      render: (item: Attendance) => (
-        <div className="flex items-center gap-[16px]">
-          <div className="text-center">
-            <p className="text-[14px] font-semibold text-[var(--success)]">
-              {item.present}
-            </p>
-            <p className="text-[11px] text-[var(--text-muted)]">Hadir</p>
-          </div>
-          <div className="text-center">
-            <p className="text-[14px] font-semibold text-[var(--warning)]">
-              {item.sick + item.permission}
-            </p>
-            <p className="text-[11px] text-[var(--text-muted)]">Izin/Sakit</p>
-          </div>
-          <div className="text-center">
-            <p className="text-[14px] font-semibold text-[var(--danger)]">
-              {item.absent}
-            </p>
-            <p className="text-[11px] text-[var(--text-muted)]">Alpha</p>
-          </div>
-        </div>
-      ),
-    },
-    {
-      key: "rate",
-      header: "Tingkat",
-      render: (item: Attendance) => {
-        const variant =
-          item.attendanceRate >= 95
-            ? "success"
-            : item.attendanceRate >= 90
-            ? "warning"
-            : "danger";
-        return (
-          <Badge variant={variant}>
-            {item.attendanceRate.toFixed(1)}%
-          </Badge>
-        );
-      },
-      width: "100px",
-    },
-  ];
+      </div>
+    )
+  }
 
-  // Row actions
-  const rowActions = [
-    {
-      label: "Detail",
-      icon: <Eye className="w-4 h-4" />,
-      onClick: (item: Attendance) => console.log("View", item.id),
-    },
-  ];
+  if (!isAuthenticated) {
+    return null
+  }
 
   return (
-    <AppLayout>
-      {/* KPI Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[24px] mb-[24px]">
-        <KPICard
-          title="Total Presensi"
-          value={todaySummary.totalRecords}
-          subtitle="data hari ini"
-          icon={<ClipboardCheck className="w-6 h-6" />}
-          color="primary"
-        />
-        <KPICard
-          title="Total Siswa"
-          value={todaySummary.totalStudents}
-          subtitle="terdaftar"
-          icon={<ClipboardCheck className="w-6 h-6" />}
-          color="info"
-        />
-        <KPICard
-          title="Hadir"
-          value={todaySummary.present}
-          subtitle="siswa hadir"
-          icon={<ClipboardCheck className="w-6 h-6" />}
-          color="success"
-        />
-        <KPICard
-          title="Tidak Hadir"
-          value={todaySummary.absent}
-          subtitle="alpha/izin/sakit"
-          icon={<ClipboardCheck className="w-6 h-6" />}
-          color="danger"
-        />
-      </div>
+    <AppShell title="Presensi" description="Kelola kehadiran siswa">
+      <div className="space-y-6">
+        {/* Quick Actions */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Link href="/presensi/input">
+              <Button className="gap-2">
+                <Plus className="w-4 h-4" />
+                Ambil Presensi
+              </Button>
+            </Link>
+            <Link href="/presensi/rekap">
+              <Button variant="outline" className="gap-2">
+                <FileText className="w-4 h-4" />
+                Lihat Rekap
+              </Button>
+            </Link>
+          </div>
+          <p className="text-sm text-[var(--text-muted)]">
+            {new Date().toLocaleDateString("id-ID", {
+              weekday: "long",
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })}
+          </p>
+        </div>
 
-      {/* Attendance List */}
-      <ListPageTemplate
-        title="Presensi Siswa"
-        description="Kelola dan lihat data presensi siswa"
-        breadcrumbs={[
-          { label: "Dashboard", href: "/" },
-          { label: "Akademik" },
-          { label: "Presensi Siswa" },
-        ]}
-        primaryAction={{
-          label: "Ambil Presensi",
-          onClick: () => console.log("Take attendance"),
-        }}
-        secondaryActions={[
-          {
-            label: "Export",
-            icon: <Download className="w-4 h-4" />,
-            onClick: () => console.log("Export"),
-          },
-        ]}
-        filters={{
-          search: {
-            placeholder: "Cari kelas, mapel...",
-            value: searchQuery,
-            onChange: setSearchQuery,
-          },
-          selects: [
-            {
-              name: "class",
-              label: "Kelas",
-              placeholder: "Semua",
-              value: classFilter,
-              onChange: setClassFilter,
-              options: classes.map((c) => ({ value: c, label: c })),
-            },
-            {
-              name: "date",
-              label: "Tanggal",
-              placeholder: "Semua",
-              value: dateFilter,
-              onChange: setDateFilter,
-              options: [
-                { value: "2025-01-15", label: "15 Januari 2025" },
-                { value: "2025-01-14", label: "14 Januari 2025" },
-                { value: "2025-01-13", label: "13 Januari 2025" },
-              ],
-            },
-          ],
-        }}
-        columns={columns}
-        data={attendance}
-        isLoading={isLoading}
-        pagination={{
-          currentPage: pagination.page,
-          totalPages: pagination.totalPages,
-          pageSize: pagination.pageSize,
-          totalItems: pagination.total,
-          onPageChange: handlePageChange,
-          onPageSizeChange: handlePageSizeChange,
-        }}
-        rowActions={rowActions}
-        emptyState={{
-          title: "Tidak ada data presensi",
-          description: "Ambil presensi untuk menambahkan data",
-          action: {
-            label: "Ambil Presensi",
-            onClick: () => console.log("Take attendance"),
-          },
-        }}
-      />
-    </AppLayout>
-  );
+        {/* KPI Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <KPICard
+            title="Total Siswa"
+            value={summary.totalStudents}
+            subtitle="terdaftar"
+            icon={<Users className="w-5 h-5" />}
+            color="primary"
+          />
+          <KPICard
+            title="Hadir"
+            value={summary.present}
+            subtitle={`${summary.percentage.toFixed(1)}%`}
+            icon={<CheckCircle2 className="w-5 h-5" />}
+            color="success"
+          />
+          <KPICard
+            title="Izin / Sakit"
+            value={summary.permission + summary.sick}
+            subtitle="dengan izin"
+            icon={<AlertCircle className="w-5 h-5" />}
+            color="warning"
+          />
+          <KPICard
+            title="Alpha"
+            value={summary.absent}
+            subtitle="tanpa keterangan"
+            icon={<AlertCircle className="w-5 h-5" />}
+            color="danger"
+          />
+        </div>
+
+        {/* Attendance by Class */}
+        <Card className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+              Presensi per Kelas
+            </h2>
+            <Link
+              href="/presensi/rekap"
+              className="text-sm text-[var(--primary)] hover:underline flex items-center gap-1"
+            >
+              Lihat Semua
+              <ChevronRight className="w-4 h-4" />
+            </Link>
+          </div>
+
+          <div className="space-y-3">
+            {classes.map((cls) => (
+              <Link key={cls.id} href={`/presensi/kelas/${cls.id}`}>
+                <div
+                  className={cn(
+                    "flex items-center justify-between p-4 rounded-lg border transition-colors cursor-pointer",
+                    classId === cls.id
+                      ? "border-[var(--primary)] bg-[var(--primary-soft)]"
+                      : "border-[var(--border)] hover:border-[var(--primary)]"
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-[var(--surface-secondary)] flex items-center justify-center">
+                      <Users className="w-5 h-5 text-[var(--text-secondary)]" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-[var(--text-primary)]">
+                        {cls.name}
+                      </p>
+                      <p className="text-sm text-[var(--text-muted)]">
+                        {cls.major}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <StatusBadge status="present" count={28} />
+                    <StatusBadge status="late" count={2} />
+                    <StatusBadge status="absent" count={2} />
+                    <ChevronRight className="w-5 h-5 text-[var(--text-muted)]" />
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </Card>
+
+        {/* Recent Activity */}
+        <Card className="p-6">
+          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
+            Aktivitas Terbaru
+          </h2>
+
+          <div className="space-y-4">
+            <ActivityItem
+              title="Presensi X TKJ 1"
+              description="32 siswa - 100% hadir"
+              time="08:30"
+              icon={<CheckCircle2 className="w-4 h-4 text-[var(--success)]" />}
+            />
+            <ActivityItem
+              title="Presensi XI TKJ 1"
+              description="30 siswa - 2 izin"
+              time="08:45"
+              icon={<AlertCircle className="w-4 h-4 text-[var(--warning)]" />}
+            />
+            <ActivityItem
+              title="Presensi XII TKJ 1"
+              description="28 siswa - 1 alpha"
+              time="09:00"
+              icon={<AlertCircle className="w-4 h-4 text-[var(--danger)]" />}
+            />
+          </div>
+        </Card>
+      </div>
+    </AppShell>
+  )
+}
+
+// KPI Card Component
+interface KPICardProps {
+  title: string
+  value: number
+  subtitle: string
+  icon: React.ReactNode
+  color: "primary" | "success" | "warning" | "danger"
+}
+
+function KPICard({ title, value, subtitle, icon, color }: KPICardProps) {
+  const colors = {
+    primary: "bg-[var(--primary-soft)] text-[var(--primary)]",
+    success: "bg-[var(--success-soft)] text-[var(--success)]",
+    warning: "bg-[var(--warning-soft)] text-[var(--warning)]",
+    danger: "bg-[var(--danger-soft)] text-[var(--danger)]",
+  }
+
+  return (
+    <Card className="p-4">
+      <div className="flex items-center gap-3">
+        <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", colors[color])}>
+          {icon}
+        </div>
+        <div>
+          <p className="text-sm text-[var(--text-muted)]">{title}</p>
+          <p className="text-xl font-bold text-[var(--text-primary)]">
+            {value}
+          </p>
+          <p className="text-xs text-[var(--text-muted)]">{subtitle}</p>
+        </div>
+      </div>
+    </Card>
+  )
+}
+
+// Status Badge Component
+function StatusBadge({ status, count }: { status: AttendanceStatus; count: number }) {
+  const config = ATTENDANCE_STATUS_CONFIG[status]
+  const colors = {
+    present: "bg-[var(--success-soft)] text-[var(--success)]",
+    late: "bg-[var(--warning-soft)] text-[var(--warning)]",
+    permission: "bg-[var(--info-soft)] text-[var(--info)]",
+    sick: "bg-[var(--warning-soft)] text-[var(--warning)]",
+    absent: "bg-[var(--danger-soft)] text-[var(--danger)]",
+  }
+
+  return (
+    <div className={cn("px-2 py-1 rounded text-xs font-medium", colors[status])}>
+      {count} {config.shortLabel}
+    </div>
+  )
+}
+
+// Activity Item Component
+function ActivityItem({
+  title,
+  description,
+  time,
+  icon,
+}: {
+  title: string
+  description: string
+  time: string
+  icon: React.ReactNode
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="w-8 h-8 rounded-full bg-[var(--surface-secondary)] flex items-center justify-center">
+        {icon}
+      </div>
+      <div className="flex-1">
+        <p className="text-sm font-medium text-[var(--text-primary)]">{title}</p>
+        <p className="text-xs text-[var(--text-muted)]">{description}</p>
+      </div>
+      <span className="text-xs text-[var(--text-muted)]">{time}</span>
+    </div>
+  )
 }

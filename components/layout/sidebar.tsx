@@ -1,7 +1,7 @@
-"use client";
+"use client"
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 import {
   Home,
   BookUser,
@@ -22,29 +22,63 @@ import {
   GraduationCap,
   PanelLeftClose,
   PanelLeft,
-} from "lucide-react";
-import { useState } from "react";
-import { cn } from "@/lib/utils";
+  Award,
+  PiggyBank,
+  Heart,
+  Shield,
+  ArrowUpDown,
+} from "lucide-react"
+import { useState } from "react"
+import { cn } from "@/lib/utils"
+import { useAuth } from "@/hooks/useAuth"
 
 interface NavItem {
-  icon: typeof Home;
-  label: string;
-  href: string;
+  icon: typeof Home
+  label: string
+  href: string
 }
 
 interface NavSection {
-  title: string;
-  items: NavItem[];
+  title: string
+  items: NavItem[]
 }
 
 const navigationSections: NavSection[] = [
   {
     title: "AKADEMIK",
     items: [
+      { icon: Home, label: "Dashboard", href: "/" },
       { icon: BookUser, label: "Buku Induk", href: "/buku-induk" },
       { icon: Users, label: "Data Siswa", href: "/siswa" },
-      { icon: ClipboardCheck, label: "Presensi Siswa", href: "/presensi" },
-      { icon: BarChart3, label: "Penilaian", href: "/penilaian" },
+    ],
+  },
+  {
+    title: "PRESENSI",
+    items: [
+      { icon: ClipboardCheck, label: "Presensi Harian", href: "/presensi" },
+      { icon: FileText, label: "Rekap Presensi", href: "/presensi/rekap" },
+    ],
+  },
+  {
+    title: "PENILAIAN",
+    items: [
+      { icon: BarChart3, label: "Dashboard", href: "/penilaian" },
+      { icon: BarChart3, label: "Template", href: "/penilaian/template" },
+      { icon: BarChart3, label: "Sesi", href: "/penilaian/session" },
+      { icon: BarChart3, label: "Input Nilai", href: "/penilaian/input" },
+    ],
+  },
+  {
+    title: "POIN KARAKTER",
+    items: [
+      { icon: Award, label: "Dashboard", href: "/poin-karakter" },
+      { icon: Award, label: "Input", href: "/poin-karakter/input" },
+      { icon: Award, label: "Riwayat", href: "/poin-karakter/riwayat" },
+    ],
+  },
+  {
+    title: "AKADEMIK LAINNYA",
+    items: [
       { icon: CalendarDays, label: "Jadwal Pelajaran", href: "/jadwal" },
       { icon: BookOpen, label: "Mata Pelajaran", href: "/mapel" },
       { icon: School, label: "Kelas", href: "/kelas" },
@@ -54,6 +88,9 @@ const navigationSections: NavSection[] = [
     title: "ADMINISTRASI",
     items: [
       { icon: Briefcase, label: "Guru & Staff", href: "/guru-staff" },
+      { icon: Shield, label: "Pasukan Khusus", href: "/pasukan-khusus" },
+      { icon: Heart, label: "Spiritual", href: "/spiritual" },
+      { icon: PiggyBank, label: "Tabungan", href: "/tabungan" },
       { icon: Package, label: "Inventaris", href: "/inventaris" },
       { icon: Mail, label: "Surat", href: "/surat" },
       { icon: Megaphone, label: "Pengumuman", href: "/pengumuman" },
@@ -61,35 +98,71 @@ const navigationSections: NavSection[] = [
   },
   {
     title: "LAPORAN",
-    items: [{ icon: FileText, label: "Laporan", href: "/laporan" }],
+    items: [
+      { icon: FileText, label: "Laporan", href: "/laporan" },
+      { icon: BarChart3, label: "Statistik", href: "/statistik" },
+      { icon: ArrowUpDown, label: "Import & Export", href: "/import-export" },
+    ],
   },
   {
     title: "SISTEM",
-    items: [{ icon: Settings, label: "Pengaturan", href: "/pengaturan" }],
+    items: [
+      { icon: Settings, label: "Pengaturan", href: "/settings" },
+    ],
   },
-];
+]
 
 interface SidebarProps {
-  isCollapsed?: boolean;
-  onCollapsedChange?: (collapsed: boolean) => void;
+  isCollapsed?: boolean
+  onCollapsedChange?: (collapsed: boolean) => void
 }
 
 export function Sidebar({ isCollapsed = false, onCollapsedChange }: SidebarProps) {
-  const pathname = usePathname();
+  const pathname = usePathname()
+  const { user } = useAuth()
   const [expandedSections, setExpandedSections] = useState<string[]>([
     "AKADEMIK",
+    "PRESENSI",
+    "PENILAIAN",
+    "POIN KARAKTER",
     "ADMINISTRASI",
-  ]);
+    "LAPORAN",
+  ])
 
   const toggleSection = (section: string) => {
     setExpandedSections((prev) =>
       prev.includes(section)
         ? prev.filter((s) => s !== section)
         : [...prev, section]
-    );
-  };
+    )
+  }
 
-  const isActive = (href: string) => pathname === href;
+  const isActive = (href: string) => pathname === href
+
+  // Get user initials for avatar
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2)
+  }
+
+  // Get role label
+  const getRoleLabel = (role: string) => {
+    const labels: Record<string, string> = {
+      super_admin: "Super Admin",
+      admin: "Administrator",
+      principal: "Kepala Sekolah",
+      vice_principal: "Wakil Kepala",
+      teacher: "Guru",
+      homeroom_teacher: "Wali Kelas",
+      staff: "Staff",
+      guest: "Tamu",
+    }
+    return labels[role] || role
+  }
 
   return (
     <aside
@@ -123,9 +196,9 @@ export function Sidebar({ isCollapsed = false, onCollapsedChange }: SidebarProps
         {!isCollapsed && (
           <div className="overflow-hidden">
             <h1 className="text-[15px] font-bold text-[var(--text-primary)] leading-tight">
-              SMA Negeri 1
+              SMKN 2 Sragen
             </h1>
-            <p className="text-[12px] text-[var(--text-muted)]">Yogyakarta</p>
+            <p className="text-[12px] text-[var(--text-muted)]">Taruna</p>
           </div>
         )}
       </div>
@@ -143,6 +216,7 @@ export function Sidebar({ isCollapsed = false, onCollapsedChange }: SidebarProps
             hover:bg-[var(--surface-hover)]
             hover:text-[var(--text-primary)]
             transition-all duration-200
+
             `,
             isCollapsed && "justify-center px-0"
           )}
@@ -161,7 +235,7 @@ export function Sidebar({ isCollapsed = false, onCollapsedChange }: SidebarProps
       {/* Navigation */}
       <nav className="flex-1 px-3 overflow-y-auto py-2">
         {navigationSections.map((section) => {
-          const isExpanded = expandedSections.includes(section.title);
+          const isExpanded = expandedSections.includes(section.title)
           return (
             <div key={section.title} className="mb-2">
               {!isCollapsed && (
@@ -205,36 +279,37 @@ export function Sidebar({ isCollapsed = false, onCollapsedChange }: SidebarProps
                 </div>
               )}
             </div>
-          );
+          )
         })}
       </nav>
 
       {/* User Profile */}
       <div className="p-3 border-t border-[var(--border-light)]">
-        <div
+        <Link
+          href="/settings/users"
           className={cn(
             "flex items-center gap-3 p-3 rounded-[18px] hover:bg-[var(--surface-hover)] cursor-pointer transition-colors",
             isCollapsed && "justify-center"
           )}
         >
-          <div className="w-10 h-10 rounded-[18px] bg-[var(--success-soft)] text-[var(--success)] flex items-center justify-center font-semibold text-[14px] flex-shrink-0">
-            BS
+          <div className="w-10 h-10 rounded-[18px] bg-[var(--primary-soft)] text-[var(--primary)] flex items-center justify-center font-semibold text-[14px] flex-shrink-0">
+            {user?.name ? getInitials(user.name) : "U"}
           </div>
           {!isCollapsed && (
             <>
               <div className="flex-1 min-w-0">
                 <p className="text-[14px] font-semibold text-[var(--text-primary)] truncate">
-                  Budi Santoso
+                  {user?.name || "User"}
                 </p>
                 <p className="text-[12px] text-[var(--text-muted)]">
-                  Administrator
+                  {user?.role ? getRoleLabel(user.role) : "Guest"}
                 </p>
               </div>
               <LogOut className="w-4 h-4 text-[var(--text-muted)]" />
             </>
           )}
-        </div>
+        </Link>
       </div>
     </aside>
-  );
+  )
 }
