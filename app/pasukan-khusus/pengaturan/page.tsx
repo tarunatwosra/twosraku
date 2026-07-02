@@ -97,10 +97,6 @@ export default function SpecialUnitsSettingsPage() {
     <AppShell
       title="Pengaturan"
       description="Konfigurasi Pasukan Khusus"
-      breadcrumbs={[
-        { label: "Pasukan Khusus", href: "/pasukan-khusus" },
-        { label: "Pengaturan" },
-      ]}
     >
       <div className="space-y-6">
         {/* Header */}

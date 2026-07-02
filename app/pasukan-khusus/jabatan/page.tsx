@@ -205,10 +205,6 @@ export default function PositionsPage() {
     <AppShell
       title="Jabatan"
       description="Kelola struktur jabatan Pasukan Khusus"
-      breadcrumbs={[
-        { label: "Pasukan Khusus", href: "/pasukan-khusus" },
-        { label: "Jabatan" },
-      ]}
     >
       <div className="space-y-6">
         {/* Header Actions */}

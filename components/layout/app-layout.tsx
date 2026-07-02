@@ -34,7 +34,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       <div
         className={cn(
           "flex flex-col min-h-screen",
-          "lg:ml-[328px]"
+          sidebarCollapsed ? "lg:ml-[136px]" : "lg:ml-[328px]"
         )}
       >
         {/* Top Header */}

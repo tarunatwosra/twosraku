@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 import { useAuth } from "@/hooks/useAuth"
 import { useSettings } from "@/hooks/useSettings"
 import { useCommand } from "@/hooks/useCommand"
+import { NotificationPanel } from "@/components/notifications/notification-panel"
 
 interface HeaderProps {
   title?: string
@@ -133,20 +134,8 @@ export function Header({ title, description, onMenuClick }: HeaderProps) {
           </span>
         </div>
 
-        {/* Notification */}
-        <button
-          className={cn(
-            "relative w-[44px] h-[44px] flex items-center justify-center",
-            "text-[var(--text-secondary)] hover:text-[var(--text-primary)]",
-            "hover:bg-[var(--surface-hover)] rounded-[18px] transition-colors"
-          )}
-          aria-label="Notifications"
-        >
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-2 right-2 w-4 h-4 bg-[var(--danger)] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-            3
-          </span>
-        </button>
+        {/* Notification Panel */}
+        <NotificationPanel />
 
         {/* User Menu */}
         <div className="relative group">

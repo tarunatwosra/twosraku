@@ -27,6 +27,7 @@ import {
   Heart,
   Shield,
   ArrowUpDown,
+  Bell,
 } from "lucide-react"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
@@ -107,6 +108,7 @@ const navigationSections: NavSection[] = [
   {
     title: "SISTEM",
     items: [
+      { icon: Bell, label: "Notifikasi", href: "/notifications" },
       { icon: Settings, label: "Pengaturan", href: "/settings" },
     ],
   },
