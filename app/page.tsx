@@ -12,6 +12,15 @@ import {
   QuickActions,
   ActivityTimeline,
   StudentDistributionChart,
+  CharacterBalanceWidget,
+  SpecialUnitMembersWidget,
+  SavingsOverviewWidget,
+  NotificationsPanel,
+  AssessmentProgressWidget,
+  CharacterPointsVisualization,
+  CalendarWidget,
+  AnnouncementsWidget,
+  GlobalSearch,
 } from "@/components/dashboard"
 import {
   Users,
@@ -20,6 +29,8 @@ import {
   GraduationCap,
   RefreshCw,
   AlertCircle,
+  Wallet,
+  Shield,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -112,6 +123,16 @@ export default function DashboardPage() {
     { value: 82 },
   ]
 
+  const characterData = [
+    { value: 85 },
+    { value: 88 },
+    { value: 90 },
+    { value: 92 },
+    { value: 95 },
+    { value: 93 },
+    { value: 98 },
+  ]
+
   return (
     <AppShell showHeader={true}>
       {/* Error State */}
@@ -146,26 +167,29 @@ export default function DashboardPage() {
           <span>•</span>
           <span>{semesterName}</span>
         </div>
-        <button
-          onClick={handleRefresh}
-          disabled={loading || isRefreshing}
-          className={cn(
-            "flex items-center gap-2 px-3 py-1.5 text-[13px] text-[var(--text-secondary)]",
-            "hover:bg-[var(--surface-hover)] rounded-[14px] transition-colors",
-            (loading || isRefreshing) && "opacity-50 cursor-not-allowed"
-          )}
-        >
-          <RefreshCw
+        <div className="flex items-center gap-3">
+          <GlobalSearch />
+          <button
+            onClick={handleRefresh}
+            disabled={loading || isRefreshing}
             className={cn(
-              "w-4 h-4",
-              (loading || isRefreshing) && "animate-spin"
+              "flex items-center gap-2 px-3 py-1.5 text-[13px] text-[var(--text-secondary)]",
+              "hover:bg-[var(--surface-hover)] rounded-[14px] transition-colors",
+              (loading || isRefreshing) && "opacity-50 cursor-not-allowed"
             )}
-          />
-          Refresh
-        </button>
+          >
+            <RefreshCw
+              className={cn(
+                "w-4 h-4",
+                (loading || isRefreshing) && "animate-spin"
+              )}
+            />
+            Refresh
+          </button>
+        </div>
       </div>
 
-      {/* KPI Cards Grid */}
+      {/* KPI Cards Grid - Row 1 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[24px] mb-[24px]">
         <KPICard
           title="Total Siswa"
@@ -213,23 +237,113 @@ export default function DashboardPage() {
         />
       </div>
 
+      {/* KPI Cards Grid - Row 2 (Special Units & Savings) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[24px] mb-[24px]">
+        <KPICard
+          title="Unit Khusus"
+          value={loading ? "..." : (stats?.specialUnits?.reduce((sum, u) => sum + u.members, 0) || 300).toString()}
+          subtitle="anggota aktif"
+          trend="dari tahun lalu"
+          trendValue="+5.8%"
+          isPositive={true}
+          icon={<Shield className="w-6 h-6" />}
+          color="purple"
+        />
+        <KPICard
+          title="Total Tabungan"
+          value={loading ? "..." : `Rp ${((stats?.savingsStats?.totalSavings || 125000000) / 1000000).toFixed(0)}jt`}
+          subtitle={`${stats?.savingsStats?.activeStudents || 800} siswa aktif`}
+          trend="dari bulan lalu"
+          trendValue="+12.5%"
+          isPositive={true}
+          icon={<Wallet className="w-6 h-6" />}
+          color="success"
+        />
+        <KPICard
+          title="Balance Karakter"
+          value={loading ? "..." : (stats?.characterStats?.balance || 0).toLocaleString("id-ID")}
+          subtitle={`+${stats?.characterStats?.positivePoints || 0} / -${stats?.characterStats?.negativePoints || 0}`}
+          trend="dari semester lalu"
+          trendValue={stats?.characterStats?.balance && stats.characterStats.balance >= 0 ? "+8%" : "-3%"}
+          isPositive={(stats?.characterStats?.balance ?? 0) >= 0}
+          icon={<AlertCircle className="w-6 h-6" />}
+          color={(stats?.characterStats?.balance ?? 0) >= 0 ? "success" : "danger"}
+          data={characterData}
+        />
+        <KPICard
+          title="Attendance Rate"
+          value={loading ? "..." : `${(stats?.attendanceToday.percentage || 0).toFixed(1)}%`}
+          subtitle="weekly average"
+          trend="vs last week"
+          trendValue="+1.2%"
+          isPositive={true}
+          icon={<CalendarCheck className="w-6 h-6" />}
+          color="info"
+        />
+      </div>
+
       {/* Quick Actions */}
       <QuickActions className="mb-[24px]" />
 
-      {/* Main Content Grid */}
+      {/* Main Content Grid - Analytics Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-[24px] mb-[24px]">
-        {/* Attendance Trend Chart - 2 columns */}
-        <div className="lg:col-span-2">
+        {/* Left Column - 2 columns */}
+        <div className="lg:col-span-2 space-y-[24px]">
+          {/* Attendance Trend Chart */}
           <AttendanceTrendChart />
+
+          {/* Assessment Progress Widget */}
+          <AssessmentProgressWidget />
+
+          {/* Character Points Visualization */}
+          <CharacterPointsVisualization />
         </div>
 
-        {/* Student Distribution Chart - 1 column */}
-        <div>
+        {/* Right Column - 1 column */}
+        <div className="space-y-[24px]">
+          {/* Calendar Widget */}
+          <CalendarWidget />
+
+          {/* Student Distribution Chart */}
           <StudentDistributionChart />
+
+          {/* Special Unit Members Widget */}
+          <SpecialUnitMembersWidget />
         </div>
       </div>
 
-      {/* Activity Timeline */}
+      {/* Second Row - Widgets Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-[24px] mb-[24px]">
+        {/* Notifications Panel */}
+        <div>
+          <NotificationsPanel />
+        </div>
+
+        {/* Announcements Widget */}
+        <div>
+          <AnnouncementsWidget />
+        </div>
+
+        {/* Savings Overview Widget */}
+        <div>
+          <SavingsOverviewWidget
+            totalSavings={stats?.savingsStats?.totalSavings || 125000000}
+            totalDeposits={stats?.savingsStats?.totalDeposits || 85000000}
+            totalWithdrawals={stats?.savingsStats?.totalWithdrawals || 15000000}
+            activeStudents={stats?.savingsStats?.activeStudents || 800}
+          />
+        </div>
+      </div>
+
+      {/* Character Balance Widget - Full Width */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-[24px] mb-[24px]">
+        <CharacterBalanceWidget
+          positivePoints={stats?.characterStats?.positivePoints || 0}
+          negativePoints={stats?.characterStats?.negativePoints || 0}
+        />
+      </div>
+
+      {/* Activity Timeline - Full Width */}
       <ActivityTimeline />
     </AppShell>
   )

@@ -13,7 +13,7 @@ export interface KPICardProps {
   trendValue?: string;
   isPositive?: boolean;
   icon?: React.ReactNode;
-  color?: "primary" | "success" | "warning" | "danger" | "info";
+  color?: "primary" | "success" | "warning" | "danger" | "info" | "purple";
   data?: { value: number }[];
   className?: string;
 }
@@ -53,6 +53,13 @@ const colorMap = {
     icon: "text-white",
     chart: "var(--info)",
     text: "text-[var(--info)]",
+  },
+  purple: {
+    bg: "bg-purple-50",
+    iconBg: "bg-purple-500",
+    icon: "text-white",
+    chart: "#8b5cf6",
+    text: "text-purple-500",
   },
 };
 

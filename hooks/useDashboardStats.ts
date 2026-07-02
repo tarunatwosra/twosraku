@@ -4,8 +4,60 @@ import { useState, useEffect, useCallback } from "react"
 import { supabase } from "@/lib/supabase"
 import type { DashboardStats, AttendanceStats, Activity } from "@/types/database"
 
+interface SpecialUnit {
+  id: string
+  name: string
+  shortName: string
+  members: number
+}
+
+interface SavingsStats {
+  totalSavings: number
+  totalDeposits: number
+  totalWithdrawals: number
+  activeStudents: number
+}
+
+interface CharacterStats {
+  positivePoints: number
+  negativePoints: number
+  balance: number
+}
+
+interface DashboardStatsExtended extends DashboardStats {
+  specialUnits: SpecialUnit[]
+  savingsStats: SavingsStats
+  characterStats: CharacterStats
+  notifications: {
+    unread: number
+    items: Array<{
+      id: string
+      type: string
+      title: string
+      description: string
+      time: string
+      isRead: boolean
+      priority: string
+    }>
+  }
+  announcements: Array<{
+    id: string
+    title: string
+    description: string
+    date: string
+    priority: string
+    isPinned: boolean
+  }>
+  calendarEvents: Array<{
+    id: string
+    title: string
+    date: string
+    type: string
+  }>
+}
+
 interface UseDashboardStatsReturn {
-  stats: DashboardStats | null
+  stats: DashboardStatsExtended | null
   loading: boolean
   error: Error | null
   refetch: () => Promise<void>
@@ -15,7 +67,7 @@ interface UseDashboardStatsReturn {
  * Hook untuk mengambil statistik dashboard
  */
 export function useDashboardStats(): UseDashboardStatsReturn {
-  const [stats, setStats] = useState<DashboardStats | null>(null)
+  const [stats, setStats] = useState<DashboardStatsExtended | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
 
@@ -118,7 +170,41 @@ export function useDashboardStats(): UseDashboardStatsReturn {
           ? Math.round(((completedSessions || 0) / totalSessions) * 100)
           : 0
 
-      setStats({
+      // Ambil notifikasi untuk dashboard
+      const { data: notificationsData } = await supabase
+        .from("notifications")
+        .select("*")
+        .eq("read_status", false)
+        .order("created_at", { ascending: false })
+        .limit(10)
+
+      const unreadNotifications = notificationsData?.length || 0
+
+      // Ambil pengumuman
+      const { data: announcementsData } = await supabase
+        .from("announcements")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(5)
+
+      // Ambil karakter stats (dari character_summaries)
+      let positivePoints = 0
+      let negativePoints = 0
+
+      if (academicYear) {
+        const { data: charStats } = await supabase
+          .from("character_summaries")
+          .select("positive_points, negative_points")
+          .eq("academic_year_id", academicYear.id)
+
+        if (charStats) {
+          positivePoints = charStats.reduce((sum, s) => sum + (s.positive_points || 0), 0)
+          negativePoints = charStats.reduce((sum, s) => sum + (s.negative_points || 0), 0)
+        }
+      }
+
+      // Data extended untuk dashboard
+      const extendedStats: DashboardStatsExtended = {
         totalStudents: totalStudents || 0,
         activeStudents: activeStudents || 0,
         totalClasses: totalClasses || 0,
@@ -126,7 +212,55 @@ export function useDashboardStats(): UseDashboardStatsReturn {
         attendanceToday: attendanceStats,
         assessmentCompletion,
         recentActivities,
-      })
+        // Special Units - bisa di-extend dari database nanti
+        specialUnits: [
+          { id: "pasus", name: "Pasukan Khusus", shortName: "PASUS", members: 45 },
+          { id: "pmr", name: "Palang Merah Remaja", shortName: "PMR", members: 60 },
+          { id: "pramuka", name: "Pramuka", shortName: "PRAMUKA", members: 120 },
+          { id: "paskibra", name: "Paskibra", shortName: "PASKIBRA", members: 35 },
+          { id: "osis", name: "OSIS", shortName: "OSIS", members: 25 },
+          { id: "mpk", name: "MPK", shortName: "MPK", members: 15 },
+        ],
+        // Savings Stats - placeholder, bisa di-extend dari tabel savings
+        savingsStats: {
+          totalSavings: 125000000,
+          totalDeposits: 85000000,
+          totalWithdrawals: 15000000,
+          activeStudents: 800,
+        },
+        // Character Stats
+        characterStats: {
+          positivePoints,
+          negativePoints,
+          balance: positivePoints - negativePoints,
+        },
+        // Notifications
+        notifications: {
+          unread: unreadNotifications,
+          items: (notificationsData || []).map((n) => ({
+            id: n.id,
+            type: n.type || "system",
+            title: n.title,
+            description: n.message,
+            time: new Date(n.created_at).toLocaleDateString("id-ID"),
+            isRead: n.read_status,
+            priority: n.priority || "normal",
+          })),
+        },
+        // Announcements
+        announcements: (announcementsData || []).map((a) => ({
+          id: a.id,
+          title: a.title,
+          description: a.description || "",
+          date: a.created_at,
+          priority: a.priority || "normal",
+          isPinned: a.is_pinned || false,
+        })),
+        // Calendar Events
+        calendarEvents: [],
+      }
+
+      setStats(extendedStats)
     } catch (err) {
       console.error("Error fetching dashboard stats:", err)
       setError(err as Error)
