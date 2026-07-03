@@ -66,16 +66,15 @@ export interface Grade {
 export interface Class {
   id: UUID
   name: string
-  grade_id: UUID
   major_id: UUID
-  academic_year_id: UUID
   room_number: string | null
   status: 'active' | 'inactive' | 'archived'
   created_at: Timestamp
   updated_at: Timestamp
   // Relations
-  grades?: Grade
   majors?: Major
+  // Optional - uncomment if academic_year_id column exists
+  // academic_year_id?: UUID
 }
 
 export interface Student {

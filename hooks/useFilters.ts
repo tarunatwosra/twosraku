@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { supabase } from "@/lib/supabase"
-import type { Major, Grade } from "@/types/database"
+import type { Major } from "@/types/database"
 
 /**
  * Hook untuk mengambil semua majors yang aktif
@@ -41,47 +41,10 @@ export function useMajors() {
 }
 
 /**
- * Hook untuk mengambil semua grades yang aktif
- */
-export function useGrades() {
-  const [grades, setGrades] = useState<Grade[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<Error | null>(null)
-
-  const fetchGrades = useCallback(async () => {
-    try {
-      setLoading(true)
-      setError(null)
-
-      const { data, error: fetchError } = await supabase
-        .from("grades")
-        .select("*")
-        .eq("status", "active")
-        .order("level", { ascending: true })
-
-      if (fetchError) throw fetchError
-      setGrades(data || [])
-    } catch (err) {
-      console.error("Error fetching grades:", err)
-      setError(err as Error)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    fetchGrades()
-  }, [fetchGrades])
-
-  return { grades, loading, error, refetch: fetchGrades }
-}
-
-/**
  * Hook untuk mengambil kelas berdasarkan filter
  */
 export function useClasses(filters?: {
   academicYearId?: string
-  gradeId?: string
   majorId?: string
 }) {
   const [classes, setClasses] = useState<any[]>([])
@@ -97,16 +60,12 @@ export function useClasses(filters?: {
         .from("classes")
         .select(`
           *,
-          grades (*),
           majors (*)
         `)
         .eq("status", "active")
 
       if (filters?.academicYearId) {
         query = query.eq("academic_year_id", filters.academicYearId)
-      }
-      if (filters?.gradeId) {
-        query = query.eq("grade_id", filters.gradeId)
       }
       if (filters?.majorId) {
         query = query.eq("major_id", filters.majorId)
@@ -122,7 +81,7 @@ export function useClasses(filters?: {
     } finally {
       setLoading(false)
     }
-  }, [filters?.academicYearId, filters?.gradeId, filters?.majorId])
+  }, [filters?.academicYearId, filters?.majorId])
 
   useEffect(() => {
     fetchClasses()

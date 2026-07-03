@@ -2,6 +2,9 @@
 export * from "./database"
 export * from "./buku-induk"
 
+// Core database types
+export type { Class, Major, AcademicYear as AcademicYearType } from "./database"
+
 // Auth types
 export type { User, UserRole, UserStatus, LoginCredentials, LoginResponse, LoginErrorCode, AuthState, Session, PasswordPolicy, Permission, PermissionAction, RolePermissions, LoginHistory, PasswordChangeRequest, PasswordResetRequest, PasswordResetResponse } from "./auth"
 

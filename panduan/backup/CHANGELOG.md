@@ -30,6 +30,42 @@ Berisi catatan semua perubahan yang dilakukan pada file-file panduan. Setiap kal
 
 ## 2026-07-03
 
+### settings.md (19-feature-specifications/)
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-07-03 |
+| Perubahan | UPDATE: Menghapus tab Tingkat dan Semester. Tab Academic sekarang hanya memiliki: Tahun Ajaran, Sistem Penilaian, Jurusan, Kelas. Semester ditangani secara lokal oleh masing-masing modul (absensi, penilaian). |
+| Backup | settings-003.md |
+| Catatan | - |
+
+---
+
+## 2026-07-03
+
+### student-registry.md (19-feature-specifications/)
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-07-03 |
+| Perubahan | Update struktur form Edit Siswa agar sama dengan Tambah Siswa (5 section: Data Diri, Akademik, Orang Tua/Wali, Fisik & Kesehatan, Lainnya). Status badge di history page menggunakan `is_active` (boolean). |
+| Backup | student-registry-003.md |
+| Catatan | Backup sebelum perubahan form edit |
+
+---
+
+## 2026-07-03
+
+### student-registry.md (19-feature-specifications/) [PREVIOUS]
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-07-03 |
+| Perubahan | Update lengkap Student Registry Module v2.0: (1) Status siswa disederhanakan dari `status` (varchar) menjadi `is_active` (boolean) dengan nilai Aktif/Tidak Aktif. (2) Ditambah field baru: nisn, vision, hearing, teeth_condition, physical_disability, illness_history, allergies, health_notes, guardian_relation. (3) Form tambah/edit siswa lengkap dengan 5 section: Data Diri, Akademik, Orang Tua/Wali, Fisik & Kesehatan, Lainnya. |
+| Backup | student-registry-002.md |
+| Catatan | Backup sebelum update schema dan form |
+
+---
+
+## 2026-07-03
+
 ### student-registry.md (19-feature-specifications/)
 | Field | Value |
 |-------|-------|

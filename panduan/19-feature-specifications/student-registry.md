@@ -112,6 +112,8 @@ Sub Pages:
 | Kelas | Select | - | Pilihan kelas berdasarkan tahun ajaran |
 | Status | Select | ✅ | Aktif / Tidak Aktif |
 
+**Catatan:** Data Kelas diambil dari **Settings Academic → Tab Kelas**. Pastikan kelas sudah dibuat di Settings sebelum menambahkan siswa.
+
 ### 3. Data Orang Tua/Wali
 
 | Field | Tipe | Required | Deskripsi |
@@ -195,6 +197,7 @@ Sub Pages:
 - Pre-filled form
 - Update semua field termasuk status aktif
 - Validasi dan duplicate check
+- **Struktur form sama dengan Tambah Siswa** (5 section)
 
 ### 5. Riwayat Siswa (`/buku-induk/[id]/history`)
 

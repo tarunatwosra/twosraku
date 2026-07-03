@@ -11,4 +11,4 @@ export { useAssessment, useAssessmentSession } from "./useAssessment"
 export { useCharacter, useCharacterDashboard } from "./useCharacter"
 
 // Re-export commonly used hooks from useFilters
-export { useMajors, useGrades, useClasses } from "./useFilters"
+export { useMajors, useClasses } from "./useFilters"
