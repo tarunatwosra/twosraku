@@ -44,17 +44,16 @@ Mobile:
 
 # Sidebar
 
-Desktop layout:
-- Fixed position, full height (from viewport top to bottom)
-- No margin/gap from edges
-- Flat left edge (no border-radius on left)
+Width: 280px
 
-Width (Expanded): 240px
-Width (Collapsed): 64px
+Margin from viewport:
+24px
+
+Top / Bottom margin:
+24px
 
 Border Radius:
-- 0px on left side
-- Optional subtle radius on right edge for visual accent (optional)
+32px
 
 Glass opacity:
 82%
@@ -62,39 +61,25 @@ Glass opacity:
 Blur:
 12px
 
-Header Content:
-- Logo icon (GraduationCap)
-- School title: "SMKN 2 Sragen" (text-[13px])
-- Subtitle: "Taruna" (text-[11px])
-- Collapse button (PanelLeftClose icon) - only visible when expanded
-
-Collapse Behavior:
-- Expanded: Logo + Title + Collapse button visible
-- Collapsed: Logo only, click logo to expand
-- Collapse button hidden when collapsed
-- Animation: 300ms ease-out transition
-
-Navigation Content:
-- Navigation groups (collapsible sections)
-- User profile at bottom
-- Active item: pill background with primary accent
+Content:
+- Logo
+- School name
+- Search
+- Navigation groups
+- User profile
+- Collapse button
 
 Navigation Groups:
-- AKADEMIK
-- PRESENSI
-- PENILAIAN
-- POIN KARAKTER
-- AKADEMIK LAINNYA
-- ADMINISTRASI
-- LAPORAN
-- SISTEM
+- Dashboard
+- Academic
+- Administration
+- Reports
+- System
 
-Active nav item:
+Active item:
 - Pill background
-- Radius 18px
-- Primary color
-- Left icon + label (when expanded)
-- Icon only (when collapsed)
+- Radius 20px
+- Left icon + label
 
 ---
 
@@ -274,11 +259,8 @@ Comfortable spacing.
 1280–1439px:
 Reduce outer padding only.
 
-<1024px (Tablet/Mobile):
-- Sidebar hidden
-- Mobile drawer sidebar replaces desktop sidebar
-- Hamburger menu button in header
-- Swipe to open drawer
+<1024px:
+Collapse sidebar.
 
 ---
 

@@ -30,6 +30,26 @@ Berisi catatan semua perubahan yang dilakukan pada file-file panduan. Setiap kal
 
 ## 2026-07-03
 
+### layout-system(1).md
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-07-03 |
+| Perubahan | Sidebar redesign: full-height (no margin), width 280→240px, collapsed 88→64px, flat edge (no radius), collapse button in header, logo clickable when collapsed |
+| Backup | layout-system(1)-001.md |
+| Catatan | Backup sebelum sidebar redesign |
+
+### navigation.md
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-07-03 |
+| Perubahan | Sidebar redesign: layout, width, collapse behavior, header structure |
+| Backup | navigation-001.md |
+| Catatan | Sinkron dengan layout-system(1) |
+
+---
+
+## 2026-07-03
+
 ### reports.md (19-feature-specifications/)
 | Field | Value |
 |-------|-------|

@@ -386,3 +386,42 @@ button {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ============================================
+   Sidebar Transitions
+   ============================================ */
+
+/* Note: Sidebar width uses Tailwind w-24 (96px) and w-72 (288px) classes
+   with transition-all duration-300 for smooth animation */
+
+/* Navigation items fade/slide */
+.nav-item-text {
+  transition: opacity 200ms ease-out, max-width 300ms ease-out;
+}
+
+.nav-item-text.collapsed {
+  opacity: 0;
+  max-width: 0;
+  overflow: hidden;
+}
+
+.nav-item-text.expanded {
+  opacity: 1;
+  max-width: 200px;
+}
+
+/* Section header transition */
+.section-header {
+  transition: opacity 200ms ease-out, max-width 300ms ease-out;
+}
+
+.section-header.collapsed {
+  opacity: 0;
+  max-width: 0;
+  overflow: hidden;
+}
+
+.section-header.expanded {
+  opacity: 1;
+  max-width: 100%;
+}

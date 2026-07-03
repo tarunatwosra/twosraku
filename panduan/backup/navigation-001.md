@@ -34,70 +34,21 @@ The application consists of:
 
 # Sidebar
 
-Layout:
-- Fixed position, full height (no top/bottom margin)
-- No left margin (stick to left edge)
-- Flat left edge
+Width: 280px
 
-Width (Expanded): 240px
-Width (Collapsed): 64px
+Collapsed Width: 88px
 
-Border Radius:
-- Flat on left side
-- No floating effect (no 32px radius)
+Radius: 32px
 
-Glass effect:
-- Background: rgba(255, 255, 255, 0.82)
-- Backdrop blur: 12px
+Floating with 24px outer margin.
 
-Header Structure:
-```
-Expanded:  [Logo] [SMKN 2 Sragen / Taruna]  [Collapse Icon]
-Collapsed: [Logo]  ← clickable to expand
-```
-
-Collapse Button Behavior:
-- Expanded: PanelLeftClose icon visible on right side of header
-- Collapsed: Button hidden, logo becomes clickable
-- Click logo when collapsed → expand sidebar
-- Animation: 300ms ease-out
-
-Navigation Hierarchy:
-- AKADEMIK
-  - Dashboard
-  - Buku Induk
-  - Data Siswa
-- PRESENSI
-  - Presensi Harian
-  - Rekap Presensi
-- PENILAIAN
-  - Dashboard
-  - Template
-  - Sesi
-  - Input Nilai
-- POIN KARAKTER
-  - Dashboard
-  - Input
-  - Riwayat
-- AKADEMIK LAINNYA
-  - Jadwal Pelajaran
-  - Mata Pelajaran
-  - Kelas
-- ADMINISTRASI
-  - Guru & Staff
-  - Pasukan Khusus
-  - Spiritual
-  - Tabungan
-  - Inventaris
-  - Surat
-  - Pengumuman
-- LAPORAN
-  - Laporan
-  - Statistik
-  - Import & Export
-- SISTEM
-  - Notifikasi
-  - Pengaturan
+Contains:
+- Logo
+- School name
+- Global search shortcut
+- Navigation groups
+- User profile
+- Collapse button
 
 ---
 
@@ -135,40 +86,21 @@ SYSTEM
 
 # Sidebar States
 
-## Default (Expanded)
-- Width: 240px
-- Logo + Title + Collapse button visible
-- Navigation items show icon + label
+Default
 
-## Collapsed
-- Width: 64px
-- Logo only (centered)
-- Logo is clickable to expand
-- Collapse button hidden
-- Navigation items show icon only
-- Tooltip on hover for each item
-
-## Header Behavior
-| State | Logo | Title | Collapse Button |
-|-------|------|-------|----------------|
-| Expanded | Static | Visible | Visible (PanelLeftClose) |
-| Collapsed | Clickable | Hidden | Hidden |
-
-## Navigation Item States
-
-### Hover
-- Soft background on hover
+Hover:
+- Soft background
 - Icon color darkens
 
-### Active
-- Pill background (radius 18px)
-- Primary accent color
-- Icon + label visible (expanded) or icon only (collapsed)
+Active:
+- Pill background
+- Primary accent
+- Radius 20px
+- Smooth transition
 
-## Transition Animation
-- Sidebar width: 300ms ease-out
-- Content margin adjusts in sync
-- Nav item text fades smoothly
+Collapsed:
+- Icons only
+- Tooltip on hover
 
 ---
 

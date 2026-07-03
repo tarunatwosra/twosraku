@@ -50,12 +50,11 @@ export function AppShell({
         onClose={() => setMobileMenuOpen(false)}
       />
 
-      {/* Main Content Area */}
+      {/* Main Content Area - Sidebar width drives margin */}
       <div
         className={cn(
-          "flex flex-col min-h-screen",
-          // Sidebar spacing on desktop (lg+)
-          "lg:ml-[328px]"
+          "flex flex-col min-h-screen transition-all duration-300 ease-out",
+          sidebarCollapsed ? "ml-16" : "ml-60"
         )}
       >
         {/* Top Header */}

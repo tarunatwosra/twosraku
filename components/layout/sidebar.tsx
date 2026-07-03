@@ -21,7 +21,6 @@ import {
   LogOut,
   GraduationCap,
   PanelLeftClose,
-  PanelLeft,
   Award,
   PiggyBank,
   Heart,
@@ -169,69 +168,54 @@ export function Sidebar({ isCollapsed = false, onCollapsedChange }: SidebarProps
   return (
     <aside
       className={cn(
-        `
-        fixed top-0 left-0 z-[var(--z-sidebar)]
-        h-screen
-        bg-white/[0.82] backdrop-blur-[12px]
-        border-r border-[var(--border-light)]
-        transition-all duration-300 ease-out
-        flex flex-col
-        `,
-        isCollapsed ? "w-[88px]" : "w-[280px]"
+        "fixed top-0 left-0 z-[var(--z-sidebar)] h-screen bg-white/[0.82] backdrop-blur-[12px] border-r border-[var(--border-light)] flex flex-col overflow-hidden transition-all duration-300 ease-out",
+        isCollapsed ? "w-16" : "w-60"
       )}
-      style={{
-        margin: "24px",
-        borderRadius: "32px",
-        height: "calc(100vh - 48px)",
-      }}
     >
       {/* Logo & School Name */}
-      <div className="h-[72px] flex items-center gap-3 px-6 border-b border-[var(--border-light)]">
+      <div className="h-[72px] flex items-center gap-3 px-4 border-b border-[var(--border-light)] flex-shrink-0">
+        {/* Logo Icon - Non-clickable when expanded, clickable when collapsed */}
         <div
+          onClick={isCollapsed ? () => onCollapsedChange?.(!isCollapsed) : undefined}
           className={cn(
-            "w-10 h-10 rounded-[12px] bg-[var(--primary)] flex items-center justify-center shadow-md flex-shrink-0",
-            isCollapsed && "mx-auto"
+            "w-10 h-10 rounded-[12px] bg-[var(--primary)] flex items-center justify-center shadow-md flex-shrink-0 transition-transform duration-200",
+            isCollapsed && "cursor-pointer hover:scale-105"
           )}
+          title={isCollapsed ? "Expand sidebar" : undefined}
         >
           <GraduationCap className="w-5 h-5 text-white" />
         </div>
+
+        {/* Title - Only show when expanded */}
         {!isCollapsed && (
-          <div className="overflow-hidden">
-            <h1 className="text-[15px] font-bold text-[var(--text-primary)] leading-tight">
-              SMKN 2 Sragen
-            </h1>
-            <p className="text-[12px] text-[var(--text-muted)]">Taruna</p>
-          </div>
+          <>
+            <div className="flex-1 min-w-0 flex flex-col justify-center overflow-hidden">
+              <h1 className="text-[13px] font-bold text-[var(--text-primary)] leading-tight whitespace-nowrap">
+                SMKN 2 Sragen
+              </h1>
+              <p className="text-[11px] text-[var(--text-muted)] leading-tight">Taruna</p>
+            </div>
+
+            {/* Collapse Toggle Button - Only show when expanded */}
+            <button
+              onClick={() => onCollapsedChange?.(!isCollapsed)}
+              className={cn(
+                `
+                w-8 h-8 flex items-center justify-center
+                rounded-[10px]
+                text-[var(--text-muted)]
+                hover:bg-[var(--surface-hover)]
+                hover:text-[var(--text-primary)]
+                transition-all duration-200
+                flex-shrink-0
+                `
+              )}
+              title="Collapse sidebar"
+            >
+              <PanelLeftClose className="w-4 h-4" />
+            </button>
+          </>
         )}
-      </div>
-
-      {/* Collapse Toggle Button */}
-      <div className="px-3 py-3 border-b border-[var(--border-light)]">
-        <button
-          onClick={() => onCollapsedChange?.(!isCollapsed)}
-          className={cn(
-            `
-            flex items-center gap-3 px-4 py-2.5 w-full
-            rounded-[18px]
-            text-[14px] font-medium
-            text-[var(--text-secondary)]
-            hover:bg-[var(--surface-hover)]
-            hover:text-[var(--text-primary)]
-            transition-all duration-200
-
-            `,
-            isCollapsed && "justify-center px-0"
-          )}
-        >
-          {isCollapsed ? (
-            <PanelLeft className="w-5 h-5" />
-          ) : (
-            <>
-              <PanelLeftClose className="w-5 h-5" />
-              <span>Collapse</span>
-            </>
-          )}
-        </button>
       </div>
 
       {/* Navigation */}
@@ -286,29 +270,35 @@ export function Sidebar({ isCollapsed = false, onCollapsedChange }: SidebarProps
       </nav>
 
       {/* User Profile */}
-      <div className="p-3 border-t border-[var(--border-light)]">
+      <div className="p-3 border-t border-[var(--border-light)] flex-shrink-0">
         <Link
           href="/settings/users"
           className={cn(
-            "flex items-center gap-3 p-3 rounded-[18px] hover:bg-[var(--surface-hover)] cursor-pointer transition-colors",
-            isCollapsed && "justify-center"
+            "flex items-center gap-3 p-3 rounded-[18px] hover:bg-[var(--surface-hover)] cursor-pointer transition-colors"
           )}
         >
           <div className="w-10 h-10 rounded-[18px] bg-[var(--primary-soft)] text-[var(--primary)] flex items-center justify-center font-semibold text-[14px] flex-shrink-0">
             {user?.name ? getInitials(user.name) : "U"}
           </div>
+
+          {/* User Info - Animated with CSS class */}
+          <div
+            className={cn(
+              "flex-1 min-w-0 flex flex-col justify-center overflow-hidden",
+              isCollapsed ? "nav-item-text collapsed" : "nav-item-text expanded"
+            )}
+          >
+            <p className="text-[14px] font-semibold text-[var(--text-primary)] truncate">
+              {user?.name || "User"}
+            </p>
+            <p className="text-[12px] text-[var(--text-muted)]">
+              {user?.role ? getRoleLabel(user.role) : "Guest"}
+            </p>
+          </div>
+
+          {/* Logout Icon - Hidden when collapsed */}
           {!isCollapsed && (
-            <>
-              <div className="flex-1 min-w-0">
-                <p className="text-[14px] font-semibold text-[var(--text-primary)] truncate">
-                  {user?.name || "User"}
-                </p>
-                <p className="text-[12px] text-[var(--text-muted)]">
-                  {user?.role ? getRoleLabel(user.role) : "Guest"}
-                </p>
-              </div>
-              <LogOut className="w-4 h-4 text-[var(--text-muted)]" />
-            </>
+            <LogOut className="w-4 h-4 text-[var(--text-muted)] flex-shrink-0" />
           )}
         </Link>
       </div>
