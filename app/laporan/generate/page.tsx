@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { AppShell } from "@/components/layout"
@@ -90,7 +90,17 @@ const groupedReports = REPORT_TYPES.reduce((acc, report) => {
   return acc
 }, {} as Record<string, ReportType[]>)
 
-export default function GenerateReportPage() {
+// Loading fallback component
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="w-12 h-12 border-4 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
+    </div>
+  )
+}
+
+// Inner component that uses useSearchParams
+function GenerateReportContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { isAuthenticated, isLoading: authLoading } = useAuth()
@@ -570,5 +580,14 @@ export default function GenerateReportPage() {
         )}
       </div>
     </AppShell>
+  )
+}
+
+// Main export with Suspense boundary for useSearchParams
+export default function GenerateReportPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <GenerateReportContent />
+    </Suspense>
   )
 }
