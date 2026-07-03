@@ -44,8 +44,8 @@ export function useStudents(options: UseStudentsOptions = {}) {
         .select("*", { count: "exact" })
 
       // Apply filters
-      if (filters.status) {
-        query = query.eq("status", filters.status)
+      if (filters.is_active !== undefined) {
+        query = query.eq("is_active", filters.is_active)
       }
 
       if (filters.gender) {

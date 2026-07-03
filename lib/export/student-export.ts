@@ -91,10 +91,7 @@ const GENDER_LABELS: Record<string, string> = {
 
 const STATUS_LABELS: Record<string, string> = {
   active: "Aktif",
-  graduated: "Lulus",
-  transferred: "Pindah",
-  prospective: "Calon Siswa",
-  archived: "Diarsipkan",
+  inactive: "Tidak Aktif",
 }
 
 function formatDate(dateStr: string | null): string {
@@ -197,8 +194,7 @@ function transformStudentData(
         row[COLUMN_LABELS[col]] = student.national_id || ""
         break
       case "status":
-        row[COLUMN_LABELS[col]] =
-          STATUS_LABELS[student.status] || student.status || ""
+        row[COLUMN_LABELS[col]] = student.is_active ? "Aktif" : "Tidak Aktif"
         break
       case "enrollment_year":
         row[COLUMN_LABELS[col]] = student.enrollment_year?.toString() || ""

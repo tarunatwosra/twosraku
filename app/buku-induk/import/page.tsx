@@ -622,7 +622,7 @@ export default function ImportStudentsPage() {
           enrollment_year: row.enrollment_year
             ? parseInt(row.enrollment_year)
             : new Date().getFullYear(),
-          status: "active",
+          is_active: true,
         })
 
         if (result.success) {

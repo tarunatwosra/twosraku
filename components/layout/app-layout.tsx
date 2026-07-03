@@ -8,9 +8,11 @@ import { cn } from "@/lib/utils";
 
 interface AppLayoutProps {
   children: React.ReactNode;
+  title?: string;
+  description?: string;
 }
 
-export function AppLayout({ children }: AppLayoutProps) {
+export function AppLayout({ children, title, description }: AppLayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -38,7 +40,11 @@ export function AppLayout({ children }: AppLayoutProps) {
         )}
       >
         {/* Top Header */}
-        <Header onMenuClick={() => setMobileMenuOpen(true)} />
+        <Header
+          title={title}
+          description={description}
+          onMenuClick={() => setMobileMenuOpen(true)}
+        />
 
         {/* Page Content */}
         <main className="flex-1 p-[24px] lg:p-[40px]">

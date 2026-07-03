@@ -308,8 +308,7 @@ input, textarea, select, button {
 
 button {
   cursor: pointer;
-  border: none;
-  background: none;
+  /* background and border will be set by component styles */
 }
 
 /* ============================================

@@ -52,7 +52,9 @@ export function useAcademicYear(): UseAcademicYearReturn {
         setSemester(semData)
       }
     } catch (err) {
-      console.error("Error fetching academic year:", err)
+      console.error("Error fetching academic year:", {
+        error: err,
+      })
       setError(err as Error)
     } finally {
       setLoading(false)

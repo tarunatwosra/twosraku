@@ -10,10 +10,11 @@ export interface BreadcrumbItem {
 }
 
 export interface PageHeaderProps {
-  title: string;
+  title?: string;
   description?: string;
   breadcrumbs?: BreadcrumbItem[];
   actions?: React.ReactNode;
+  showInContent?: boolean; // Set to false to hide title in content (when title is in header)
 }
 
 export function PageHeader({
@@ -21,6 +22,7 @@ export function PageHeader({
   description,
   breadcrumbs,
   actions,
+  showInContent = true,
 }: PageHeaderProps) {
   return (
     <div className="mb-[32px]">
@@ -61,22 +63,24 @@ export function PageHeader({
         </nav>
       )}
 
-      {/* Title Row */}
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-[28px] font-semibold text-[var(--text-primary)] leading-tight">
-            {title}
-          </h1>
-          {description && (
-            <p className="mt-1 text-[14px] text-[var(--text-secondary)]">
-              {description}
-            </p>
-          )}
-        </div>
+      {/* Title Row - Only show if showInContent is true */}
+      {showInContent && (title || actions) && (
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-[28px] font-semibold text-[var(--text-primary)] leading-tight">
+              {title}
+            </h1>
+            {description && (
+              <p className="mt-1 text-[14px] text-[var(--text-secondary)]">
+                {description}
+              </p>
+            )}
+          </div>
 
-        {/* Actions */}
-        {actions && <div className="flex items-center gap-3">{actions}</div>}
-      </div>
+          {/* Actions */}
+          {actions && <div className="flex items-center gap-3">{actions}</div>}
+        </div>
+      )}
     </div>
   );
 }

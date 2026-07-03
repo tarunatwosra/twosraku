@@ -27,21 +27,15 @@ interface QuickViewModalProps {
   academicYearId?: string
 }
 
-// Status helpers
+// Status helpers - use is_active boolean
 const STATUS_VARIANTS = {
   active: "success",
-  graduated: "info",
-  transferred: "warning",
-  prospective: "primary",
-  archived: "neutral",
+  inactive: "neutral",
 } as const
 
 const STATUS_LABELS = {
   active: "Aktif",
-  graduated: "Lulus",
-  transferred: "Pindah",
-  prospective: "Calon Siswa",
-  archived: "Diarsipkan",
+  inactive: "Tidak Aktif",
 } as const
 
 const GENDER_LABELS = {
@@ -162,8 +156,8 @@ export function QuickViewModal({
                 <h3 className="text-[18px] font-semibold text-[var(--text-primary)] truncate">
                   {student.full_name}
                 </h3>
-                <Badge variant={STATUS_VARIANTS[student.status] || "neutral"}>
-                  {STATUS_LABELS[student.status] || student.status}
+                <Badge variant={student.is_active ? STATUS_VARIANTS.active : STATUS_VARIANTS.inactive}>
+                  {student.is_active ? STATUS_LABELS.active : STATUS_LABELS.inactive}
                 </Badge>
               </div>
               <p className="text-sm text-[var(--text-secondary)]">

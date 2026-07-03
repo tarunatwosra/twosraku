@@ -191,11 +191,10 @@ Contains:
 - Academic Year
 - Semester
 - Notifications
-- Date Display
+- Quick Create
+- User Menu
 
 Sticky at top.
-
-Note: User menu (Profil, Pengaturan, Keluar) telah dipindahkan ke Sidebar.
 
 ---
 
@@ -256,45 +255,13 @@ Features:
 
 ---
 
-# User Menu (Sidebar)
+# User Menu
 
-User menu sekarang terletak di bagian bawah Sidebar, bukan di Header.
-
-## Structure (Expanded)
-
-```
-┌─────────────────────────────┐
-│ [Avatar] Nama User          │
-│          Role/Jabatan    [▼] │  ← Click to expand
-└─────────────────────────────┘
-┌─────────────────────────────┐
-│ email@example.com           │  ← Email display
-├─────────────────────────────┤
-│ ⚙️ Pengaturan              │
-│ 👤 Profil Saya             │
-├─────────────────────────────┤
-│ 🚪 Keluar                  │
-└─────────────────────────────┘
-```
-
-## Structure (Collapsed)
-
-```
-┌───────┐
-│[Avatar]│  ← Tooltip: "Nama - Role"
-└───────┘
-```
-
-## Behavior
-- Expanded: Click chevron atau area profile → toggle dropdown
-- Collapsed: Click avatar → tooltip saja (no dropdown)
-- Logout → redirect ke /login
-
-## Items
-- Email (display only, non-clickable)
-- Pengaturan → /settings
-- Profil Saya → /settings/users
-- Keluar (logout button, red/danger color)
+Contains:
+- Profile
+- Preferences
+- Help
+- Sign Out
 
 ---
 

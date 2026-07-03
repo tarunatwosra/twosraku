@@ -123,15 +123,12 @@ function StatusChangeCard({
   student: StudentWithClass
 }) {
   const statusVariants = {
-    prospective: { label: "Calon Siswa", variant: "primary" as const },
     active: { label: "Aktif", variant: "success" as const },
-    transferred: { label: "Pindah", variant: "warning" as const },
-    graduated: { label: "Lulus", variant: "info" as const },
-    archived: { label: "Diarsipkan", variant: "neutral" as const },
+    inactive: { label: "Tidak Aktif", variant: "warning" as const },
   }
 
-  const status = statusVariants[student.status] || {
-    label: student.status,
+  const status = statusVariants[student.is_active ? "active" : "inactive"] || {
+    label: student.is_active ? "Aktif" : "Tidak Aktif",
     variant: "neutral" as const,
   }
 
@@ -355,8 +352,8 @@ export default function StudentHistoryPage({ params }: StudentHistoryPageProps) 
       })
     }
 
-    // Status changes
-    if (student.status === "graduated" && student.graduation_year) {
+    // Status changes - check graduation via graduation_year
+    if (student.graduation_year) {
       items.push({
         id: "graduation",
         type: "graduation",
@@ -370,7 +367,8 @@ export default function StudentHistoryPage({ params }: StudentHistoryPageProps) 
       })
     }
 
-    if (student.status === "transferred") {
+    // Check transfer via transfer_date
+    if (student.transfer_date && !student.graduation_year) {
       items.push({
         id: "transfer",
         type: "transfer",

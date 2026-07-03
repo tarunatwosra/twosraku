@@ -29,38 +29,13 @@ import type { StudentWithClass } from "@/types/database"
 import { cn } from "@/lib/utils"
 
 // Status badge variant helper
-const getStatusBadgeVariant = (status: string) => {
-  switch (status) {
-    case "active":
-      return "success"
-    case "graduated":
-      return "info"
-    case "transferred":
-      return "warning"
-    case "prospective":
-      return "primary"
-    case "archived":
-    default:
-      return "neutral"
-  }
+const getStatusBadgeVariant = (isActive: boolean) => {
+  return isActive ? "success" : "neutral"
 }
 
 // Status label helper
-const getStatusLabel = (status: string) => {
-  switch (status) {
-    case "active":
-      return "Aktif"
-    case "graduated":
-      return "Lulus"
-    case "transferred":
-      return "Pindah"
-    case "prospective":
-      return "Calon Siswa"
-    case "archived":
-      return "Diarsipkan"
-    default:
-      return status
-  }
+const getStatusLabel = (isActive: boolean) => {
+  return isActive ? "Aktif" : "Tidak Aktif"
 }
 
 // Gender label helper
@@ -533,8 +508,8 @@ export default function ArchivedStudentsPage() {
 
                     {/* Status */}
                     <td className="px-[20px] py-[16px]">
-                      <Badge variant={getStatusBadgeVariant(student.status)}>
-                        {getStatusLabel(student.status)}
+                      <Badge variant={getStatusBadgeVariant(student.is_active)}>
+                        {getStatusLabel(student.is_active)}
                       </Badge>
                     </td>
 

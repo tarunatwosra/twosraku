@@ -35,62 +35,64 @@ interface FetchStudentsResult {
 
 /**
  * Ambil daftar siswa dengan filter dan pagination
+ *
+ * Catatan: SELALU menampilkan semua siswa.
+ * Filter kelas/jurusan/tingkat HANYA akan mempengaruhi tampilan jika siswa memiliki record di student_classes.
+ * Siswa baru yang belum di-assign ke kelas tetap akan muncul.
  */
 export async function fetchStudents(
   options: FetchStudentsOptions = {}
 ): Promise<FetchStudentsResult> {
   const { page = 1, perPage = 25, filters = {}, academicYearId } = options
 
-  // Build query untuk student_classes dengan relasi
-  let studentClassesQuery = supabase
-    .from("student_classes")
-    .select(`
-      *,
-      classes (
-        *,
-        grades (*),
-        majors (*)
-      )
-    `)
+  let studentIds: string[] = []
+  let studentClassesData: Record<string, unknown>[] = []
 
+  // Ambil student_classes jika academicYearId diberikan
+  // Ini digunakan untuk menampilkan informasi kelas siswa
   if (academicYearId) {
+    let studentClassesQuery = supabase
+      .from("student_classes")
+      .select(`
+        *,
+        classes (
+          *,
+          grades (*),
+          majors (*)
+        )
+      `)
+
     studentClassesQuery = studentClassesQuery.eq("academic_year_id", academicYearId)
-  }
 
-  // Apply class/major/grade filters to student_classes query
-  if (filters.class_id) {
-    studentClassesQuery = studentClassesQuery.eq("class_id", filters.class_id)
-  }
-
-  if (filters.major_id) {
-    studentClassesQuery = studentClassesQuery.eq("classes.major_id", filters.major_id)
-  }
-
-  if (filters.grade_id) {
-    studentClassesQuery = studentClassesQuery.eq("classes.grade_id", filters.grade_id)
-  }
-
-  const { data: studentClasses, error: scError } = await studentClassesQuery
-
-  if (scError) throw scError
-
-  // Ambil student IDs dari student_classes
-  const studentIds = studentClasses?.map((sc) => sc.student_id) || []
-
-  if (studentIds.length === 0) {
-    return {
-      data: [],
-      pagination: { page, pageSize: perPage, total: 0, totalPages: 0 },
+    // Apply class/major/grade filters to student_classes query
+    if (filters.class_id) {
+      studentClassesQuery = studentClassesQuery.eq("class_id", filters.class_id)
     }
+
+    if (filters.major_id) {
+      studentClassesQuery = studentClassesQuery.eq("classes.major_id", filters.major_id)
+    }
+
+    if (filters.grade_id) {
+      studentClassesQuery = studentClassesQuery.eq("classes.grade_id", filters.grade_id)
+    }
+
+    const { data: scData, error: scError } = await studentClassesQuery
+
+    if (scError) throw scError
+
+    // Simpan student_classes data
+    studentClassesData = scData || []
+    // Ambil student IDs yang match dengan filter kelas
+    studentIds = studentClassesData.map((sc) => sc.student_id) as string[]
   }
 
-  // Build query untuk students
+  // Build query untuk students - SELALU ambil semua siswa
   let studentsQuery = supabase.from("students").select("*", { count: "exact" })
 
   // Apply filters
-  if (filters.status) {
-    studentsQuery = studentsQuery.eq("status", filters.status)
-  }
+  // Note: Jika kolom is_active belum ada di database, filter ini akan di-skip
+  // Setelah SQL migration dijalankan, filter ini akan aktif
 
   if (filters.gender) {
     studentsQuery = studentsQuery.eq("gender", filters.gender)
@@ -102,8 +104,15 @@ export async function fetchStudents(
     )
   }
 
-  // Filter hanya siswa yang ada di student_classes
-  studentsQuery = studentsQuery.in("id", studentIds)
+  // Jika ada filter kelas/jurusan/tingkat, filter siswa yang match
+  // SISWA YANG TIDAK PUNYA RECORD DI student_classes AKAN TETAP MUNCUL
+  // (kecuali jika ada filter kelas aktif)
+  if (academicYearId && studentIds.length > 0) {
+    // Filter berdasarkan student_ids yang punya record di student_classes
+    studentsQuery = studentsQuery.in("id", studentIds)
+  }
+  // Jika academicYearId diberikan tapi studentIds.length === 0,
+  // tetap tampilkan semua siswa (tidak ada siswa yang match filter kelas)
 
   // Sorting
   const sortField = options.sortField || "full_name"
@@ -122,7 +131,7 @@ export async function fetchStudents(
   // Gabungkan students dengan student_classes
   const studentsWithClass = (students || []).map((student) => ({
     ...student,
-    student_classes: studentClasses?.filter((sc) => sc.student_id === student.id) || [],
+    student_classes: studentClassesData.filter((sc) => sc.student_id === student.id),
   }))
 
   return {
@@ -189,7 +198,7 @@ interface CreateStudentData {
   phone?: string | null
   email?: string | null
   national_id?: string | null
-  status?: "prospective" | "active"
+  is_active?: boolean
   enrollment_year?: number
   notes?: string | null
 }
@@ -205,7 +214,7 @@ export async function createStudent(
       .from("students")
       .insert({
         ...data,
-        status: data.status || "active",
+        is_active: data.is_active !== undefined ? data.is_active : true,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
@@ -223,6 +232,217 @@ export async function createStudent(
     return { success: true, student: newStudent }
   } catch (err) {
     console.error("Error creating student:", err)
+    return { success: false, error: "Terjadi kesalahan saat membuat siswa" }
+  }
+}
+
+// ============================================
+// CREATE STUDENT WITH PARENTS
+// ============================================
+
+interface CreateStudentWithParentsData extends CreateStudentData {
+  nisn?: string | null
+  height_cm?: number | null
+  weight_kg?: number | null
+  vision?: string | null
+  hearing?: string | null
+  teeth_condition?: string | null
+  physical_disability?: string | null
+  illness_history?: string | null
+  allergies?: string | null
+  health_notes?: string | null
+}
+
+interface ParentData {
+  type: "father" | "mother" | "guardian"
+  full_name: string
+  phone?: string | null
+  occupation?: string | null
+  nik?: string | null
+  address?: string | null
+  email?: string | null
+  education?: string | null
+  guardian_relation?: string | null
+}
+
+/**
+ * Buat siswa baru beserta data orang tua/wali
+ */
+export async function createStudentWithParents(
+  studentData: CreateStudentWithParentsData,
+  parentsData: ParentData[]
+): Promise<{ success: boolean; student?: Student; error?: string }> {
+  try {
+    // Build student data object - basic fields that always exist
+    const studentInsertData: Record<string, unknown> = {
+      student_number: studentData.student_number,
+      full_name: studentData.full_name,
+      nickname: studentData.nickname || null,
+      gender: studentData.gender,
+      birth_place: studentData.birth_place || null,
+      birth_date: studentData.birth_date || null,
+      religion: studentData.religion || null,
+      nationality: studentData.nationality || "Indonesia",
+      blood_type: studentData.blood_type || null,
+      address: studentData.address || null,
+      phone: studentData.phone || null,
+      email: studentData.email || null,
+      national_id: studentData.national_id || null,
+      enrollment_year: studentData.enrollment_year || new Date().getFullYear(),
+      notes: studentData.notes || null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+
+    // For backward compatibility: only add new fields if they have meaningful values
+    // This allows the code to work even before SQL migration is run
+    if (studentData.nisn && studentData.nisn.trim()) {
+      studentInsertData.nisn = studentData.nisn.trim()
+    }
+
+    // Try to add is_active, but handle gracefully if column doesn't exist
+    // Default to true for status
+    studentInsertData.is_active = studentData.is_active !== false
+
+    // Health fields
+    if (studentData.height_cm) {
+      studentInsertData.height_cm = studentData.height_cm
+    }
+    if (studentData.weight_kg) {
+      studentInsertData.weight_kg = studentData.weight_kg
+    }
+    if (studentData.vision && studentData.vision !== 'normal') {
+      studentInsertData.vision = studentData.vision
+    }
+    if (studentData.hearing && studentData.hearing !== 'normal') {
+      studentInsertData.hearing = studentData.hearing
+    }
+    if (studentData.teeth_condition && studentData.teeth_condition !== 'normal') {
+      studentInsertData.teeth_condition = studentData.teeth_condition
+    }
+    if (studentData.physical_disability && studentData.physical_disability !== 'none') {
+      studentInsertData.physical_disability = studentData.physical_disability
+    }
+    if (studentData.illness_history && studentData.illness_history.trim()) {
+      studentInsertData.illness_history = studentData.illness_history.trim()
+    }
+    if (studentData.allergies && studentData.allergies.trim()) {
+      studentInsertData.allergies = studentData.allergies.trim()
+    }
+    if (studentData.health_notes && studentData.health_notes.trim()) {
+      studentInsertData.health_notes = studentData.health_notes.trim()
+    }
+
+    // Insert student first
+    const { data: newStudent, error: studentError } = await supabase
+      .from("students")
+      .insert(studentInsertData)
+      .select()
+      .single()
+
+    if (studentError) {
+      console.error("Student creation error:", {
+        code: studentError.code,
+        message: studentError.message,
+        details: studentError.details,
+        hint: studentError.hint,
+      })
+      // Handle duplicate student number
+      if (studentError.code === "23505") {
+        return { success: false, error: "NIS sudah terdaftar" }
+      }
+      // Handle unknown column errors (migration belum dijalankan)
+      if (studentError.code === "42703") {
+        // Retry without new fields and status column (removed in v2.0)
+        const basicData: Record<string, unknown> = {
+          student_number: studentData.student_number,
+          full_name: studentData.full_name,
+          nickname: studentData.nickname || null,
+          gender: studentData.gender,
+          birth_place: studentData.birth_place || null,
+          birth_date: studentData.birth_date || null,
+          religion: studentData.religion || null,
+          nationality: "Indonesia",
+          blood_type: studentData.blood_type || null,
+          address: studentData.address || null,
+          phone: studentData.phone || null,
+          email: studentData.email || null,
+          national_id: studentData.national_id || null,
+          enrollment_year: studentData.enrollment_year || new Date().getFullYear(),
+          notes: studentData.notes || null,
+          is_active: studentData.is_active !== false,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }
+
+        const { data: retryStudent, error: retryError } = await supabase
+          .from("students")
+          .insert(basicData)
+          .select()
+          .single()
+
+        if (retryError) {
+          console.error("Retry student creation error:", {
+            code: retryError.code,
+            message: retryError.message,
+            details: retryError.details,
+            hint: retryError.hint,
+          })
+          if (retryError.code === "23505") {
+            return { success: false, error: "NIS sudah terdaftar" }
+          }
+          return { success: false, error: retryError.message }
+        }
+
+        return { success: true, student: retryStudent }
+      }
+      return { success: false, error: studentError.message }
+    }
+
+    // Insert parents if any
+    if (parentsData.length > 0 && newStudent) {
+      const parentsToInsert = parentsData.map((parent) => ({
+        student_id: newStudent.id,
+        type: parent.type,
+        full_name: parent.full_name,
+        phone: parent.phone || null,
+        occupation: parent.occupation || null,
+        nik: parent.nik || null,
+        address: parent.address || null,
+        email: parent.email || null,
+        education: parent.education || null,
+        is_primary: parent.type === "father" || parent.type === "mother",
+        // Only add guardian_relation for guardians
+        guardian_relation: parent.type === "guardian" ? parent.guardian_relation : null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }))
+
+      const { error: parentsError } = await supabase
+        .from("parents")
+        .insert(parentsToInsert)
+
+      if (parentsError) {
+        console.error("Parents creation error:", {
+          code: parentsError.code,
+          message: parentsError.message,
+          details: parentsError.details,
+          hint: parentsError.hint,
+        })
+        // Student was created, but parents failed - still return success
+        // The student data is preserved
+      }
+    }
+
+    return { success: true, student: newStudent }
+  } catch (err) {
+    console.error("Error creating student with parents:", {
+      error: err instanceof Error ? {
+        name: err.name,
+        message: err.message,
+        stack: err.stack,
+      } : err,
+    })
     return { success: false, error: "Terjadi kesalahan saat membuat siswa" }
   }
 }
@@ -277,7 +497,7 @@ export async function archiveStudent(
     const { error } = await supabase
       .from("students")
       .update({
-        status: "archived",
+        is_active: false,
         updated_at: new Date().toISOString(),
       })
       .eq("id", id)
@@ -359,54 +579,42 @@ export async function fetchStudentStats(academicYearId?: string) {
     const { count: active } = await supabase
       .from("students")
       .select("*", { count: "exact", head: true })
-      .eq("status", "active")
+      .eq("is_active", true)
+
+    // Siswa tidak aktif
+    const { count: inactive } = await supabase
+      .from("students")
+      .select("*", { count: "exact", head: true })
+      .eq("is_active", false)
 
     // Berdasarkan gender
     const { count: male } = await supabase
       .from("students")
       .select("*", { count: "exact", head: true })
       .eq("gender", "male")
+      .eq("is_active", true)
 
     const { count: female } = await supabase
       .from("students")
       .select("*", { count: "exact", head: true })
       .eq("gender", "female")
-
-    // Berdasarkan status
-    const { count: prospective } = await supabase
-      .from("students")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "prospective")
-
-    const { count: graduated } = await supabase
-      .from("students")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "graduated")
-
-    const { count: transferred } = await supabase
-      .from("students")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "transferred")
+      .eq("is_active", true)
 
     return {
       total: total || 0,
       active: active || 0,
+      inactive: inactive || 0,
       male: male || 0,
       female: female || 0,
-      prospective: prospective || 0,
-      graduated: graduated || 0,
-      transferred: transferred || 0,
     }
   } catch (err) {
     console.error("Error fetching student stats:", err)
     return {
       total: 0,
       active: 0,
+      inactive: 0,
       male: 0,
       female: 0,
-      prospective: 0,
-      graduated: 0,
-      transferred: 0,
     }
   }
 }
@@ -463,11 +671,11 @@ export async function fetchArchivedStudents(
 ): Promise<FetchArchivedResult> {
   const { page = 1, perPage = 25, search } = options
 
-  // Build query untuk students
+  // Build query untuk students - ambil yang tidak aktif
   let studentsQuery = supabase
     .from("students")
     .select("*", { count: "exact" })
-    .eq("status", "archived")
+    .eq("is_active", false)
 
   // Apply search filter
   if (search) {
@@ -541,7 +749,7 @@ export async function restoreStudent(
     const { error } = await supabase
       .from("students")
       .update({
-        status: "active",
+        is_active: true,
         updated_at: new Date().toISOString(),
       })
       .eq("id", id)
@@ -571,7 +779,7 @@ export async function bulkArchiveStudents(
     const { error } = await supabase
       .from("students")
       .update({
-        status: "archived",
+        is_active: false,
         updated_at: new Date().toISOString(),
       })
       .in("id", ids)

@@ -1,7 +1,7 @@
 # Database Schema - Twosraku
 
-**Versi**: 1.0  
-**Last Updated**: 2026-07-01  
+**Versi**: 2.0
+**Last Updated**: 2026-07-03
 **Database**: Supabase (PostgreSQL)
 
 ---
@@ -125,6 +125,7 @@ Tahap 4: System Tables (Bisa dibuat kapan saja)
 |-------|------|-------------|-----------|
 | id | uuid | PK | Primary key |
 | student_number | varchar(20) | NOT NULL, UNIQUE | Nomor induk siswa |
+| nisn | varchar(20) | UNIQUE | NISN (nullable) |
 | national_id | varchar(20) | UNIQUE | NIK/KTP (nullable) |
 | full_name | varchar(255) | NOT NULL | Nama lengkap |
 | nickname | varchar(100) | | Nama panggilan |
@@ -136,11 +137,18 @@ Tahap 4: System Tables (Bisa dibuat kapan saja)
 | blood_type | varchar(5) | | Golongan darah |
 | height_cm | decimal(5,2) | | Tinggi badan (cm) |
 | weight_kg | decimal(5,2) | | Berat badan (kg) |
+| vision | varchar(20) | DEFAULT 'normal' | Kondisi penglihatan (normal/abnormal) |
+| hearing | varchar(20) | DEFAULT 'normal' | Kondisi pendengaran (normal/abnormal) |
+| teeth_condition | varchar(20) | DEFAULT 'normal' | Kondisi gigi dan mulut (normal/abnormal) |
+| physical_disability | varchar(20) | DEFAULT 'none' | Cacat tubuh (none/exists) |
+| illness_history | text | | Riwayat sakit |
+| allergies | text | | Alergi |
+| health_notes | text | | Catatan kesehatan |
 | address | text | | Alamat lengkap |
-| phone | varchar(20) | | Nomor HP |
+| phone | varchar(20) | | Nomor HP/WhatsApp |
 | email | varchar(255) | | Email |
 | photo_url | text | | URL foto |
-| status | varchar(20) | DEFAULT 'prospective' | prospective, active, transferred, graduated, archived |
+| is_active | boolean | DEFAULT true | Status aktif (true/false) |
 | enrollment_year | integer | | Tahun masuk |
 | graduation_year | integer | | Tahun lulus |
 | transfer_date | date | | Tanggal mutasi |
@@ -151,7 +159,7 @@ Tahap 4: System Tables (Bisa dibuat kapan saja)
 | created_by | uuid | FK → users.id | User pembuat |
 | updated_by | uuid | FK → users.id | User pengupdate |
 
-**Index**: `idx_students_number`, `idx_students_status`, `idx_students_name`
+**Index**: `idx_students_number`, `idx_students_is_active`, `idx_students_name`, `idx_students_nisn`
 
 ---
 
@@ -195,6 +203,7 @@ Tahap 4: System Tables (Bisa dibuat kapan saja)
 | email | varchar(255) | | Email |
 | address | text | | Alamat |
 | is_primary | boolean | DEFAULT false | Apakah kontak utama |
+| guardian_relation | varchar(50) | | Hubungan wali (kakek/nenek/paman/tante/kakak/pengurus panti/lainnya) |
 | created_at | timestamptz | DEFAULT now() | Timestamp |
 | updated_at | timestamptz | DEFAULT now() | Timestamp |
 
@@ -1243,7 +1252,7 @@ audit_logs → users
 
 ### Performance Indexes
 ```
-students: email, status, name
+students: email, is_active, name, nisn
 classes: academic_year_id, grade_id, major_id
 attendances: (student_id, date), class_id, date
 student_scores: (participant_id, item_id), session_id
@@ -1260,14 +1269,18 @@ audit_logs: created_at, module, entity_id
 2. Then tables that depend on them
 3. Then operational tables
 
+### Migration to v2.0 (2026-07-03)
+Jika upgrade dari v1.0 ke v2.0, jalankan file migration:
+- `database/migrations/001_update_students_table.sql`
+
 ### Important Notes
 - Always add `created_at` and `updated_at` timestamps
 - Use UUID for all primary keys
-- Use soft delete (status = 'archived') instead of hard delete where possible
+- Gunakan `is_active` (boolean) untuk status siswa - sederhana: true = aktif, false = tidak aktif
 - Always add audit fields (created_by, updated_by)
 - Use `timestamptz` for all timestamp fields
 
 ---
 
-**Last Updated**: 2026-07-01
-**Version**: 1.0
+**Last Updated**: 2026-07-03
+**Version**: 2.0

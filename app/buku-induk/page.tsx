@@ -51,38 +51,21 @@ const GENDERS = [
   { value: "female", label: "Perempuan" },
 ]
 
-// Status options
-const STATUSES = [
-  { value: "", label: "Semua Status" },
-  { value: "prospective", label: "Calon Siswa" },
-  { value: "active", label: "Aktif" },
-  { value: "transferred", label: "Pindah" },
-  { value: "graduated", label: "Lulus" },
-  { value: "archived", label: "Diarsipkan" },
+// Active status options
+const ACTIVE_OPTIONS = [
+  { value: "", label: "Semua" },
+  { value: "true", label: "Aktif" },
+  { value: "false", label: "Tidak Aktif" },
 ]
 
 // Status badge variant helper
-const getStatusBadgeVariant = (status: string) => {
-  switch (status) {
-    case "active":
-      return "success"
-    case "graduated":
-      return "info"
-    case "transferred":
-      return "warning"
-    case "prospective":
-      return "primary"
-    case "archived":
-      return "neutral"
-    default:
-      return "neutral"
-  }
+const getStatusBadgeVariant = (isActive: boolean) => {
+  return isActive ? "success" : "neutral"
 }
 
 // Status label helper
-const getStatusLabel = (status: string) => {
-  const found = STATUSES.find((s) => s.value === status)
-  return found?.label || status
+const getStatusLabel = (isActive: boolean) => {
+  return isActive ? "Aktif" : "Tidak Aktif"
 }
 
 // Gender label helper
@@ -165,7 +148,7 @@ export default function BukuIndukPage() {
   const filters: StudentFilters = {
     search: debouncedSearch || undefined,
     gender: (gender as StudentFilters["gender"]) || undefined,
-    status: (status as StudentFilters["status"]) || undefined,
+    is_active: status === "" ? undefined : status === "true",
     class_id: (classId as StudentFilters["class_id"]) || undefined,
     major_id: (majorId as StudentFilters["major_id"]) || undefined,
     grade_id: (gradeId as StudentFilters["grade_id"]) || undefined,
@@ -178,6 +161,9 @@ export default function BukuIndukPage() {
       setLoading(true)
       setError(null)
 
+      // Debug: log academicYear
+      console.log("[DEBUG] Fetching students with academicYear:", academicYear)
+
       const result = await fetchStudents({
         page,
         perPage,
@@ -187,11 +173,17 @@ export default function BukuIndukPage() {
         sortDirection,
       })
 
+      console.log("[DEBUG] Fetch result:", {
+        total: result.pagination.total,
+        returned: result.data.length,
+        academicYearId: academicYear?.id,
+      })
+
       setStudents(result.data)
       setTotalCount(result.pagination.total)
       setTotalPages(result.pagination.totalPages)
     } catch (err) {
-      console.error("Error fetching students:", err)
+      console.error("[ERROR] Error fetching students:", err)
       setError("Gagal memuat data siswa")
     } finally {
       setLoading(false)
@@ -312,7 +304,7 @@ export default function BukuIndukPage() {
   }
 
   return (
-    <AppShell showHeader={true}>
+    <AppShell showHeader={true} title="Buku Induk" description="Kelola data lengkap siswa dalam buku induk sekolah">
       {/* Success Banner */}
       {actionSuccess && (
         <div className="mb-6 p-4 bg-[var(--success-soft)] border border-[var(--success)] rounded-[18px] flex items-center justify-between">
@@ -346,76 +338,22 @@ export default function BukuIndukPage() {
         </div>
       )}
 
-      {/* Page Header */}
-      <div className="mb-[24px]">
-        <div className="flex items-start justify-between mb-2">
-          <div>
-            <h1 className="text-[24px] font-bold text-[var(--text-primary)]">
-              Buku Induk
-            </h1>
-            <p className="text-[14px] text-[var(--text-muted)]">
-              Kelola data lengkap siswa dalam buku induk sekolah
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={() => router.push("/buku-induk/archived")}
-            >
-              <Archive className="w-4 h-4" />
-              Diarsipkan
-            </Button>
-            <Button onClick={() => router.push("/buku-induk/new")}>
-              <UserPlus className="w-4 h-4" />
-              Tambah Siswa
-            </Button>
-          </div>
-        </div>
-
-        {/* Quick Stats */}
-        <div className="flex items-center gap-6 mt-4">
-          {statsLoading ? (
-            <div className="flex items-center gap-6">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-8 w-24 bg-[var(--surface-hover)] rounded animate-pulse" />
-              ))}
-            </div>
-          ) : (
-            <>
-              <div className="flex items-center gap-2">
-                <span className="text-[13px] text-[var(--text-muted)]">Total:</span>
-                <span className="text-[14px] font-semibold text-[var(--text-primary)]">
-                  {stats.total.toLocaleString("id-ID")}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[13px] text-[var(--text-muted)]">Aktif:</span>
-                <span className="text-[14px] font-semibold text-[var(--success)]">
-                  {stats.active.toLocaleString("id-ID")}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[13px] text-[var(--text-muted)]">Laki-laki:</span>
-                <span className="text-[14px] font-semibold text-[var(--text-primary)]">
-                  {stats.male.toLocaleString("id-ID")}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[13px] text-[var(--text-muted)]">Perempuan:</span>
-                <span className="text-[14px] font-semibold text-[var(--text-primary)]">
-                  {stats.female.toLocaleString("id-ID")}
-                </span>
-              </div>
-            </>
-          )}
-          {selectedIds.size > 0 && (
-            <div className="flex items-center gap-2 ml-auto">
-              <span className="text-[13px] text-[var(--primary)] font-medium">
-                {selectedIds.size} dipilih
-              </span>
-            </div>
-          )}
-        </div>
+      {/* Action Buttons */}
+      <div className="flex items-center gap-2 mb-6">
+        <Button
+          variant="outline"
+          onClick={() => router.push("/buku-induk/archived")}
+        >
+          <Archive className="w-4 h-4" />
+          Diarsipkan
+        </Button>
+        <Button
+          variant="primary"
+          onClick={() => router.push("/buku-induk/new")}
+        >
+          <UserPlus className="w-4 h-4" />
+          Tambah Siswa
+        </Button>
       </div>
 
       {/* Filter Card */}
@@ -538,7 +476,7 @@ export default function BukuIndukPage() {
                 <Select
                   value={status}
                   onChange={(e) => setStatus(e.target.value)}
-                  options={STATUSES}
+                  options={ACTIVE_OPTIONS}
                 />
               </div>
 
@@ -551,7 +489,7 @@ export default function BukuIndukPage() {
                   value={majorId}
                   onChange={(e) => {
                     setMajorId(e.target.value)
-                    setClassId("") // Reset class when major changes
+                    setClassId("")
                   }}
                   options={[
                     { value: "", label: "Semua Jurusan" },
@@ -569,7 +507,7 @@ export default function BukuIndukPage() {
                   value={gradeId}
                   onChange={(e) => {
                     setGradeId(e.target.value)
-                    setClassId("") // Reset class when grade changes
+                    setClassId("")
                   }}
                   options={[
                     { value: "", label: "Semua Tingkat" },
@@ -578,7 +516,7 @@ export default function BukuIndukPage() {
                 />
               </div>
 
-              {/* Class Filter (shown only when grade or major is selected) */}
+              {/* Class Filter */}
               {(gradeId || majorId) && (
                 <div>
                   <label className="block text-[13px] font-medium text-[var(--text-secondary)] mb-2">
@@ -620,7 +558,7 @@ export default function BukuIndukPage() {
                   className="cursor-pointer hover:opacity-80"
                   onClick={() => setStatus("")}
                 >
-                  {STATUSES.find((s) => s.value === status)?.label}
+                  {ACTIVE_OPTIONS.find((s) => s.value === status)?.label}
                   <X className="w-3 h-3 ml-1" />
                 </Badge>
               )}
@@ -675,53 +613,6 @@ export default function BukuIndukPage() {
 
         {/* Table */}
         <div className="overflow-x-auto">
-          {/* Sort Controls */}
-          <div className="px-[20px] py-3 border-b border-[var(--border-light)] flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-[12px] text-[var(--text-muted)]">Urutkan:</span>
-              <div className="relative">
-                <select
-                  value={sortField}
-                  onChange={(e) => setSortField(e.target.value as typeof sortField)}
-                  className={cn(
-                    "appearance-none h-[32px] px-3 pr-8",
-                    "text-[13px] font-medium",
-                    "bg-[var(--surface-secondary)]",
-                    "rounded-[14px]",
-                    "cursor-pointer",
-                    "focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
-                  )}
-                >
-                  <option value="full_name">Nama</option>
-                  <option value="student_number">NIS</option>
-                  <option value="enrollment_year">Tahun Masuk</option>
-                  <option value="created_at">Tanggal Dibuat</option>
-                </select>
-                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none" />
-              </div>
-              <button
-                onClick={() => setSortDirection(sortDirection === "asc" ? "desc" : "asc")}
-                className={cn(
-                  "w-[32px] h-[32px] rounded-[14px]",
-                  "flex items-center justify-center",
-                  "bg-[var(--surface-secondary)]",
-                  "hover:bg-[var(--surface-hover)]",
-                  "transition-colors"
-                )}
-                title={sortDirection === "asc" ? "Urutkan Z-A" : "Urutkan A-Z"}
-              >
-                {sortDirection === "asc" ? (
-                  <ArrowUp className="w-4 h-4 text-[var(--text-secondary)]" />
-                ) : (
-                  <ArrowDown className="w-4 h-4 text-[var(--text-secondary)]" />
-                )}
-              </button>
-            </div>
-            <span className="text-[12px] text-[var(--text-muted)]">
-              {totalCount.toLocaleString("id-ID")} siswa
-            </span>
-          </div>
-
           <table className="w-full">
             <thead>
               <tr className="border-b border-[var(--border-light)]">
@@ -901,8 +792,8 @@ export default function BukuIndukPage() {
 
                     {/* Status */}
                     <td className="px-[20px] py-[16px]">
-                      <Badge variant={getStatusBadgeVariant(student.status)}>
-                        {getStatusLabel(student.status)}
+                      <Badge variant={getStatusBadgeVariant(student.is_active)}>
+                        {getStatusLabel(student.is_active)}
                       </Badge>
                     </td>
 

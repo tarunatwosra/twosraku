@@ -40,26 +40,19 @@ import { PrintStudentCardButton } from "@/components/buku-induk/PrintStudentCard
 // STATUS HELPERS
 // ============================================
 
-const STATUS_VARIANTS = {
-  active: "success",
-  graduated: "info",
-  transferred: "warning",
-  prospective: "primary",
-  archived: "neutral",
-} as const
-
-const STATUS_LABELS = {
-  active: "Aktif",
-  graduated: "Lulus",
-  transferred: "Pindah",
-  prospective: "Calon Siswa",
-  archived: "Diarsipkan",
-} as const
-
 const GENDER_LABELS = {
   male: "Laki-laki",
   female: "Perempuan",
 } as const
+
+// Status helpers using is_active
+function getStatusVariant(isActive: boolean): "success" | "neutral" {
+  return isActive ? "success" : "neutral"
+}
+
+function getStatusLabel(isActive: boolean): string {
+  return isActive ? "Aktif" : "Tidak Aktif"
+}
 
 // ============================================
 // FORMAT HELPERS
@@ -133,8 +126,8 @@ function StudentHeader({ student }: { student: StudentWithClass }) {
                 <h2 className="text-2xl font-bold text-[var(--text-primary)]">
                   {student.full_name}
                 </h2>
-                <Badge variant={STATUS_VARIANTS[student.status] || "neutral"}>
-                  {STATUS_LABELS[student.status] || student.status}
+                <Badge variant={getStatusVariant(student.is_active)}>
+                  {getStatusLabel(student.is_active)}
                 </Badge>
               </div>
 
@@ -230,7 +223,7 @@ function StudentHeader({ student }: { student: StudentWithClass }) {
                     <div className="border-t border-[var(--border-light)] my-2" />
                     <button
                       onClick={handleArchive}
-                      disabled={isArchiving || student.status === "archived"}
+                      disabled={isArchiving || !student.is_active}
                       className="w-full flex items-center gap-3 px-4 py-2 text-sm text-[var(--danger)] hover:bg-[var(--danger-soft)] transition-colors disabled:opacity-50"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -313,7 +306,7 @@ function AcademicInfoSection({ student }: { student: StudentWithClass }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <InfoItem label="NIS" value={student.student_number} />
         <InfoItem label="Tahun Masuk" value={student.enrollment_year?.toString()} />
-        <InfoItem label="Status" value={STATUS_LABELS[student.status]} />
+        <InfoItem label="Status" value={getStatusLabel(student.is_active)} />
         {student.graduation_year && (
           <InfoItem label="Tahun Lulus" value={student.graduation_year.toString()} />
         )}
@@ -551,30 +544,8 @@ function ActivitySection({ student }: { student: StudentWithClass }) {
       })
     })
 
-    // Status changes
-    if (student.status === "graduated") {
-      items.push({
-        id: "graduation",
-        type: "graduation",
-        title: "Kelulusan",
-        description: student.graduation_year ? `Lulus tahun ${student.graduation_year}` : "Telah menyelesaikan pendidikan",
-        date: student.graduation_year ? `${student.graduation_year}-06-01` : student.updated_at,
-        icon: <GraduationCap className="w-4 h-4" />,
-        variant: "info",
-      })
-    }
-
-    if (student.status === "transferred") {
-      items.push({
-        id: "transfer",
-        type: "transfer",
-        title: "perpindahan",
-        description: student.transfer_reason || "Siswa pindah ke sekolah lain",
-        date: student.transfer_date || student.updated_at,
-        icon: <ArrowRightLeft className="w-4 h-4" />,
-        variant: "warning",
-      })
-    }
+    // Note: Graduated dan transferred status dihapus karena menggunakan is_active
+    // Jika perlu track graduation year, bisa menggunakan student.graduation_year secara manual
 
     // Last update
     items.push({
@@ -606,8 +577,8 @@ function ActivitySection({ student }: { student: StudentWithClass }) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card padding="md" className="bg-[var(--surface-secondary)]">
           <p className="text-xs text-[var(--text-muted)] mb-1">Status</p>
-          <Badge variant={student.status === "active" ? "success" : "neutral"}>
-            {student.status === "active" ? "Aktif" : student.status}
+          <Badge variant={getStatusVariant(student.is_active)}>
+            {getStatusLabel(student.is_active)}
           </Badge>
         </Card>
         <Card padding="md" className="bg-[var(--surface-secondary)]">

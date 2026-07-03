@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import {
   Home,
   BookUser,
@@ -18,6 +18,7 @@ import {
   FileText,
   Settings,
   ChevronDown,
+  ChevronUp,
   LogOut,
   GraduationCap,
   PanelLeftClose,
@@ -27,6 +28,7 @@ import {
   Shield,
   ArrowUpDown,
   Bell,
+  User,
 } from "lucide-react"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
@@ -120,7 +122,8 @@ interface SidebarProps {
 
 export function Sidebar({ isCollapsed = false, onCollapsedChange }: SidebarProps) {
   const pathname = usePathname()
-  const { user } = useAuth()
+  const router = useRouter()
+  const { user, logout } = useAuth()
   const [expandedSections, setExpandedSections] = useState<string[]>([
     "AKADEMIK",
     "PRESENSI",
@@ -129,6 +132,7 @@ export function Sidebar({ isCollapsed = false, onCollapsedChange }: SidebarProps
     "ADMINISTRASI",
     "LAPORAN",
   ])
+  const [isProfileOpen, setIsProfileOpen] = useState(false)
 
   const toggleSection = (section: string) => {
     setExpandedSections((prev) =>
@@ -139,6 +143,11 @@ export function Sidebar({ isCollapsed = false, onCollapsedChange }: SidebarProps
   }
 
   const isActive = (href: string) => pathname === href
+
+  const handleLogout = async () => {
+    await logout()
+    router.push("/login")
+  }
 
   // Get user initials for avatar
   const getInitials = (name: string) => {
@@ -271,36 +280,77 @@ export function Sidebar({ isCollapsed = false, onCollapsedChange }: SidebarProps
 
       {/* User Profile */}
       <div className="p-3 border-t border-[var(--border-light)] flex-shrink-0">
-        <Link
-          href="/settings/users"
+        {/* Profile Header - Always visible */}
+        <button
+          onClick={() => !isCollapsed && setIsProfileOpen(!isProfileOpen)}
           className={cn(
-            "flex items-center gap-3 p-3 rounded-[18px] hover:bg-[var(--surface-hover)] cursor-pointer transition-colors"
+            "w-full flex items-center gap-3 p-3 rounded-[18px] hover:bg-[var(--surface-hover)] cursor-pointer transition-colors",
+            isCollapsed && "justify-center"
           )}
+          title={isCollapsed ? `${user?.name || "User"} - ${getRoleLabel(user?.role || "")}` : undefined}
         >
           <div className="w-10 h-10 rounded-[18px] bg-[var(--primary-soft)] text-[var(--primary)] flex items-center justify-center font-semibold text-[14px] flex-shrink-0">
             {user?.name ? getInitials(user.name) : "U"}
           </div>
 
-          {/* User Info - Animated with CSS class */}
-          <div
-            className={cn(
-              "flex-1 min-w-0 flex flex-col justify-center overflow-hidden",
-              isCollapsed ? "nav-item-text collapsed" : "nav-item-text expanded"
-            )}
-          >
-            <p className="text-[14px] font-semibold text-[var(--text-primary)] truncate">
-              {user?.name || "User"}
-            </p>
-            <p className="text-[12px] text-[var(--text-muted)]">
-              {user?.role ? getRoleLabel(user.role) : "Guest"}
-            </p>
-          </div>
-
-          {/* Logout Icon - Hidden when collapsed */}
+          {/* User Info - Hidden when collapsed */}
           {!isCollapsed && (
-            <LogOut className="w-4 h-4 text-[var(--text-muted)] flex-shrink-0" />
+            <>
+              <div className="flex-1 min-w-0 text-left">
+                <p className="text-[14px] font-semibold text-[var(--text-primary)] truncate">
+                  {user?.name || "User"}
+                </p>
+                <p className="text-[12px] text-[var(--text-muted)] capitalize">
+                  {getRoleLabel(user?.role || "")}
+                </p>
+              </div>
+              {isProfileOpen ? (
+                <ChevronUp className="w-4 h-4 text-[var(--text-muted)] flex-shrink-0" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-[var(--text-muted)] flex-shrink-0" />
+              )}
+            </>
           )}
-        </Link>
+        </button>
+
+        {/* Profile Dropdown Menu - Only visible when expanded and open */}
+        {!isCollapsed && isProfileOpen && (
+          <div className="mt-2 p-2 bg-white rounded-[18px] shadow-lg border border-[var(--border-light)]">
+            {/* Email */}
+            <div className="px-3 py-2 text-[12px] text-[var(--text-muted)] truncate border-b border-[var(--border-light)] mb-2">
+              {user?.email || "email@contoh.com"}
+            </div>
+
+            {/* Menu Links */}
+            <div className="space-y-1">
+              <Link
+                href="/settings"
+                className="flex items-center gap-3 px-3 py-2 text-[14px] text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] rounded-[12px] transition-colors"
+              >
+                <Settings className="w-4 h-4" />
+                Pengaturan
+              </Link>
+              <Link
+                href="/settings/users"
+                className="flex items-center gap-3 px-3 py-2 text-[14px] text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] rounded-[12px] transition-colors"
+              >
+                <User className="w-4 h-4" />
+                Profil Saya
+              </Link>
+            </div>
+
+            {/* Logout */}
+            <div className="mt-2 pt-2 border-t border-[var(--border-light)]">
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-3 px-3 py-2 text-[14px] text-[var(--danger)] hover:bg-[var(--danger-soft)] rounded-[12px] transition-colors w-full"
+              >
+                <LogOut className="w-4 h-4" />
+                Keluar
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </aside>
   )

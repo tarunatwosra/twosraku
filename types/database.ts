@@ -81,6 +81,7 @@ export interface Class {
 export interface Student {
   id: UUID
   student_number: string
+  nisn: string | null
   national_id: string | null
   full_name: string
   nickname: string | null
@@ -92,11 +93,18 @@ export interface Student {
   blood_type: string | null
   height_cm: number | null
   weight_kg: number | null
+  vision: string | null
+  hearing: string | null
+  teeth_condition: string | null
+  physical_disability: string | null
+  illness_history: string | null
+  allergies: string | null
+  health_notes: string | null
   address: string | null
   phone: string | null
   email: string | null
   photo_url: string | null
-  status: 'prospective' | 'active' | 'transferred' | 'graduated' | 'archived'
+  is_active: boolean
   enrollment_year: number | null
   graduation_year: number | null
   transfer_date: Date | null
@@ -138,6 +146,7 @@ export interface Parent {
   email: string | null
   address: string | null
   is_primary: boolean
+  guardian_relation: string | null
   created_at: Timestamp
   updated_at: Timestamp
 }
@@ -518,7 +527,7 @@ export interface StudentWithClass extends Student {
 
 export interface StudentFilters {
   search?: string
-  status?: Student['status']
+  is_active?: boolean
   gender?: Student['gender']
   class_id?: UUID
   major_id?: UUID

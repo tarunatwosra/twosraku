@@ -18,66 +18,142 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       isLoading = false,
       disabled,
       children,
+      style,
       ...props
     },
     ref
   ) => {
-    const baseStyles = `
+    // Base styles for all buttons
+    const baseClasses = `
       inline-flex items-center justify-center gap-2
-      font-medium
-      rounded-[18px]
+      font-medium rounded-[18px]
       transition-all duration-200 ease-out
-      focus-visible:outline-2 focus-visible:outline-offset-2
+      focus:outline-none focus:ring-2 focus:ring-offset-2
       disabled:opacity-40 disabled:cursor-not-allowed
-      active:scale-[0.98]
-      hover:translate-y-[-2px] hover:shadow-md
+      cursor-pointer
     `;
 
-    const variants = {
-      primary: `
-        bg-[var(--primary)] text-white
-        hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)]
-        focus-visible:outline-[var(--border-focus)]
-      `,
-      secondary: `
-        bg-[var(--surface-hover)] text-[var(--text-primary)]
-        hover:bg-[var(--surface-active)]
-        focus-visible:outline-[var(--border-focus)]
-      `,
-      outline: `
-        border border-[var(--border-default)] text-[var(--text-primary)]
-        bg-transparent hover:bg-[var(--surface-hover)]
-        focus-visible:outline-[var(--border-focus)]
-      `,
-      ghost: `
-        text-[var(--text-secondary)]
-        hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]
-        focus-visible:outline-[var(--border-focus)]
-      `,
-      danger: `
-        bg-[var(--danger)] text-white
-        hover:bg-red-600 active:bg-red-700
-        focus-visible:outline-red-500
-      `,
-      success: `
-        bg-[var(--success)] text-white
-        hover:bg-green-600 active:bg-green-700
-        focus-visible:outline-green-500
-      `,
+    // Variant-specific inline styles
+    const getVariantStyles = (): React.CSSProperties => {
+      switch (variant) {
+        case "primary":
+          return {
+            backgroundColor: "#2563EB",
+            color: "#FFFFFF",
+            fontWeight: 600,
+          };
+        case "secondary":
+          return {
+            backgroundColor: "#F8FAFC",
+            color: "#1E293B",
+            fontWeight: 500,
+            border: "1px solid #E2E8F0",
+          };
+        case "outline":
+          return {
+            backgroundColor: "transparent",
+            color: "#64748B",
+            fontWeight: 500,
+            border: "1px solid #E2E8F0",
+          };
+        case "ghost":
+          return {
+            backgroundColor: "transparent",
+            color: "#64748B",
+            fontWeight: 500,
+            border: "1px solid transparent",
+          };
+        case "danger":
+          return {
+            backgroundColor: "#EF4444",
+            color: "#FFFFFF",
+            fontWeight: 600,
+          };
+        case "success":
+          return {
+            backgroundColor: "#22C55E",
+            color: "#FFFFFF",
+            fontWeight: 600,
+          };
+        default:
+          return {};
+      }
     };
 
-    const sizes = {
-      sm: "h-[36px] px-[14px] text-[13px]",
-      md: "h-[44px] px-[22px] text-[15px]",
-      lg: "h-[52px] px-[26px] text-[15px]",
-      icon: "w-10 h-10 p-0",
+    // Hover styles
+    const getHoverStyles = (): React.CSSProperties => {
+      switch (variant) {
+        case "primary":
+          return {
+            backgroundColor: "#1D4ED8",
+            transform: "translateY(-1px)",
+          };
+        case "secondary":
+          return {
+            backgroundColor: "#F1F5F9",
+            borderColor: "#CBD5E1",
+            color: "#1E293B",
+          };
+        case "outline":
+          return {
+            backgroundColor: "#F8FAFC",
+            borderColor: "#CBD5E1",
+            color: "#1E293B",
+          };
+        case "ghost":
+          return {
+            backgroundColor: "#F1F5F9",
+            color: "#1E293B",
+          };
+        case "danger":
+          return {
+            backgroundColor: "#DC2626",
+          };
+        case "success":
+          return {
+            backgroundColor: "#16A34A",
+          };
+        default:
+          return {};
+      }
+    };
+
+    // Size-specific styles
+    const getSizeStyles = (): React.CSSProperties => {
+      switch (size) {
+        case "sm":
+          return { height: "36px", paddingLeft: "14px", paddingRight: "14px", fontSize: "13px" };
+        case "md":
+          return { height: "44px", paddingLeft: "22px", paddingRight: "22px", fontSize: "15px" };
+        case "lg":
+          return { height: "52px", paddingLeft: "26px", paddingRight: "26px", fontSize: "15px" };
+        case "icon":
+          return { width: "40px", height: "40px", padding: "0" };
+        default:
+          return { height: "44px", paddingLeft: "22px", paddingRight: "22px", fontSize: "15px" };
+      }
     };
 
     return (
       <button
         ref={ref}
-        className={cn(baseStyles, variants[variant], sizes[size], className)}
+        className={cn(baseClasses, className)}
+        style={{
+          ...getVariantStyles(),
+          ...getSizeStyles(),
+          ...style,
+        }}
         disabled={disabled || isLoading}
+        onMouseEnter={(e) => {
+          const hoverStyles = getHoverStyles();
+          Object.assign(e.currentTarget.style, hoverStyles);
+        }}
+        onMouseLeave={(e) => {
+          const variantStyles = getVariantStyles();
+          const sizeStyles = getSizeStyles();
+          Object.assign(e.currentTarget.style, variantStyles);
+          Object.assign(e.currentTarget.style, sizeStyles);
+        }}
         {...props}
       >
         {isLoading ? (

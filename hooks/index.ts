@@ -9,3 +9,6 @@ export { useCommand } from "./useCommand"
 export { useAttendance, useAttendanceRecap } from "./useAttendance"
 export { useAssessment, useAssessmentSession } from "./useAssessment"
 export { useCharacter, useCharacterDashboard } from "./useCharacter"
+
+// Re-export commonly used hooks from useFilters
+export { useMajors, useGrades, useClasses } from "./useFilters"

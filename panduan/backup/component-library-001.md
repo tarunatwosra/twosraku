@@ -102,101 +102,75 @@ Icon
 
 ### Primary Button
 - **Style:** Filled, solid background
-- **Background:** Blue (`#2563EB`)
+- **Background:** Primary blue (`--primary`)
 - **Text:** White
-- **Font Weight:** Semibold (600)
-- **Use case:** Main actions, primary CTAs (e.g., "Tambah Siswa")
+- **Shadow:** Small shadow on default, medium shadow on hover
+- **Use case:** Main actions, primary CTAs
 
 ### Secondary Button
 - **Style:** Light background with thin border
-- **Background:** Light gray (`#F8FAFC`)
-- **Text:** Dark (`#1E293B`)
-- **Border:** 1px solid light gray (`#E2E8F0`)
-- **Hover:** Background slightly darker, border darker, text darker
+- **Background:** Light surface (`--surface-secondary`)
+- **Text:** Dark (`--text-primary`)
+- **Border:** Light border (`--border-light`)
 - **Use case:** Secondary actions, less prominent CTAs
 
 ### Outline Button
-- **Style:** Transparent background with subtle border
-- **Background:** Transparent
-- **Text:** Muted gray (`#64748B`)
-- **Border:** 1px solid light gray (`#E2E8F0`) - very subtle
-- **Hover:** Background light gray (`#F8FAFC`), border darker (`#CBD5E1`), text dark (`#1E293B`)
-- **Use case:** Tertiary actions, filter, export, column configuration
+- **Style:** White/transparent background with border
+- **Background:** White
+- **Text:** Dark (`--text-primary`)
+- **Border:** Default border (`--border-default`), stronger on hover (`--border-strong`)
+- **Use case:** Tertiary actions, export, filter buttons
 
 ### Ghost Button
-- **Style:** Fully transparent with no border
-- **Background:** Transparent
-- **Text:** Muted gray (`#64748B`)
-- **Border:** Transparent
-- **Hover:** Background light gray (`#F1F5F9`), text dark (`#1E293B`)
-- **Use case:** Icon buttons, inline actions, refresh, dismiss
+- **Style:** Transparent background
+- **Text:** Secondary color (`--text-secondary`)
+- **Use case:** Icon buttons, inline actions
 
 ### Danger Button
 - **Style:** Filled, red background
-- **Background:** Red (`#EF4444`)
+- **Background:** Danger red (`--danger`)
 - **Text:** White
-- **Font Weight:** Semibold (600)
-- **Use case:** Destructive actions, delete
+- **Shadow:** Small shadow on default
+- **Use case:** Destructive actions
 
 ### Success Button
 - **Style:** Filled, green background
-- **Background:** Green (`#22C55E`)
+- **Background:** Success green (`--success`)
 - **Text:** White
-- **Font Weight:** Semibold (600)
+- **Shadow:** Small shadow on default
 - **Use case:** Confirm actions, positive outcomes
 
 ---
 
 ## States
 
-| State | Primary | Secondary | Outline | Ghost |
-|-------|---------|-----------|---------|-------|
-| Default | Blue bg, white text | Light bg, dark text | Transparent bg, muted text, thin border | Transparent, muted text |
-| Hover | Darker blue, lift effect | Darker bg, darker border | Light bg, dark text | Light bg, dark text |
-| Active | Darker blue | Darker bg | Light bg | Light bg |
-| Disabled | 40% opacity | 40% opacity | 40% opacity | 40% opacity |
-| Loading | Spinner + "Memuat..." | Same | Same | Same |
+Default
+
+Hover
+
+Active
+
+Disabled
+
+Loading
+
+Focus
+
+Hover effect
+
+```
+translateY(-2px)
+
+scale(1.02)
+```
+
+Animation
+
+200ms
 
 ---
 
-## Button Specifications
-
-### Primary Button
-```
-Default:  bg: #2563EB, color: #FFFFFF, font-weight: 600
-Hover:    bg: #1D4ED8, transform: translateY(-1px)
-Active:   bg: #1D4ED8 (darker)
-```
-
-### Secondary Button
-```
-Default:  bg: #F8FAFC, color: #1E293B, border: 1px solid #E2E8F0
-Hover:    bg: #F1F5F9, border: 1px solid #CBD5E1, color: #1E293B
-```
-
-### Outline Button
-```
-Default:  bg: transparent, color: #64748B, border: 1px solid #E2E8F0
-Hover:    bg: #F8FAFC, color: #1E293B, border: 1px solid #CBD5E1
-```
-
-### Ghost Button
-```
-Default:  bg: transparent, color: #64748B, border: 1px solid transparent
-Hover:    bg: #F1F5F9, color: #1E293B
-```
-
----
-
-## Animation
-
-- **Duration:** 200ms ease-out
-- **Hover effect:** translateY(-1px) - subtle lift
-- **Transition:** All properties
-
----
-
-## Icon Button
+# Icon Button
 
 Square
 

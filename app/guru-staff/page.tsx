@@ -162,10 +162,9 @@ export default function TeachersPage() {
   ];
 
   return (
-    <AppLayout>
+    <AppLayout title="Guru & Staff" description="Kelola data guru dan staff sekolah">
       <ListPageTemplate
         title="Guru & Staff"
-        description="Kelola data guru dan staff sekolah"
         breadcrumbs={[
           { label: "Dashboard", href: "/" },
           { label: "Administrasi" },
