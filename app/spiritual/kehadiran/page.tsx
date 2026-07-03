@@ -161,10 +161,6 @@ export default function SpiritualAttendancePage() {
     <AppShell
       title="Kehadiran Spiritual"
       description="Rekam partisipasi kehadiran kegiatan spiritual"
-      breadcrumbs={[
-        { label: "Spiritual", href: "/spiritual" },
-        { label: "Kehadiran" },
-      ]}
     >
       <div className="space-y-6">
         {/* Header Actions */}

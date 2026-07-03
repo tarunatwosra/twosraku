@@ -149,10 +149,6 @@ export default function AssignmentsPage() {
     <AppShell
       title="Penugasan"
       description="Kelola penugasan anggota Pasukan Khusus"
-      breadcrumbs={[
-        { label: "Pasukan Khusus", href: "/pasukan-khusus" },
-        { label: "Penugasan" },
-      ]}
     >
       <div className="space-y-6">
         {/* Header Actions */}

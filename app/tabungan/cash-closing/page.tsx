@@ -98,10 +98,6 @@ export default function CashClosingPage() {
     <AppShell
       title="Cash Closing"
       description="Tutup kas harian tabungan siswa"
-      breadcrumbs={[
-        { label: "Tabungan", href: "/tabungan" },
-        { label: "Cash Closing" },
-      ]}
     >
       <div className="space-y-6">
         {/* Session Info */}

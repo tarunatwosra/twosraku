@@ -223,8 +223,9 @@ export default function SpiritualPage() {
                   selectedType === type.id && "ring-2 ring-offset-2"
                 )}
                 style={{
-                  ringColor: selectedType === type.id ? type.color : undefined,
-                }}
+                  // @ts-ignore - custom ring color via CSS variable
+                  "--tw-ring-color": selectedType === type.id ? type.color : undefined,
+                } as React.CSSProperties}
                 onClick={() => setSelectedType(selectedType === type.id ? "all" : type.id)}
               >
                 <div

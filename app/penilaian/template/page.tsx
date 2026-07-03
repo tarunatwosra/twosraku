@@ -103,10 +103,6 @@ export default function AssessmentTemplatePage() {
     <AppShell
       title="Template Penilaian"
       description="Kelola template penilaian yang dapat digunakan berulang kali"
-      breadcrumbs={[
-        { label: "Penilaian", href: "/penilaian" },
-        { label: "Template" },
-      ]}
     >
       <div className="space-y-6">
         {/* Header Actions */}
@@ -409,9 +405,8 @@ function TemplateCard({
         </div>
         <div className="flex items-center gap-1">
           {template.autoCalculate && (
-            <CheckCircle2 className="w-4 h-4 text-[var(--success)]" title="Auto Calculate" />
+            <CheckCircle2 className="w-4 h-4 text-[var(--success)]" />
           )}
-          {template.locked && <Lock className="w-4 h-4 text-[var(--text-muted)]" title="Locked" />}
         </div>
       </div>
     </Card>

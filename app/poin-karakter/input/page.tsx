@@ -134,10 +134,6 @@ export default function CharacterInputPage() {
     <AppShell
       title="Input Poin Karakter"
       description="Rekam perilaku siswa untuk poin karakter"
-      breadcrumbs={[
-        { label: "Poin Karakter", href: "/poin-karakter" },
-        { label: "Input" },
-      ]}
     >
       <div className="space-y-6">
         {/* Header Actions */}

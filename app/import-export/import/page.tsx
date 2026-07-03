@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { AppShell } from "@/components/layout"
 import { Card } from "@/components/ui"
@@ -22,7 +22,8 @@ import { cn } from "@/lib/utils"
 
 type ImportStep = "upload" | "preview" | "mapping" | "confirm" | "complete"
 
-export default function ImportPage() {
+// Inner component that uses useSearchParams
+function ImportContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const module = searchParams.get("module") || "students"
@@ -127,11 +128,6 @@ export default function ImportPage() {
     <AppShell
       title="Import Data"
       description={`Import data ${moduleInfo.name}`}
-      breadcrumbs={[
-        { label: "Import & Export", href: "/import-export" },
-        { label: "Import" },
-        { label: moduleInfo.name },
-      ]}
     >
       <div className="space-y-6">
         {/* Progress Steps */}
@@ -433,5 +429,26 @@ export default function ImportPage() {
         )}
       </div>
     </AppShell>
+  )
+}
+
+// Loading fallback
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[var(--background-primary)]">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-12 h-12 border-4 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
+        <p className="text-[var(--text-secondary)]">Memuat...</p>
+      </div>
+    </div>
+  )
+}
+
+// Main export with Suspense
+export default function ImportPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <ImportContent />
+    </Suspense>
   )
 }

@@ -88,10 +88,6 @@ export default function AttendanceRecapPage() {
     <AppShell
       title="Rekap Presensi"
       description="Lihat rekapitulasi kehadiran siswa"
-      breadcrumbs={[
-        { label: "Presensi", href: "/presensi" },
-        { label: "Rekap" },
-      ]}
     >
       <div className="space-y-6">
         {/* Header Actions */}

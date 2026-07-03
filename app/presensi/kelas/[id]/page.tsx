@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { AppShell } from "@/components/layout"
 import { Card } from "@/components/ui"
@@ -20,7 +20,8 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-export default function ClassAttendancePage() {
+// Inner component that uses useSearchParams
+function ClassAttendanceContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const classId = searchParams.get("id") || "class-x-tkj-1"
@@ -97,11 +98,6 @@ export default function ClassAttendancePage() {
         month: "long",
         year: "numeric",
       })}`}
-      breadcrumbs={[
-        { label: "Presensi", href: "/presensi" },
-        { label: "Rekap", href: "/presensi/rekap" },
-        { label: className },
-      ]}
     >
       <div className="space-y-6">
         {/* Header Actions */}
@@ -275,6 +271,27 @@ export default function ClassAttendancePage() {
         </Card>
       </div>
     </AppShell>
+  )
+}
+
+// Loading fallback
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[var(--background-primary)]">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-12 h-12 border-4 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
+        <p className="text-[var(--text-secondary)]">Memuat...</p>
+      </div>
+    </div>
+  )
+}
+
+// Main export with Suspense
+export default function ClassAttendancePage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <ClassAttendanceContent />
+    </Suspense>
   )
 }
 

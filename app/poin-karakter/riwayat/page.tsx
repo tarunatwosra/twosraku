@@ -150,10 +150,6 @@ export default function CharacterHistoryPage() {
     <AppShell
       title="Riwayat Poin Karakter"
       description="Lihat semua catatan poin karakter siswa"
-      breadcrumbs={[
-        { label: "Poin Karakter", href: "/poin-karakter" },
-        { label: "Riwayat" },
-      ]}
     >
       <div className="space-y-6">
         {/* Header Actions */}

@@ -120,10 +120,6 @@ export default function MembersPage() {
     <AppShell
       title="Anggota Pasukan Khusus"
       description="Kelola database anggota Pasukan Khusus"
-      breadcrumbs={[
-        { label: "Pasukan Khusus", href: "/pasukan-khusus" },
-        { label: "Anggota" },
-      ]}
     >
       <div className="space-y-6">
         {/* Header Actions */}

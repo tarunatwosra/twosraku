@@ -102,10 +102,6 @@ export default function AssessmentSessionPage() {
     <AppShell
       title="Sesi Penilaian"
       description="Kelola sesi penilaian untuk setiap template"
-      breadcrumbs={[
-        { label: "Penilaian", href: "/penilaian" },
-        { label: "Sesi" },
-      ]}
     >
       <div className="space-y-6">
         {/* Header Actions */}

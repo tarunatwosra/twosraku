@@ -28,6 +28,7 @@ import {
   Copy,
   FileText,
   Download,
+  Settings,
   Printer,
   ChevronRight,
   AlertCircle,

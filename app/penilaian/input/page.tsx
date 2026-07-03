@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo, useCallback } from "react"
+import { useState, useEffect, useMemo, useCallback, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { AppShell } from "@/components/layout"
 import { Card } from "@/components/ui"
@@ -25,7 +25,8 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-export default function AssessmentInputPage() {
+// Inner component that uses useSearchParams
+function AssessmentInputContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const sessionId = searchParams.get("session") || "ses-1"
@@ -136,11 +137,6 @@ export default function AssessmentInputPage() {
     <AppShell
       title={session?.name || "Input Nilai"}
       description={`${category?.name || ""} - ${template?.name || ""}`}
-      breadcrumbs={[
-        { label: "Penilaian", href: "/penilaian" },
-        { label: "Sesi", href: "/penilaian/session" },
-        { label: session?.name || "Session" },
-      ]}
     >
       <div className="space-y-6">
         {/* Header Actions */}
@@ -391,5 +387,26 @@ export default function AssessmentInputPage() {
         </div>
       </div>
     </AppShell>
+  )
+}
+
+// Loading fallback
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[var(--background-primary)]">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-12 h-12 border-4 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
+        <p className="text-[var(--text-secondary)]">Memuat...</p>
+      </div>
+    </div>
+  )
+}
+
+// Main export with Suspense
+export default function AssessmentInputPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <AssessmentInputContent />
+    </Suspense>
   )
 }
