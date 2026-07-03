@@ -39,7 +39,10 @@ const administrationMenu = [
   { icon: Megaphone, label: "Pengumuman", href: "#" },
 ];
 
-const reportMenu = [{ icon: FileText, label: "Laporan", href: "#" }];
+const reportMenu = [
+  { icon: FileText, label: "Laporan", href: "/laporan" },
+  { icon: BarChart3, label: "Import & Export", href: "/import-export" },
+];
 
 const systemMenu = [{ icon: Settings, label: "Pengaturan", href: "#" }];
 
@@ -52,6 +55,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [expandedSections, setExpandedSections] = useState<string[]>([
     "AKADEMIK",
     "ADMINISTRASI",
+    "LAPORAN",
   ]);
 
   const toggleSection = (section: string) => {
