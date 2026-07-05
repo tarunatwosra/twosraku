@@ -15,7 +15,7 @@ import {
 import { AppShell } from "@/components/layout"
 import { Card, Button, Input, Select, Avatar } from "@/components/ui"
 import { fetchStudent, updateStudent, checkDuplicateNIS } from "../../lib/supabase"
-import { useAcademicYear, useMajors, useGrades, useClasses } from "@/hooks"
+import { useAcademicYear, useMajors, useClasses } from "@/hooks"
 import type { StudentWithClass } from "@/types/database"
 import { cn } from "@/lib/utils"
 
@@ -312,7 +312,6 @@ export default function EditStudentPage({ params }: EditStudentPageProps) {
   // Academic data
   const { academicYear } = useAcademicYear()
   const { majors } = useMajors()
-  const { grades } = useGrades()
   const { classes } = useClasses({
     academicYearId: academicYear?.id,
   })
@@ -793,7 +792,7 @@ export default function EditStudentPage({ params }: EditStudentPageProps) {
                   <option value="">Pilih Kelas</option>
                   {classes.map((cls) => (
                     <option key={cls.id} value={cls.id}>
-                      {cls.grades?.name} {cls.majors?.name} {cls.name || ""}
+                      {cls.majors?.name} {cls.name || ""}
                     </option>
                   ))}
                 </select>

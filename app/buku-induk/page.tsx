@@ -39,7 +39,7 @@ import {
 import { QuickViewModal } from "@/components/buku-induk/QuickViewModal"
 import { ExportButton } from "@/components/buku-induk/ExportButton"
 import { ColumnConfigButton, DEFAULT_COLUMNS, type ColumnConfig } from "@/components/buku-induk/ColumnConfig"
-import { useStudents, useStudentStats, useAcademicYear, useMajors, useGrades, useClasses } from "@/hooks"
+import { useStudents, useStudentStats, useAcademicYear, useMajors, useClasses } from "@/hooks"
 import { fetchStudents, fetchStudentStats, bulkArchiveStudents } from "./lib/supabase"
 import type { StudentWithClass, StudentFilters } from "@/types/database"
 import { cn } from "@/lib/utils"
@@ -121,7 +121,6 @@ export default function BukuIndukPage() {
 
   // Additional filter state
   const [majorId, setMajorId] = useState("")
-  const [gradeId, setGradeId] = useState("")
   const [classId, setClassId] = useState("")
 
   // Column configuration state
@@ -129,10 +128,8 @@ export default function BukuIndukPage() {
 
   // Filter hooks
   const { majors } = useMajors()
-  const { grades } = useGrades()
   const { classes } = useClasses({
     academicYearId: academicYear?.id,
-    gradeId: gradeId || undefined,
     majorId: majorId || undefined,
   })
 
@@ -151,7 +148,6 @@ export default function BukuIndukPage() {
     is_active: status === "" ? undefined : status === "true",
     class_id: (classId as StudentFilters["class_id"]) || undefined,
     major_id: (majorId as StudentFilters["major_id"]) || undefined,
-    grade_id: (gradeId as StudentFilters["grade_id"]) || undefined,
     academic_year_id: academicYear?.id,
   }
 
@@ -188,7 +184,7 @@ export default function BukuIndukPage() {
     } finally {
       setLoading(false)
     }
-  }, [page, perPage, debouncedSearch, gender, status, majorId, gradeId, classId, academicYear?.id, sortField, sortDirection])
+  }, [page, perPage, debouncedSearch, gender, status, majorId, classId, academicYear?.id, sortField, sortDirection])
 
   // Fetch stats
   const fetchStats = useCallback(async () => {
@@ -214,7 +210,7 @@ export default function BukuIndukPage() {
   // Reset page when filters change
   useEffect(() => {
     setPage(1)
-  }, [debouncedSearch, gender, status, majorId, gradeId, classId])
+  }, [debouncedSearch, gender, status, majorId, classId])
 
   // Handle page change
   const handlePageChange = (newPage: number) => {
@@ -233,12 +229,11 @@ export default function BukuIndukPage() {
     setGender("")
     setStatus("")
     setMajorId("")
-    setGradeId("")
     setClassId("")
     setPage(1)
   }
 
-  const hasActiveFilters = gender || status || majorId || gradeId || classId || debouncedSearch
+  const hasActiveFilters = gender || status || majorId || classId || debouncedSearch
 
   // Selection handlers
   const toggleSelectAll = () => {
@@ -297,8 +292,8 @@ export default function BukuIndukPage() {
       (sc) => sc.academic_year_id === academicYear?.id && sc.status === "active"
     )
     if (activeClass?.classes) {
-      const { grades, majors } = activeClass.classes
-      return `${grades?.name || ""} ${majors?.name || ""}`.trim()
+      const { majors } = activeClass.classes
+      return `${majors?.name || ""} ${activeClass.classes.name || ""}`.trim()
     }
     return "-"
   }
@@ -390,7 +385,7 @@ export default function BukuIndukPage() {
               Filter
               {hasActiveFilters && (
                 <span className="w-5 h-5 bg-[var(--primary)] text-white text-[11px] rounded-full flex items-center justify-center">
-                  {(gender ? 1 : 0) + (status ? 1 : 0) + (majorId ? 1 : 0) + (gradeId ? 1 : 0) + (classId ? 1 : 0)}
+                  {(gender ? 1 : 0) + (status ? 1 : 0) + (majorId ? 1 : 0) + (classId ? 1 : 0)}
                 </span>
               )}
             </Button>
@@ -498,26 +493,8 @@ export default function BukuIndukPage() {
                 />
               </div>
 
-              {/* Grade Filter */}
-              <div>
-                <label className="block text-[13px] font-medium text-[var(--text-secondary)] mb-2">
-                  Tingkat
-                </label>
-                <Select
-                  value={gradeId}
-                  onChange={(e) => {
-                    setGradeId(e.target.value)
-                    setClassId("")
-                  }}
-                  options={[
-                    { value: "", label: "Semua Tingkat" },
-                    ...grades.map((g) => ({ value: g.id, label: g.name })),
-                  ]}
-                />
-              </div>
-
               {/* Class Filter */}
-              {(gradeId || majorId) && (
+              {majorId && (
                 <div>
                   <label className="block text-[13px] font-medium text-[var(--text-secondary)] mb-2">
                     Kelas
@@ -529,7 +506,7 @@ export default function BukuIndukPage() {
                       { value: "", label: "Semua Kelas" },
                       ...classes.map((c) => ({
                         value: c.id,
-                        label: `${c.grades?.name || ""} ${c.majors?.name || ""} ${c.name || ""}`.trim(),
+                        label: `${c.majors?.name || ""} ${c.name || ""}`.trim(),
                       })),
                     ]}
                   />
@@ -575,19 +552,6 @@ export default function BukuIndukPage() {
                   <X className="w-3 h-3 ml-1" />
                 </Badge>
               )}
-              {gradeId && (
-                <Badge
-                  variant="primary"
-                  className="cursor-pointer hover:opacity-80"
-                  onClick={() => {
-                    setGradeId("")
-                    setClassId("")
-                  }}
-                >
-                  {grades.find((g) => g.id === gradeId)?.name}
-                  <X className="w-3 h-3 ml-1" />
-                </Badge>
-              )}
               {classId && (
                 <Badge
                   variant="primary"
@@ -596,7 +560,7 @@ export default function BukuIndukPage() {
                 >
                   {(() => {
                     const c = classes.find((cls) => cls.id === classId)
-                    return c ? `${c.grades?.name || ""} ${c.majors?.name || ""}`.trim() : classId
+                    return c ? `${c.majors?.name || ""} ${c.name || ""}`.trim() : classId
                   })()}
                   <X className="w-3 h-3 ml-1" />
                 </Badge>

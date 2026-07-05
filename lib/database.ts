@@ -15,7 +15,6 @@ export type TableName =
   | 'academic_years'
   | 'semesters'
   | 'majors'
-  | 'grades'
   | 'classes'
   | 'students'
   | 'student_classes'
@@ -257,7 +256,6 @@ export async function getStudentsWithClass(
         *,
         classes (
           *,
-          grades (*),
           majors (*)
         )
       )

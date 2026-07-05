@@ -43,6 +43,7 @@ interface ClassFormData {
   name: string
   major_id: string
   room_number: string
+  academic_year_id: string
 }
 
 interface MajorFormData {
@@ -61,17 +62,22 @@ function ClassFormModal({
   onSuccess,
   classToEdit,
   majors,
+  academicYearId,
+  academicYears,
 }: {
   isOpen: boolean
   onClose: () => void
   onSuccess: () => void
   classToEdit?: Class | null
   majors: Major[]
+  academicYearId?: string
+  academicYears?: { id: string; name: string }[]
 }) {
   const [formData, setFormData] = useState<ClassFormData>({
     name: "",
     major_id: "",
     room_number: "",
+    academic_year_id: academicYearId || "",
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -82,16 +88,18 @@ function ClassFormModal({
         name: classToEdit.name,
         major_id: classToEdit.major_id,
         room_number: classToEdit.room_number || "",
+        academic_year_id: classToEdit.academic_year_id || "",
       })
     } else {
       setFormData({
         name: "",
         major_id: "",
         room_number: "",
+        academic_year_id: academicYearId || "",
       })
     }
     setError(null)
-  }, [classToEdit, isOpen])
+  }, [classToEdit, isOpen, academicYearId])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -110,6 +118,7 @@ function ClassFormModal({
         result = await createClass({
           name: formData.name,
           major_id: formData.major_id,
+          academic_year_id: formData.academic_year_id,
           room_number: formData.room_number || undefined,
         })
       }
@@ -163,6 +172,17 @@ function ClassFormModal({
             options={majorOptions}
             required
           />
+
+          {!classToEdit && academicYears && (
+            <Select
+              label="Tahun Ajaran"
+              placeholder="Pilih Tahun Ajaran"
+              value={formData.academic_year_id}
+              onChange={(e) => setFormData({ ...formData, academic_year_id: e.target.value })}
+              options={academicYears.map((y) => ({ value: y.id, label: y.name }))}
+              required
+            />
+          )}
 
           <Input
             label="Nomor Ruang (Opsional)"
@@ -386,7 +406,7 @@ function ConfirmDeleteModal({
         <Button type="button" variant="outline" onClick={onClose}>
           Batal
         </Button>
-        <Button type="button" variant="destructive" onClick={onConfirm} disabled={isLoading}>
+        <Button type="button" variant="danger" onClick={onConfirm} disabled={isLoading}>
           {isLoading ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />

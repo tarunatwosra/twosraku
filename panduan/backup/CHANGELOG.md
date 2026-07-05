@@ -28,6 +28,34 @@ Berisi catatan semua perubahan yang dilakukan pada file-file panduan. Setiap kal
 
 <!-- Changelog entries will be added below this line -->
 
+## 2026-07-05
+
+### schema.md (database)
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-07-05 |
+| Perubahan | Hapus referensi grades di tabel classes. Tabel grades dihapus, informasi tingkat diambil dari nama kelas. Update Foreign Key Constraints dan Index Recommendations. |
+| Backup | schema-001.md |
+| Catatan | Migration 003_remove_grades.sql sudah dibuat untuk menghapus grade_id |
+
+### settings.md (19-feature-specifications/)
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-07-05 |
+| Perubahan | Hapus referensi tab Tingkat (Grades). Changelog diupdate untuk mencerminkan perubahan: Majors dan Classes tanpa Grades. |
+| Backup | settings-001.md |
+| Catatan | Backup sebelumnya di-shift: 003→004, 002→003, 001→002 |
+
+### types/database.ts
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-07-05 |
+| Perubahan | Hapus referensi Grade di StudentWithClass interface. |
+| Backup | (minor type change, tidak perlu backup) |
+| Catatan | - |
+
+---
+
 ## 2026-07-03
 
 ### settings.md (19-feature-specifications/)

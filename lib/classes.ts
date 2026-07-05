@@ -36,10 +36,9 @@ export async function fetchClasses(
       query = query.eq("status", "active")
     }
 
-    // Note: academic_year_id filter is commented out as the column may not exist yet
-    // if (options.academicYearId) {
-    //   query = query.eq("academic_year_id", options.academicYearId)
-    // }
+    if (options.academicYearId) {
+      query = query.eq("academic_year_id", options.academicYearId)
+    }
 
     if (options.majorId) {
       query = query.eq("major_id", options.majorId)

@@ -53,28 +53,18 @@ export interface Major {
   updated_at: Timestamp
 }
 
-export interface Grade {
-  id: UUID
-  name: string
-  level: number
-  description: string | null
-  status: 'active' | 'inactive' | 'archived'
-  created_at: Timestamp
-  updated_at: Timestamp
-}
-
 export interface Class {
   id: UUID
   name: string
   major_id: UUID
+  academic_year_id: UUID
   room_number: string | null
   status: 'active' | 'inactive' | 'archived'
   created_at: Timestamp
   updated_at: Timestamp
   // Relations
   majors?: Major
-  // Optional - uncomment if academic_year_id column exists
-  // academic_year_id?: UUID
+  academic_years?: AcademicYear
 }
 
 export interface Student {
@@ -517,7 +507,6 @@ export interface Activity {
 export interface StudentWithClass extends Student {
   student_classes: (StudentClass & {
     classes: Class & {
-      grades: Grade
       majors: Major
     }
   })[]
@@ -530,7 +519,6 @@ export interface StudentFilters {
   gender?: Student['gender']
   class_id?: UUID
   major_id?: UUID
-  grade_id?: UUID
   academic_year_id?: UUID
 }
 

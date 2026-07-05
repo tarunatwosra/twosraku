@@ -57,24 +57,19 @@ export async function fetchStudents(
         *,
         classes (
           *,
-          grades (*),
           majors (*)
         )
       `)
 
     studentClassesQuery = studentClassesQuery.eq("academic_year_id", academicYearId)
 
-    // Apply class/major/grade filters to student_classes query
+    // Apply class/major filters to student_classes query
     if (filters.class_id) {
       studentClassesQuery = studentClassesQuery.eq("class_id", filters.class_id)
     }
 
     if (filters.major_id) {
       studentClassesQuery = studentClassesQuery.eq("classes.major_id", filters.major_id)
-    }
-
-    if (filters.grade_id) {
-      studentClassesQuery = studentClassesQuery.eq("classes.grade_id", filters.grade_id)
     }
 
     const { data: scData, error: scError } = await studentClassesQuery
@@ -162,7 +157,6 @@ export async function fetchStudent(id: string): Promise<StudentWithClass | null>
         *,
         classes (
           *,
-          grades (*),
           majors (*)
         )
       ),
@@ -705,7 +699,6 @@ export async function fetchArchivedStudents(
           *,
           classes (
             *,
-            grades (*),
             majors (*)
           )
         `)

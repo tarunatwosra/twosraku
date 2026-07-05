@@ -90,7 +90,7 @@ function StudentHeader({ student }: { student: StudentWithClass }) {
     (sc) => sc.academic_year_id === academicYear?.id && sc.status === "active"
   )
   const className = activeClass?.classes
-    ? `${activeClass.classes.grades?.name || ""} ${activeClass.classes.majors?.name || ""}`.trim()
+    ? `${activeClass.classes.majors?.name || ""} ${activeClass.classes.name || ""}`.trim()
     : "-"
 
   const handleArchive = async () => {
@@ -294,7 +294,7 @@ function AcademicInfoSection({ student }: { student: StudentWithClass }) {
     return student.student_classes?.map((sc) => ({
       year: sc.academic_year_id,
       class: sc.classes
-        ? `${sc.classes.grades?.name || ""} ${sc.classes.majors?.name || ""}`.trim()
+        ? `${sc.classes.majors?.name || ""} ${sc.classes.name || ""}`.trim()
         : "-",
       status: sc.status,
       attendanceNumber: sc.attendance_number,
@@ -316,7 +316,7 @@ function AcademicInfoSection({ student }: { student: StudentWithClass }) {
               label="Kelas"
               value={
                 activeClass.classes
-                  ? `${activeClass.classes.grades?.name || ""} ${activeClass.classes.majors?.name || ""}`.trim()
+                  ? `${activeClass.classes.majors?.name || ""} ${activeClass.classes.name || ""}`.trim()
                   : "-"
               }
             />
@@ -530,7 +530,7 @@ function ActivitySection({ student }: { student: StudentWithClass }) {
 
     classHistory.forEach((sc, index) => {
       const className = sc.classes
-        ? `${sc.classes.grades?.name || ""} ${sc.classes.majors?.name || ""}`.trim()
+        ? `${sc.classes.majors?.name || ""} ${sc.classes.name || ""}`.trim()
         : "Kelas"
 
       items.push({

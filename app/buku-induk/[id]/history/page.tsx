@@ -221,7 +221,7 @@ function ClassHistoryCard({
         <div className="space-y-2">
           {sortedClasses.map((sc, index) => {
             const className = sc.classes
-              ? `${sc.classes.grades?.name || ""} ${sc.classes.majors?.name || ""}`.trim()
+              ? `${sc.classes.majors?.name || ""} ${sc.classes.name || ""}`.trim()
               : "-"
             return (
               <div
@@ -390,7 +390,7 @@ export default function StudentHistoryPage({ params }: StudentHistoryPageProps) 
 
     classHistory.forEach((sc, index) => {
       const className = sc.classes
-        ? `${sc.classes.grades?.name || ""} ${sc.classes.majors?.name || ""}`.trim()
+        ? `${sc.classes.majors?.name || ""} ${sc.classes.name || ""}`.trim()
         : "Kelas Tidak Diketahui"
 
       items.push({

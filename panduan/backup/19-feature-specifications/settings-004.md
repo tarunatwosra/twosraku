@@ -97,7 +97,6 @@ Settings
 ├── Academic
 
 │   ├── Tahun Ajaran
-│   ├── Semester
 │   ├── Sistem Penilaian
 │   ├── **Jurusan** (NEW v2.0)
 │   └── **Kelas** (NEW v2.0)
@@ -267,18 +266,7 @@ Mengeelola tahun ajaran sekolah.
 
 ---
 
-### 2. Semester
-
-Mengeelola semester dalam tahun ajaran.
-
-**Aksi:**
-- Lihat daftar semester
-- Pilih semester aktif
-- Tambah semester baru (disabled - belum diimplementasi)
-
----
-
-### 3. Sistem Penilaian
+### 2. Sistem Penilaian
 
 Mengatur skala penilaian dan ambang batas kelulusan.
 
@@ -289,7 +277,32 @@ Mengatur skala penilaian dan ambang batas kelulusan.
 
 ---
 
-### 4. Jurusan (Majors) - NEW v2.0
+### 3. Jurusan (Majors) - NEW v2.0
+
+Mengeelola jurusan/program keahlian di sekolah.
+
+**Field:**
+| Field | Tipe | Required | Deskripsi |
+|-------|------|----------|-----------|
+| Nama Jurusan | Text | ✅ | Nama lengkap jurusan |
+| Kode Jurusan | Text | ✅ | Kode singkat unik (contoh: "TKJ", "RPL") |
+| Deskripsi | Text | - | Deskripsi opsional |
+
+**Aksi:**
+- Tambah jurusan baru
+- Edit jurusan
+- Hapus jurusan (jika belum digunakan kelas)
+
+**Contoh:**
+| Nama | Kode | Deskripsi |
+|------|------|-----------|
+| Teknik Komputer dan Jaringan | TKJ | Program keahlian jaringan komputer |
+| Rekayasa Perangkat Lunak | RPL | Program keahlian pengembangan software |
+| Akuntansi | AKT | Program keahlian akuntansi |
+
+---
+
+### 4. Kelas (Classes) - NEW v2.0
 
 Mengeelola kelas yang terdiri dari jurusan dan tahun ajaran.
 
@@ -316,6 +329,10 @@ Mengeelola kelas yang terdiri dari jurusan dan tahun ajaran.
 1. Kelas terikat pada tahun ajaran tertentu
 2. Satu kombinasi jurusan + tahun ajaran bisa memiliki multiple kelas (TKJ 1, TKJ 2)
 3. Menghapus kelas dengan siswa akan mengubah status menjadi "inactive" (soft delete)
+
+**Catatan Semester:**
+- Semester ditangani secara lokal oleh masing-masing modul (absensi, penilaian)
+- Tidak dikelola di Settings Academic
 
 ---
 

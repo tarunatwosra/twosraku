@@ -1,6 +1,5 @@
 # Settings Module
-Version: 2.0
-Updated: 2026-07-03
+Version: 1.0
 
 ---
 
@@ -95,12 +94,6 @@ Settings
 ├── School Profile
 
 ├── Academic
-
-│   ├── Tahun Ajaran
-│   ├── Semester
-│   ├── Sistem Penilaian
-│   ├── **Jurusan** (NEW v2.0)
-│   └── **Kelas** (NEW v2.0)
 
 ├── Users
 
@@ -242,80 +235,9 @@ Default Class Status
 
 Graduation Rules
 
-**Jurusan (Majors) - NEW v2.0**
-
-**Kelas (Classes) - NEW v2.0**
-
 ---
 
 Academic changes require administrator permission.
-
----
-
-## Academic Tabs (NEW v2.0)
-
-### 1. Tahun Ajaran
-
-Mengeelola tahun ajaran sekolah.
-
-**Aksi:**
-- Lihat daftar tahun ajaran
-- Pilih tahun ajaran aktif
-- Tambah tahun ajaran baru (disabled - belum diimplementasi)
-
-**Catatan:** Tahun ajaran aktif menentukan data kelas yang ditampilkan.
-
----
-
-### 2. Semester
-
-Mengeelola semester dalam tahun ajaran.
-
-**Aksi:**
-- Lihat daftar semester
-- Pilih semester aktif
-- Tambah semester baru (disabled - belum diimplementasi)
-
----
-
-### 3. Sistem Penilaian
-
-Mengatur skala penilaian dan ambang batas kelulusan.
-
-**Komponen:**
-- Skala Penilaian: A, B, C, D, E dengan rentang skor
-- Batas Kehadiran: Minimum persentase kehadiran untuk lulus
-- Nilai Kelulusan: Minimum nilai untuk dinyatakan lulus
-
----
-
-### 4. Jurusan (Majors) - NEW v2.0
-
-Mengeelola kelas yang terdiri dari jurusan dan tahun ajaran.
-
-**Field:**
-| Field | Tipe | Required | Deskripsi |
-|-------|------|----------|-----------|
-| Nama Kelas | Text | ✅ | Nama kelas (contoh: "TKJ 1") |
-| Jurusan | Select | ✅ | Pilih dari daftar jurusan |
-| Tahun Ajaran | Select | ✅ | Pilih tahun ajaran aktif |
-| Nomor Ruang | Text | - | Nomor ruang kelas (opsional) |
-
-**Aksi:**
-- Tambah kelas baru
-- Edit kelas
-- Hapus kelas (soft delete jika punya siswa, hard delete jika kosong)
-
-**Filter:**
-- Filter kelas berdasarkan tahun ajaran
-
-**Integrasi:**
-- Kelas yang dibuat di sini akan muncul di dropdown "Kelas" saat tambah/edit siswa di Buku Induk
-
-**Business Rules:**
-1. Kelas terikat pada tahun ajaran tertentu
-2. Satu kombinasi jurusan + tahun ajaran bisa memiliki multiple kelas (TKJ 1, TKJ 2)
-3. Menghapus kelas dengan siswa akan mengubah status menjadi "inactive" (soft delete)
 
 ---
 
@@ -904,26 +826,3 @@ Settings is not a preferences page.
 Settings is the centralized configuration engine of Twosraku.
 
 Every configurable behavior should be managed through this module while maintaining security, consistency, auditability, and long-term scalability.
-
----
-
-# Changelog v2.0 (2026-07-03)
-
-## Perubahan dari v1.0
-
-1. **Academic Settings diperluas** dengan tab baru:
-   - Tingkat (Grades): Kelola tingkatan kelas
-   - Jurusan (Majors): Kelola jurusan/program keahlian
-   - Kelas (Classes): Kelola kelas yang terdiri dari tingkat + jurusan + tahun ajaran
-
-2. **Integrasi dengan Buku Induk**:
-   - Kelas yang dibuat di Settings Academic akan muncul di dropdown "Kelas" saat tambah/edit siswa
-
-3. **Database Layer**:
-   - CRUD operations untuk grades, majors, classes
-   - Type definitions untuk Class, Grade, Major, ClassWithDetails
-
----
-
-**Last Updated**: 2026-07-03
-**Version**: 2.0

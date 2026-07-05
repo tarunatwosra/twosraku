@@ -124,7 +124,6 @@ export function useStudent(id?: string) {
               *,
               classes (
                 *,
-                grades (*),
                 majors (*)
               )
             )

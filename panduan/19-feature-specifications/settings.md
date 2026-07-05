@@ -929,18 +929,19 @@ Every configurable behavior should be managed through this module while maintain
 ## Perubahan dari v1.0
 
 1. **Academic Settings diperluas** dengan tab baru:
-   - Tingkat (Grades): Kelola tingkatan kelas
    - Jurusan (Majors): Kelola jurusan/program keahlian
-   - Kelas (Classes): Kelola kelas yang terdiri dari tingkat + jurusan + tahun ajaran
+   - Kelas (Classes): Kelola kelas yang terdiri dari nama + jurusan + tahun ajaran
 
 2. **Integrasi dengan Buku Induk**:
    - Kelas yang dibuat di Settings Academic akan muncul di dropdown "Kelas" saat tambah/edit siswa
 
 3. **Database Layer**:
-   - CRUD operations untuk grades, majors, classes
-   - Type definitions untuk Class, Grade, Major, ClassWithDetails
+   - CRUD operations untuk majors, classes
+   - Type definitions untuk Class, Major
+
+**Catatan**: Tingkat (grade) tidak lagi disimpan di tabel terpisah. Informasi tingkat diambil dari nama kelas.
 
 ---
 
-**Last Updated**: 2026-07-03
-**Version**: 2.0
+**Last Updated**: 2026-07-05
+**Version**: 2.1

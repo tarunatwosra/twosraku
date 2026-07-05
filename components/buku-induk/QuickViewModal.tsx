@@ -105,16 +105,12 @@ export function QuickViewModal({
         academicYearId && sc.academic_year_id === academicYearId && sc.status === "active"
     )
     if (activeClass?.classes) {
-      return `${activeClass.classes.grades?.name || ""} ${
-        activeClass.classes.majors?.name || ""
-      }`.trim()
+      return `${activeClass.classes.majors?.name || ""} ${activeClass.classes.name || ""}`.trim()
     }
     // Fallback to any active class
     const anyActive = student.student_classes.find((sc) => sc.status === "active")
     if (anyActive?.classes) {
-      return `${anyActive.classes.grades?.name || ""} ${
-        anyActive.classes.majors?.name || ""
-      }`.trim()
+      return `${anyActive.classes.majors?.name || ""} ${anyActive.classes.name || ""}`.trim()
     }
     return "-"
   }
