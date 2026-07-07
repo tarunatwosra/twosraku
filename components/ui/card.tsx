@@ -4,9 +4,10 @@ import { forwardRef, type HTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
 export interface CardProps extends HTMLAttributes<HTMLDivElement> {
-  variant?: "default" | "outlined" | "ghost";
+  variant?: "default" | "outlined" | "ghost" | "elevated" | "soft";
   padding?: "sm" | "md" | "lg" | "none";
   hoverable?: boolean;
+  glow?: boolean;
 }
 
 const Card = forwardRef<HTMLDivElement, CardProps>(
@@ -16,39 +17,68 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
       variant = "default",
       padding = "md",
       hoverable = false,
+      glow = false,
       children,
       ...props
     },
     ref
   ) => {
     const baseStyles = `
-      rounded-[28px]
+      rounded-3xl
       transition-all duration-200 ease-out
+      relative
+      overflow-hidden
     `;
 
     const variants = {
       default: `
-        bg-[var(--surface-primary)]
-        shadow-[var(--shadow-sm)]
+        bg-white
+        border border-[var(--border-light)]/60
+        shadow-[0_1px_3px_rgba(15,23,42,0.04),0_1px_2px_rgba(15,23,42,0.06)]
+      `,
+      elevated: `
+        bg-white
+        border border-[var(--border-light)]/40
+        shadow-[0_4px_12px_rgba(15,23,42,0.08),0_2px_4px_rgba(15,23,42,0.04)]
       `,
       outlined: `
-        bg-[var(--surface-primary)]
-        border border-[var(--border-light)]
+        bg-white
+        border border-[var(--border-default)]
       `,
       ghost: `
         bg-transparent
+        border border-transparent
+      `,
+      soft: `
+        bg-[var(--surface-secondary)]
+        border border-[var(--border-light)]/40
+        shadow-none
       `,
     };
 
     const paddings = {
       none: "",
-      sm: "p-[20px]",
-      md: "p-[28px]",
-      lg: "p-[36px]",
+      sm: "p-5",
+      md: "p-6",
+      lg: "p-8",
     };
 
     const hoverStyles = hoverable
-      ? "hover:shadow-[var(--shadow-md)] hover:-translate-y-0.5 cursor-pointer"
+      ? `
+        hover:shadow-[0_8px_24px_rgba(15,23,42,0.12),0_4px_8px_rgba(15,23,42,0.06)]
+        hover:-translate-y-0.5
+        hover:border-[var(--border-default)]
+        cursor-pointer
+      `
+      : "";
+
+    const glowStyles = glow
+      ? `
+        before:absolute before:inset-0 before:rounded-3xl
+        before:bg-gradient-to-br before:from-[var(--primary)]/5 before:to-transparent
+        before:opacity-0 before:transition-opacity before:duration-300
+        hover:before:opacity-100
+      `
       : "";
 
     return (
@@ -59,6 +89,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
           variants[variant],
           paddings[padding],
           hoverStyles,
+          glowStyles,
           className
         )}
         {...props}
@@ -79,7 +110,7 @@ const CardHeader = forwardRef<HTMLDivElement, CardHeaderProps>(
     return (
       <div
         ref={ref}
-        className={cn("flex flex-col space-y-1.5", className)}
+        className={cn("flex flex-col space-y-1.5 pb-4 border-b border-[var(--border-light)]/60", className)}
         {...props}
       />
     );
@@ -146,7 +177,7 @@ const CardFooter = forwardRef<HTMLDivElement, CardFooterProps>(
     return (
       <div
         ref={ref}
-        className={cn("flex items-center pt-4", className)}
+        className={cn("flex items-center pt-4 mt-4 border-t border-[var(--border-light)]/60", className)}
         {...props}
       />
     );

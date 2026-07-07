@@ -28,6 +28,34 @@ Berisi catatan semua perubahan yang dilakukan pada file-file panduan. Setiap kal
 
 <!-- Changelog entries will be added below this line -->
 
+## 2026-07-06
+
+### student-registry.md (19-feature-specifications/)
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-07-06 |
+| Perubahan | Refactor UI buku induk: (1) Daftar Siswa - border minimal, hover lift effect, filter bar soft styling. (2) Detail Siswa - pill tabs, elevated header, modern timeline. (3) Form - soft grouped sections, modern focus/error states. (4) Quick View Modal - slide-in dari kanan. (5) Empty & Loading states dengan skeleton. |
+| Backup | student-registry-001.md |
+| Catatan | Backup sebelumnya (v2.0 sebelum refactor UI) di-shift ke 001; versi lama dipindahkan ke 005 |
+
+### component-library.md
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-07-06 |
+| Perubahan | Update dokumentasi: Tabs sekarang pill-style, Timeline dengan dot indicators, Button hover dengan lift effect, Card shadow lebih soft |
+| Backup | (minor documentation update, tidak perlu backup) |
+| Catatan | Perubahan UI dilakukan di kode, panduan diupdate untuk mencerminkan |
+
+### data-table.md
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-07-06 |
+| Perubahan | Update styling guidelines: border-less table, ultra-tipis divider lines, hover dengan translateY(-1px), filter bar dengan soft background |
+| Backup | (minor documentation update, tidak perlu backup) |
+| Catatan | Sinkron dengan implementasi refactor UI buku induk |
+
+---
+
 ## 2026-07-05
 
 ### schema.md (database)

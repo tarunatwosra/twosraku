@@ -1,11 +1,14 @@
 # Data Table
-Version: 1.0
+Version: 2.0
+Updated: 2026-07-06
 
 # Purpose
 
 Data tables are the primary interface for browsing, managing, and maintaining school records.
 
 Tables must prioritize readability, speed, and efficient bulk operations.
+
+**Modern Design:** Clean, border-less aesthetic with subtle visual cues.
 
 ---
 
@@ -16,6 +19,7 @@ Tables must prioritize readability, speed, and efficient bulk operations.
 - Consistent actions
 - Comfortable spacing
 - Responsive behavior
+- **Modern & Elegant** - border-less design with subtle hover states
 
 ---
 
@@ -23,11 +27,46 @@ Tables must prioritize readability, speed, and efficient bulk operations.
 
 Always place tables inside a card.
 
+```
 Padding: 24px
-
 Radius: 28px
+Shadow: Soft (0 1px 3px rgba(0,0,0,0.05))
+Background: White
+```
 
-Soft shadow only.
+---
+
+# Modern Table Styling
+
+## Table Structure
+```
+- Container: Card dengan padding 24px, radius 28px
+- Header: Font medium (500), border-bottom ultra-tipis (#F1F5F9)
+- Rows: Border-less, menggunakan divider lines halus
+- Hover: Background subtle (#F8FAFC) + translateY(-1px)
+- Selected: Background primary-soft (#EEF2FF)
+```
+
+## Table Header (Modern)
+```
+Height: 52px
+Background: White
+Font Weight: 500 (medium)
+Font Size: text-sm
+Color: text-secondary
+Border Bottom: 1px solid #F1F5F9 (ultra-thin)
+Sticky: Yes
+```
+
+## Table Rows (Modern)
+```
+Height: 56px
+Background: White
+Hover Background: #F8FAFC
+Hover Effect: translateY(-1px) + subtle shadow increase
+Selected Background: #EEF2FF (primary-soft)
+Border: None (border-less design)
+```
 
 ---
 
@@ -44,11 +83,23 @@ Soft shadow only.
 
 Place filters above the table.
 
-Recommended:
+## Modern Filter Bar
+```
+Style: Soft card with background #F8FAFC
+Radius: 18px
+Padding: 16px-20px
+Background: #F8FAFC (not white like table container)
+Border: None
+Filters: Horizontal layout with gap 12px
+Reset Button: Outline variant, positioned at end
+```
+
+## Recommended Filters
 - Search
 - Academic Year
 - Class
 - Status
+- Gender
 - Date Range
 - Reset Filters
 
@@ -67,34 +118,52 @@ Supports:
 
 Debounce input for better performance.
 
+**Search Field Styling:**
+```
+Height: 48px
+Radius: 18px
+Background: White
+Border: 1px solid #E2E8F0
+Icon: Leading search icon
+Placeholder: Muted color
+```
+
 ---
 
 # Table Header
 
+```
 Height: 52px
-
 Sticky: Yes
+Font Weight: 500 (medium, not bold)
+Background: White
+Border Bottom: 1px solid #F1F5F9 (ultra-thin)
 
 Support:
-- Sorting
+- Sorting (with arrow indicators)
 - Resize (optional)
 - Column visibility (optional)
+```
 
 ---
 
 # Table Rows
 
+```
 Height: 56px
-
+Background: White (default)
 Hover:
-- Soft background
-
+  - Background: #F8FAFC
+  - Effect: translateY(-1px) + shadow
+  - Transition: 200ms ease-out
 Selected:
-- Highlight row
-- Checkbox checked
+  - Background: #EEF2FF (primary-soft)
+  - Checkbox: Checked with primary color
+Border: None (border-less design)
+```
 
 Alternate row colors:
-Disabled.
+**Disabled** - use hover state instead for cleaner look.
 
 ---
 

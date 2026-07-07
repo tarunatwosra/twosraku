@@ -216,6 +216,148 @@ Sub Pages:
 
 ---
 
+## UI Design Patterns
+
+### 1. Daftar Siswa (Student List)
+
+**Layout:**
+- Full-width table dengan rounded container
+- Sticky header saat scroll
+- Minimal border, menggunakan spacing untuk pemisahan visual
+
+**Table Styling:**
+```
+- Container: Card dengan padding 24px, radius 28px, soft shadow
+- Header: Font medium (500), border-bottom ultra-tipis (#F1F5F9)
+- Row Height: 56px
+- Hover: Background subtle (#F8FAFC) + translateY(-1px) subtle lift
+- Selected: Background primary-soft (#EEF2FF)
+- Border: Border-less, menggunakan divider lines yang sangat halus
+```
+
+**Filter Bar:**
+```
+- Soft card styling dengan background #F8FAFC
+- Rounded corners (18px)
+- Filters disusun horizontal dengan gap 12px
+- Reset filters button di akhir
+```
+
+**Actions:**
+```
+- Three-dot menu untuk row actions
+- Slide-out dropdown dari kanan
+- Dividers antara action groups
+```
+
+### 2. Detail Siswa (Student Detail)
+
+**Header Card:**
+```
+- Elevated card dengan subtle gradient overlay
+- Avatar besar (96px) dengan rounded corners (18px)
+- Info disusun vertikal dengan spacing generous
+- Status badge di samping nama
+- Quick actions di pojok kanan atas
+```
+
+**Tab System:**
+```
+- Pill/segmented control style
+- Active: Background primary (#2563EB), text white
+- Inactive: Background transparent, text muted
+- Padding: 12px horizontal, 8px vertical
+- Gap: 8px antar tab
+- Indikator garis bawah dihapus
+```
+
+**Info Sections:**
+```
+- Card-based layout dengan soft background (#F8FAFC)
+- Section headers dengan font semibold
+- Info items menggunakan 2-column grid
+- Labels: text-xs, text-muted
+- Values: text-sm, font-medium, text-primary
+```
+
+**Timeline:**
+```
+- Vertical layout dengan dot indicators
+- Dot size: 32px dengan icon centered
+- Connector: Garis tipis (2px) dengan color muted
+- Content: Title (medium), description (muted), timestamp (right-aligned)
+- Variants: success, info, warning, danger, neutral dengan colors berbeda
+```
+
+### 3. Form (Add/Edit)
+
+**Section Dividers:**
+```
+- Spacing-based dividers (my-6)
+- Subtle background block dengan text centered
+- Uppercase text dengan letter-spacing
+- Garis horizontal di kiri dan kanan
+```
+
+**Form Fields:**
+```
+- Soft grouped sections dengan card-like appearance
+- Background: surface-secondary (#F8FAFC)
+- Padding: 24px
+- Gap antar fields: 16px
+- Full-width fields span 2 columns
+```
+
+**Focus States:**
+```
+- Border: border-focus (#4F51FF)
+- Shadow: [0_0_0_3px_rgba(79,124,255,0.1)]
+- Transition: 200ms ease-out
+```
+
+**Error States:**
+```
+- Border: danger (#EF4444)
+- Background: danger-soft (#FEF2F2)
+- Icon: AlertCircle di kiri
+- Message: text-danger, text-sm
+```
+
+### 4. Quick View Modal
+
+```
+- Slide-in dari kanan
+- Width: 480px
+- Radius: 32px
+- Backdrop: semi-transparent dengan blur
+- Header: Avatar + nama + status
+- Sections: Collapsible dengan smooth animation
+- Actions: Fixed di bottom
+```
+
+### 5. Empty States
+
+```
+- Centered vertically
+- Ilustrasi/icon besar (48-64px)
+- Title: text-lg, font-semibold
+- Description: text-sm, text-muted
+- Primary action button
+- Secondary action (optional)
+```
+
+### 6. Loading States
+
+```
+- Skeleton rows dengan animate-pulse
+- Skeleton cards dengan rounded corners
+- Skeleton circles untuk avatar
+- Background: surface-hover
+- Match layout dengan component yang di-load
+```
+
+---
+
 ## Aturan Bisnis
 
 1. **NIS harus unik** - tidak boleh duplikat
@@ -409,5 +551,5 @@ Melindungi integritas data siswa lebih penting daripada menambahkan fitur baru.
 
 ---
 
-**Last Updated**: 2026-07-03
-**Version**: 2.0
+**Last Updated**: 2026-07-06
+**Version**: 2.1

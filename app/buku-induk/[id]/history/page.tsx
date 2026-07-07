@@ -5,20 +5,19 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
   ArrowLeft,
-  Loader2,
   AlertCircle,
   BookOpen,
   Clock,
-  User,
   GraduationCap,
   ArrowRightLeft,
-  Pencil,
   UserPlus,
   History,
   TrendingUp,
+  Calendar,
+  Edit,
 } from "lucide-react"
 import { AppShell } from "@/components/layout"
-import { Card, Button, Badge, Avatar } from "@/components/ui"
+import { Button, Badge, Avatar, Card } from "@/components/ui"
 import { fetchStudent } from "../../lib/supabase"
 import type { StudentWithClass } from "@/types/database"
 import { cn } from "@/lib/utils"
@@ -73,135 +72,100 @@ function TimelineItem({
   isLast: boolean
 }) {
   const variantStyles = {
-    info: "bg-blue-100 text-blue-600",
-    success: "bg-green-100 text-green-600",
-    warning: "bg-yellow-100 text-yellow-600",
-    danger: "bg-red-100 text-red-600",
-    neutral: "bg-gray-100 text-gray-600",
+    info: "bg-gradient-to-br from-blue-50 to-blue-100/50 text-blue-600 border border-blue-200/50",
+    success: "bg-gradient-to-br from-emerald-50 to-emerald-100/50 text-emerald-600 border border-emerald-200/50",
+    warning: "bg-gradient-to-br from-amber-50 to-amber-100/50 text-amber-600 border border-amber-200/50",
+    danger: "bg-gradient-to-br from-red-50 to-red-100/50 text-red-600 border border-red-200/50",
+    neutral: "bg-gradient-to-br from-slate-50 to-slate-100/50 text-slate-600 border border-slate-200/50",
   }
 
   return (
-    <div className="flex gap-4">
+    <div className="flex gap-5 group">
       {/* Timeline connector */}
       <div className="flex flex-col items-center">
         <div
           className={cn(
-            "w-10 h-10 rounded-full flex items-center justify-center",
+            "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-200 group-hover:scale-110 shadow-sm",
             variantStyles[item.variant]
           )}
         >
           {item.icon}
         </div>
         {!isLast && (
-          <div className="w-0.5 flex-1 bg-[var(--border-light)] my-2" />
+          <div className="w-1 flex-1 bg-gradient-to-b from-[var(--border-light)] to-[var(--border-light)]/30 my-2 min-h-[48px]" />
         )}
       </div>
 
       {/* Content */}
-      <div className="flex-1 pb-8">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h4 className="text-[14px] font-medium text-[var(--text-primary)]">
-              {item.title}
-            </h4>
-            <p className="text-[13px] text-[var(--text-secondary)] mt-1">
-              {item.description}
-            </p>
+      <div className="flex-1 pb-10">
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-[var(--border-light)]/50 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-3">
+              {/* Timeline dot */}
+              <div className={cn(
+                "w-2.5 h-2.5 rounded-full mt-2 flex-shrink-0 shadow-sm",
+                item.variant === "success" ? "bg-emerald-500" :
+                item.variant === "info" ? "bg-blue-500" :
+                item.variant === "warning" ? "bg-amber-500" :
+                item.variant === "danger" ? "bg-red-500" : "bg-slate-400"
+              )} />
+              <div>
+                <h4 className="text-[14px] font-semibold text-[var(--text-primary)]">
+                  {item.title}
+                </h4>
+                <p className="text-[13px] text-[var(--text-secondary)] mt-1.5 leading-relaxed">
+                  {item.description}
+                </p>
+              </div>
+            </div>
+            {/* Date pill */}
+            <span className="text-[12px] text-[var(--text-muted)] whitespace-nowrap bg-slate-50 backdrop-blur-sm px-3 py-1.5 rounded-xl border border-[var(--border-light)]/50 font-medium">
+              {formatDate(item.date)}
+            </span>
           </div>
-          <span className="text-[12px] text-[var(--text-muted)] whitespace-nowrap">
-            {formatDate(item.date)}
-          </span>
         </div>
       </div>
     </div>
   )
 }
 
-function StatusChangeCard({
-  student,
+function SummaryCard({
+  icon,
+  iconBg,
+  iconColor,
+  label,
+  value,
 }: {
-  student: StudentWithClass
-}) {
-  const statusVariants = {
-    active: { label: "Aktif", variant: "success" as const },
-    inactive: { label: "Tidak Aktif", variant: "warning" as const },
-  }
-
-  const status = statusVariants[student.is_active ? "active" : "inactive"] || {
-    label: student.is_active ? "Aktif" : "Tidak Aktif",
-    variant: "neutral" as const,
-  }
-
-  return (
-    <Card padding="md" className="bg-[var(--surface-secondary)]">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-[var(--primary-soft)] flex items-center justify-center">
-            <TrendingUp className="w-5 h-5 text-[var(--primary)]" />
-          </div>
-          <div>
-            <p className="text-[13px] text-[var(--text-muted)]">Status Saat Ini</p>
-            <p className="text-[15px] font-medium text-[var(--text-primary)]">
-              {status.label}
-            </p>
-          </div>
-        </div>
-        <Badge variant={status.variant}>{status.label}</Badge>
-      </div>
-    </Card>
-  )
-}
-
-function EnrollmentCard({
-  student,
-}: {
-  student: StudentWithClass
+  icon: React.ReactNode
+  iconBg: string
+  iconColor: string
+  label: string
+  value: string
 }) {
   return (
-    <Card padding="md" className="bg-[var(--surface-secondary)]">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-[var(--success-soft)] flex items-center justify-center">
-          <UserPlus className="w-5 h-5 text-[var(--success)]" />
+    <div className="bg-white rounded-2xl p-5 shadow-sm border border-[var(--border-light)]/50 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+      <div className="flex items-center gap-4">
+        <div className={cn(
+          "w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm",
+          iconBg
+        )}>
+          <span className={iconColor}>{icon}</span>
         </div>
         <div>
-          <p className="text-[13px] text-[var(--text-muted)]">Tahun Masuk</p>
-          <p className="text-[15px] font-medium text-[var(--text-primary)]">
-            {student.enrollment_year || "-"}
-          </p>
+          <p className="text-[12px] text-[var(--text-muted)] mb-0.5 uppercase tracking-wide">{label}</p>
+          <p className="text-[20px] font-bold text-[var(--text-primary)]">{value}</p>
         </div>
       </div>
-    </Card>
-  )
-}
-
-function GraduationCard({
-  student,
-}: {
-  student: StudentWithClass
-}) {
-  if (!student.graduation_year) return null
-
-  return (
-    <Card padding="md" className="bg-[var(--surface-secondary)]">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-[var(--info-soft)] flex items-center justify-center">
-          <GraduationCap className="w-5 h-5 text-[var(--info)]" />
-        </div>
-        <div>
-          <p className="text-[13px] text-[var(--text-muted)]">Tahun Lulus</p>
-          <p className="text-[15px] font-medium text-[var(--text-primary)]">
-            {student.graduation_year}
-          </p>
-        </div>
-      </div>
-    </Card>
+    </div>
   )
 }
 
 function ClassHistoryCard({
   studentClasses,
+  studentId,
 }: {
   studentClasses: StudentWithClass["student_classes"]
+  studentId: string
 }) {
   // Sort by start_date descending
   const sortedClasses = [...(studentClasses || [])].sort((a, b) => {
@@ -211,14 +175,30 @@ function ClassHistoryCard({
   })
 
   return (
-    <div className="space-y-3">
-      <h4 className="text-[14px] font-semibold text-[var(--text-primary)]">
-        Riwayat Kelas
-      </h4>
+    <div className="bg-white rounded-2xl p-6 shadow-sm border border-[var(--border-light)]/50">
+      <div className="flex items-center justify-between mb-5">
+        <h4 className="text-[15px] font-semibold text-[var(--text-primary)] flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center">
+            <BookOpen className="w-4 h-4 text-[var(--primary)]" />
+          </div>
+          Riwayat Kelas
+        </h4>
+        <Link
+          href={`/buku-induk/${studentId}/edit`}
+          className="text-[12px] text-[var(--primary)] hover:text-[var(--primary)]/80 flex items-center gap-1 transition-colors"
+        >
+          <Edit className="w-3 h-3" />
+          Edit
+        </Link>
+      </div>
+
       {sortedClasses.length === 0 ? (
-        <p className="text-[13px] text-[var(--text-muted)]">Belum ada data kelas</p>
+        <div className="py-10 text-center bg-[var(--surface-secondary)] rounded-xl border border-dashed border-[var(--border-default)]">
+          <BookOpen className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+          <p className="text-[13px] text-[var(--text-muted)]">Belum ada data kelas</p>
+        </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {sortedClasses.map((sc, index) => {
             const className = sc.classes
               ? `${sc.classes.majors?.name || ""} ${sc.classes.name || ""}`.trim()
@@ -226,27 +206,36 @@ function ClassHistoryCard({
             return (
               <div
                 key={sc.id}
-                className="flex items-center justify-between py-2 px-3 bg-[var(--surface-secondary)] rounded-[12px]"
+                className="flex items-center justify-between p-4 bg-[var(--surface-secondary)]/70 rounded-xl hover:bg-[var(--surface-hover)] transition-colors border border-transparent hover:border-[var(--border-light)]/50"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-[var(--primary-soft)] flex items-center justify-center">
-                    <BookOpen className="w-4 h-4 text-[var(--primary)]" />
+                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[var(--primary)]/10 to-[var(--primary)]/5 flex items-center justify-center shadow-sm">
+                    <BookOpen className="w-5 h-5 text-[var(--primary)]" />
                   </div>
                   <div>
-                    <p className="text-[14px] font-medium text-[var(--text-primary)]">
+                    <p className="text-[14px] font-semibold text-[var(--text-primary)]">
                       {className}
                     </p>
-                    <p className="text-[12px] text-[var(--text-muted)]">
+                    <p className="text-[12px] text-[var(--text-muted)] mt-0.5">
                       No. Absen: {sc.attendance_number || "-"}
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <Badge variant={sc.status === "active" ? "success" : "neutral"}>
+                  <Badge
+                    variant={sc.status === "active" ? "success" : "neutral"}
+                    className={cn(
+                      "px-3 py-1.5 text-[11px] font-semibold rounded-full",
+                      sc.status === "active"
+                        ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
+                        : "bg-slate-100 text-slate-600 border border-slate-200"
+                    )}
+                  >
                     {sc.status === "active" ? "Aktif" : "Nonaktif"}
                   </Badge>
                   {sc.start_date && (
-                    <p className="text-[11px] text-[var(--text-muted)] mt-1">
+                    <p className="text-[11px] text-[var(--text-muted)] mt-2 flex items-center gap-1.5 justify-end">
+                      <Calendar className="w-3 h-3" />
                       {formatDate(sc.start_date)}
                     </p>
                   )}
@@ -266,25 +255,34 @@ function AuditInfo({
   student: StudentWithClass
 }) {
   return (
-    <Card padding="md">
-      <h4 className="text-[14px] font-semibold text-[var(--text-primary)] mb-4">
-        Informasi Audit
-      </h4>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <p className="text-[12px] text-[var(--text-muted)]">Dibuat</p>
-          <p className="text-[13px] text-[var(--text-primary)]">
-            {formatDateTime(student.created_at)}
-          </p>
+    <div className="bg-white rounded-2xl p-6 shadow-sm border border-[var(--border-light)]/50">
+      <h4 className="text-[15px] font-semibold text-[var(--text-primary)] mb-5 flex items-center gap-2.5">
+        <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center">
+          <Clock className="w-4 h-4 text-slate-500" />
         </div>
-        <div>
-          <p className="text-[12px] text-[var(--text-muted)]">Terakhir Diperbarui</p>
-          <p className="text-[13px] text-[var(--text-primary)]">
-            {formatDateTime(student.updated_at)}
-          </p>
+        Informasi Sistem
+      </h4>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between p-4 bg-[var(--surface-secondary)]/70 rounded-xl border border-transparent">
+          <div>
+            <p className="text-[11px] text-[var(--text-muted)] uppercase tracking-wide mb-1">Dibuat</p>
+            <p className="text-[13px] text-[var(--text-primary)] font-medium">
+              {formatDateTime(student.created_at)}
+            </p>
+          </div>
+          <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-sm shadow-emerald-200" />
+        </div>
+        <div className="flex items-center justify-between p-4 bg-[var(--surface-secondary)]/70 rounded-xl border border-transparent">
+          <div>
+            <p className="text-[11px] text-[var(--text-muted)] uppercase tracking-wide mb-1">Terakhir Diperbarui</p>
+            <p className="text-[13px] text-[var(--text-primary)] font-medium">
+              {formatDateTime(student.updated_at)}
+            </p>
+          </div>
+          <div className="w-3 h-3 rounded-full bg-blue-500 shadow-sm shadow-blue-200" />
         </div>
       </div>
-    </Card>
+    </div>
   )
 }
 
@@ -421,6 +419,38 @@ export default function StudentHistoryPage({ params }: StudentHistoryPageProps) 
     )
   }
 
+  // Error state
+  if (error || !student) {
+    return (
+      <AppShell showHeader={true}>
+        <div className="mb-6">
+          <Link
+            href="/buku-induk"
+            className="inline-flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Kembali ke Buku Induk
+          </Link>
+        </div>
+
+        <Card variant="elevated" className="text-center py-16">
+          <div className="w-20 h-20 rounded-3xl bg-red-50 flex items-center justify-center mx-auto mb-5 shadow-sm">
+            <AlertCircle className="w-10 h-10 text-red-500" />
+          </div>
+          <h2 className="text-[20px] font-bold text-[var(--text-primary)] mb-2">
+            {error || "Siswa Tidak Ditemukan"}
+          </h2>
+          <p className="text-[14px] text-[var(--text-muted)] mb-6">
+            Data siswa tidak dapat dimuat
+          </p>
+          <Button onClick={() => router.push("/buku-induk")}>
+            Kembali ke Buku Induk
+          </Button>
+        </Card>
+      </AppShell>
+    )
+  }
+
   // Loading state
   if (loading) {
     return (
@@ -436,41 +466,19 @@ export default function StudentHistoryPage({ params }: StudentHistoryPageProps) 
         </div>
 
         <div className="animate-pulse space-y-6">
-          <div className="h-32 bg-[var(--surface-hover)] rounded-[28px]" />
-          <div className="h-96 bg-[var(--surface-hover)] rounded-[28px]" />
-        </div>
-      </AppShell>
-    )
-  }
-
-  // Error state
-  if (error || !student) {
-    return (
-      <AppShell showHeader={true}>
-        <div className="mb-6">
-          <Link
-            href="/buku-induk"
-            className="inline-flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Kembali ke Buku Induk
-          </Link>
-        </div>
-
-        <Card padding="lg" className="text-center py-16">
-          <div className="w-20 h-20 rounded-full bg-[var(--danger-soft)] flex items-center justify-center mx-auto mb-4">
-            <AlertCircle className="w-10 h-10 text-[var(--danger)]" />
+          <div className="flex items-center gap-5">
+            <div className="w-16 h-16 rounded-[20px] bg-gradient-to-br from-slate-100 to-slate-50 shadow-sm" />
+            <div className="space-y-2">
+              <div className="w-48 h-6 bg-[var(--surface-hover)] rounded-xl" />
+              <div className="w-32 h-4 bg-[var(--surface-hover)] rounded-lg" />
+            </div>
           </div>
-          <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-2">
-            {error || "Siswa Tidak Ditemukan"}
-          </h2>
-          <p className="text-sm text-[var(--text-muted)] mb-6">
-            Data siswa tidak dapat dimuat
-          </p>
-          <Button onClick={() => router.push("/buku-induk")}>
-            Kembali ke Buku Induk
-          </Button>
-        </Card>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="h-24 bg-white rounded-2xl shadow-sm border border-[var(--border-light)]/50" />
+            <div className="h-24 bg-white rounded-2xl shadow-sm border border-[var(--border-light)]/50" />
+          </div>
+          <div className="h-96 bg-white rounded-2xl shadow-sm border border-[var(--border-light)]/50" />
+        </div>
       </AppShell>
     )
   }
@@ -491,20 +499,27 @@ export default function StudentHistoryPage({ params }: StudentHistoryPageProps) 
       </div>
 
       {/* Page Header */}
-      <div className="mb-6 flex items-center gap-4">
-        <Avatar
-          fallback={student.full_name}
-          src={student.photo_url}
-          size="lg"
-          className="w-16 h-16 text-xl bg-[var(--primary-soft)] text-[var(--primary)]"
-        />
-        <div>
-          <h1 className="text-[24px] font-bold text-[var(--text-primary)]">
+      <div className="mb-8 flex items-center gap-5">
+        <div className="relative">
+          <Avatar
+            fallback={student.full_name}
+            src={student.photo_url}
+            size="lg"
+            className="w-16 h-16 text-xl ring-4 ring-white shadow-xl"
+          />
+          <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full border-2 border-white shadow-sm shadow-emerald-200" />
+        </div>
+        <div className="flex-1">
+          <h1 className="text-[26px] font-bold text-[var(--text-primary)]">
             Riwayat Siswa
           </h1>
-          <p className="text-[14px] text-[var(--text-muted)]">
-            {student.full_name} • NIS: {student.student_number}
+          <p className="text-[14px] text-[var(--text-secondary)] mt-1">
+            {student.full_name}
           </p>
+          <span className="inline-flex items-center gap-2 text-[12px] font-mono bg-[var(--surface-secondary)] px-4 py-2 rounded-full text-[var(--text-muted)] mt-2 border border-[var(--border-light)]/50">
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--primary)]" />
+            NIS {student.student_number}
+          </span>
         </div>
       </div>
 
@@ -512,22 +527,40 @@ export default function StudentHistoryPage({ params }: StudentHistoryPageProps) 
         {/* Main Timeline */}
         <div className="lg:col-span-2 space-y-6">
           {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <StatusChangeCard student={student} />
-            <EnrollmentCard student={student} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <SummaryCard
+              icon={<TrendingUp className="w-5 h-5" />}
+              iconBg="bg-gradient-to-br from-amber-50 to-amber-100/50"
+              iconColor="text-amber-600"
+              label="Status"
+              value={student.is_active ? "Aktif" : "Tidak Aktif"}
+            />
+            <SummaryCard
+              icon={<UserPlus className="w-5 h-5" />}
+              iconBg="bg-gradient-to-br from-emerald-50 to-emerald-100/50"
+              iconColor="text-emerald-600"
+              label="Tahun Masuk"
+              value={student.enrollment_year?.toString() || "-"}
+            />
             {student.graduation_year && (
-              <GraduationCard student={student} />
+              <SummaryCard
+                icon={<GraduationCap className="w-5 h-5" />}
+                iconBg="bg-gradient-to-br from-blue-50 to-blue-100/50"
+                iconColor="text-blue-600"
+                label="Tahun Lulus"
+                value={student.graduation_year.toString()}
+              />
             )}
           </div>
 
           {/* Timeline */}
-          <Card padding="lg">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-full bg-[var(--primary-soft)] flex items-center justify-center">
-                <History className="w-5 h-5 text-[var(--primary)]" />
+          <Card variant="elevated" padding="lg">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/80 flex items-center justify-center shadow-lg shadow-[var(--primary)]/20">
+                <History className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h2 className="text-[18px] font-semibold text-[var(--text-primary)]">
+                <h2 className="text-[18px] font-bold text-[var(--text-primary)]">
                   Timeline Aktivitas
                 </h2>
                 <p className="text-[13px] text-[var(--text-muted)]">
@@ -537,14 +570,16 @@ export default function StudentHistoryPage({ params }: StudentHistoryPageProps) 
             </div>
 
             {timeline.length === 0 ? (
-              <div className="text-center py-8">
-                <Clock className="w-12 h-12 text-[var(--text-muted)] mx-auto mb-3" />
+              <div className="text-center py-12">
+                <div className="w-16 h-16 rounded-2xl bg-[var(--surface-secondary)] flex items-center justify-center mx-auto mb-4">
+                  <Clock className="w-8 h-8 text-slate-400" />
+                </div>
                 <p className="text-[14px] text-[var(--text-muted)]">
                   Belum ada riwayat aktivitas
                 </p>
               </div>
             ) : (
-              <div className="pl-2">
+              <div className="pl-1">
                 {timeline.map((item, index) => (
                   <TimelineItem
                     key={item.id}
@@ -558,11 +593,9 @@ export default function StudentHistoryPage({ params }: StudentHistoryPageProps) 
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
+        <div className="space-y-5">
           {/* Class History */}
-          <Card padding="lg">
-            <ClassHistoryCard studentClasses={student.student_classes} />
-          </Card>
+          <ClassHistoryCard studentClasses={student.student_classes} studentId={studentId!} />
 
           {/* Audit Info */}
           <AuditInfo student={student} />

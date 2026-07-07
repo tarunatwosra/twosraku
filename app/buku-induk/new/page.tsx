@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
@@ -10,12 +10,16 @@ import {
   AlertCircle,
   CheckCircle,
   User,
-  ChevronDown,
+  UserPlus,
+  GraduationCap,
+  Heart,
+  Users,
+  StickyNote,
 } from "lucide-react"
 import { AppShell } from "@/components/layout"
-import { Card, Button, Input, Select, Avatar } from "@/components/ui"
+import { Card, Button, Input, Select } from "@/components/ui"
 import { createStudentWithParents, checkDuplicateNIS, assignStudentToClass } from "../lib/supabase"
-import { useAcademicYear, useMajors, useClasses } from "@/hooks"
+import { useAcademicYear, useClasses } from "@/hooks"
 import { cn } from "@/lib/utils"
 
 // ============================================
@@ -249,24 +253,16 @@ function validateForm(data: FormData): FormErrors {
 // ============================================
 
 function FormSection({
-  title,
-  description,
   children,
   className,
 }: {
-  title: string
+  title?: string
   description?: string
   children: React.ReactNode
   className?: string
 }) {
   return (
-    <div className={cn("mb-8", className)}>
-      <h3 className="text-[16px] font-semibold text-[var(--text-primary)] mb-1">
-        {title}
-      </h3>
-      {description && (
-        <p className="text-[13px] text-[var(--text-muted)] mb-4">{description}</p>
-      )}
+    <div className={cn("mb-6", className)}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">{children}</div>
     </div>
   )
@@ -282,15 +278,26 @@ function FormField({
   return <div className={fullWidth ? "md:col-span-2" : ""}>{children}</div>
 }
 
-function SectionDivider({ title }: { title: string }) {
+function SectionDivider({ title, icon }: { title: string; icon?: React.ReactNode }) {
   return (
-    <div className="col-span-2 my-6">
-      <div className="flex items-center gap-4">
-        <div className="flex-1 h-px bg-[var(--border-light)]" />
-        <span className="text-[13px] font-medium text-[var(--text-muted)] uppercase tracking-wider">
-          {title}
-        </span>
-        <div className="flex-1 h-px bg-[var(--border-light)]" />
+    <div className="col-span-2 my-2">
+      <div className="flex items-center gap-4 p-5 bg-gradient-to-r from-[var(--surface-secondary)] via-[var(--surface-hover)]/50 to-[var(--surface-secondary)] rounded-2xl border border-[var(--border-light)]/50 shadow-sm">
+        <div className="w-1 h-10 bg-gradient-to-b from-[var(--primary)] to-[var(--primary)]/50 rounded-full shadow-sm shadow-[var(--primary)]/20" />
+        <div className="flex items-center gap-3">
+          {icon && (
+            <div className="w-9 h-9 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] shadow-sm">
+              {icon}
+            </div>
+          )}
+          <div>
+            <span className="text-[15px] font-bold text-[var(--text-primary)] uppercase tracking-wide">
+              {title}
+            </span>
+            <p className="text-[12px] text-[var(--text-muted)] mt-0.5">
+              Lengkapi data di bawah ini dengan benar
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -310,7 +317,6 @@ export default function NewStudentPage() {
 
   // Academic data
   const { academicYear } = useAcademicYear()
-  const { majors } = useMajors()
   const { classes } = useClasses({
     academicYearId: academicYear?.id,
   })
@@ -467,37 +473,50 @@ export default function NewStudentPage() {
       </div>
 
       {/* Page Header */}
-      <div className="mb-6">
-        <h1 className="text-[24px] font-bold text-[var(--text-primary)]">
-          Tambah Siswa Baru
-        </h1>
-        <p className="text-[14px] text-[var(--text-muted)] mt-1">
-          Masukkan data lengkap siswa untuk添加到 buku induk
-        </p>
+      <div className="mb-8 flex items-center gap-5">
+        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/70 flex items-center justify-center shadow-lg shadow-[var(--primary)]/20">
+          <UserPlus className="w-7 h-7 text-white" />
+        </div>
+        <div>
+          <h1 className="text-[26px] font-bold text-[var(--text-primary)]">
+            Tambah Siswa Baru
+          </h1>
+          <p className="text-[14px] text-[var(--text-muted)] mt-1">
+            Lengkapi formulir di bawah untuk menambahkan siswa ke buku induk
+          </p>
+        </div>
       </div>
 
       {/* Form */}
       <form onSubmit={handleSubmit}>
-        <Card padding="lg">
+        <Card variant="elevated" padding="lg">
           {/* Submit Status */}
           {submitError && (
-            <div className="mb-6 p-4 bg-[var(--danger-soft)] border border-[var(--danger)] rounded-[18px] flex items-center gap-3">
-              <AlertCircle className="w-5 h-5 text-[var(--danger)] flex-shrink-0" />
-              <p className="text-[14px] text-[var(--danger)]">{submitError}</p>
+            <div className="mb-6 p-4 bg-gradient-to-r from-red-50/80 to-red-50/50 border border-red-200/50 rounded-2xl backdrop-blur-sm">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-red-500/10 flex items-center justify-center flex-shrink-0">
+                  <AlertCircle className="w-5 h-5 text-red-500" />
+                </div>
+                <p className="text-[14px] text-red-600 font-medium">{submitError}</p>
+              </div>
             </div>
           )}
 
           {submitSuccess && (
-            <div className="mb-6 p-4 bg-[var(--success-soft)] border border-[var(--success)] rounded-[18px] flex items-center gap-3">
-              <CheckCircle className="w-5 h-5 text-[var(--success)] flex-shrink-0" />
-              <p className="text-[14px] text-[var(--success)]">
-                Data siswa berhasil disimpan! Mengalihkan ke halaman detail...
-              </p>
+            <div className="mb-6 p-4 bg-gradient-to-r from-emerald-50/80 to-green-50/50 border border-emerald-200/50 rounded-2xl backdrop-blur-sm">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+                  <CheckCircle className="w-5 h-5 text-emerald-600" />
+                </div>
+                <p className="text-[14px] text-emerald-700 font-medium">
+                  Data siswa berhasil disimpan! Mengalihkan ke halaman detail...
+                </p>
+              </div>
             </div>
           )}
 
           {/* Section Divider: Data Diri */}
-          <SectionDivider title="Data Diri" />
+          <SectionDivider title="Data Diri" icon={<User className="w-5 h-5" />} />
 
           {/* Section 1: Data Diri */}
           <FormSection title="">
@@ -643,7 +662,7 @@ export default function NewStudentPage() {
           </FormSection>
 
           {/* Section Divider: Data Akademik */}
-          <SectionDivider title="Data Akademik" />
+          <SectionDivider title="Data Akademik" icon={<GraduationCap className="w-5 h-5" />} />
 
           {/* Section 2: Data Akademik */}
           <FormSection title="">
@@ -708,7 +727,7 @@ export default function NewStudentPage() {
           </FormSection>
 
           {/* Section Divider: Data Orang Tua/Wali */}
-          <SectionDivider title="Data Orang Tua / Wali" />
+          <SectionDivider title="Data Orang Tua / Wali" icon={<Users className="w-5 h-5" />} />
 
           {/* Section 3: Data Orang Tua/Wali */}
           <FormSection title="">
@@ -788,7 +807,7 @@ export default function NewStudentPage() {
           </FormSection>
 
           {/* Section Divider: Fisik dan Kesehatan */}
-          <SectionDivider title="Fisik dan Kesehatan" />
+          <SectionDivider title="Fisik dan Kesehatan" icon={<Heart className="w-5 h-5" />} />
 
           {/* Section 4: Fisik dan Kesehatan */}
           <FormSection title="">
@@ -934,7 +953,7 @@ export default function NewStudentPage() {
           </FormSection>
 
           {/* Section Divider: Lainnya */}
-          <SectionDivider title="Lainnya" />
+          <SectionDivider title="Lainnya" icon={<StickyNote className="w-5 h-5" />} />
 
           {/* Section 5: Lainnya */}
           <FormSection title="">
@@ -982,10 +1001,10 @@ export default function NewStudentPage() {
           </FormSection>
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[var(--border-light)]">
+          <div className="flex items-center justify-between pt-6 mt-6 border-t border-[var(--border-light)]">
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               onClick={handleCancel}
               disabled={isSubmitting}
             >
@@ -993,6 +1012,7 @@ export default function NewStudentPage() {
             </Button>
             <Button
               type="submit"
+              variant="primary"
               disabled={isSubmitting || submitSuccess}
             >
               {isSubmitting ? (

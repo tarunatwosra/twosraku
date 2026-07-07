@@ -1,5 +1,6 @@
 # Component Library
-Version: 1.0
+Version: 2.0
+Updated: 2026-07-06
 
 ---
 
@@ -14,6 +15,7 @@ The primary goals are:
 - Accessibility
 - Premium appearance
 - Predictable interactions
+- **Modern & Elegant** - clean design with subtle animations
 
 No page should introduce custom component styles unless absolutely necessary.
 
@@ -24,7 +26,7 @@ No page should introduce custom component styles unless absolutely necessary.
 Every component should feel:
 
 - Soft
-- Modern
+- Modern & Elegant
 - Spacious
 - Calm
 - Premium
@@ -39,6 +41,14 @@ Avoid:
 - Heavy shadows
 - Sharp corners
 - Excessive colors
+- Dated/outdated styling
+
+**Modern Design Principles:**
+- Border-less or ultra-thin borders where possible
+- Subtle lift effects on hover (translateY)
+- Generous whitespace
+- Smooth transitions (200ms ease-out)
+- Soft shadows (elevation without weight)
 
 ---
 
@@ -191,8 +201,16 @@ Hover:    bg: #F1F5F9, color: #1E293B
 ## Animation
 
 - **Duration:** 200ms ease-out
-- **Hover effect:** translateY(-1px) - subtle lift
+- **Hover effect:** translateY(-1px) - subtle lift with shadow increase
+- **Active effect:** translateY(0) - returns to normal
 - **Transition:** All properties
+
+### Modern Button Hover
+```
+Primary: bg darkens, subtle lift (+shadow)
+Secondary: bg darkens, border darkens
+Outline/Ghost: bg appears, subtle lift
+```
 
 ---
 
@@ -214,33 +232,34 @@ Centered icon
 
 # Card
 
-Default Padding
+## Modern Card Design
 
-28px
+### Standard Card
+```
+Padding: 24px (default), 32px (large)
+Radius: 28px
+Background: White (#FFFFFF)
+Shadow: Soft, 0 1px 3px rgba(0,0,0,0.05)
+Border: Optional subtle border (1px #F1F5F9)
+Gap: 24px between cards
+```
 
-Large Padding
+### Elevated Card (for headers/featured content)
+```
+Background: White with subtle gradient overlay
+Shadow: Medium, 0 4px 6px rgba(0,0,0,0.07)
+Border: Optional primary tint border
+Padding: 28px-32px
+```
 
-36px
-
-Radius
-
-28px
-
-Background
-
-White
-
-Shadow
-
-Soft
-
-Cards should never touch each other.
-
-Gap
-
-24px
-
----
+### Soft Card (for section backgrounds)
+```
+Background: #F8FAFC (surface-secondary)
+Shadow: None
+Border: None
+Radius: 18px-24px
+Padding: 20px-24px
+```
 
 ## Card Structure
 
@@ -494,19 +513,45 @@ Padding
 
 # Tabs
 
-Rounded
+## Modern Pill Tabs (Recommended)
 
-Pill style
+### Structure
+```
+- Container: Flex with gap-2, no border-bottom
+- Tab Button: Rounded pill shape
+- Active: Background primary (#2563EB), text white
+- Inactive: Background transparent, text muted gray
+```
 
-Active
+### Specifications
+```
+Height: Auto (min 36px)
+Padding: 12px horizontal, 8px vertical
+Gap: 8px between tabs
+Radius: 999px (full rounded)
+Font: text-sm, font-medium
+Transition: 200ms ease-out
+```
 
-Blue background
+### States
+```
+Default (Inactive):
+  - Background: transparent
+  - Text: #64748B (muted)
+  - Hover: Background #F1F5F9, text #334155
 
-White text
+Active:
+  - Background: #2563EB (primary blue)
+  - Text: #FFFFFF (white)
+  - No underline indicator
+```
 
-Inactive
-
-Gray text
+### Legacy Tabs (Underline Style)
+- Using border-bottom indicator
+- Active text color: primary
+- Underline: 2px solid primary
+- Gap: 0px (full width)
+- **Deprecated** - use pill tabs instead
 
 ---
 
@@ -670,17 +715,48 @@ Optional
 
 # Timeline
 
-Vertical
+## Modern Vertical Timeline
 
-Circle indicator
+### Structure
+```
+- Vertical layout with connector line
+- Dot indicators for each event
+- Content aligned next to dot
+- Timestamp right-aligned or below title
+```
 
-Thin connector line
+### Specifications
+```
+Dot Size: 32px diameter
+Dot Shape: Full circle
+Icon Size: 16px centered in dot
+Connector: 2px width, muted color
+Content Gap: 12px from dot
+Row Gap: 0px (connected timeline)
+```
 
-Timestamp
+### Dot Variants
+```
+Success: bg-green-100, text-green-600
+Info: bg-blue-100, text-blue-600
+Warning: bg-yellow-100, text-yellow-600
+Danger: bg-red-100, text-red-600
+Neutral: bg-gray-100, text-gray-600
+```
 
-Title
+### Content Styling
+```
+Title: text-[13px], font-medium, text-primary
+Description: text-[12px], text-secondary, mt-0.5
+Timestamp: text-[11px], text-muted, right-aligned
+```
 
-Description
+### Animation
+```
+- Smooth fade-in on load
+- Connector line draws progressively
+- Dot scales slightly on hover
+```
 
 ---
 
