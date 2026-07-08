@@ -28,6 +28,50 @@ Berisi catatan semua perubahan yang dilakukan pada file-file panduan. Setiap kal
 
 <!-- Changelog entries will be added below this line -->
 
+## 2026-07-08
+
+### assessment.md (19-feature-specifications/)
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-07-08 |
+| Perubahan | UI REFACTOR: (1) Versi naik ke 5.0. (2) UI diselaraskan dengan Buku Induk patterns: Elevated cards dengan gradient decoration, Avatar dengan warna dinamis, Stat pills dengan rounded-full, Modal dengan backdrop-blur dan rounded-3xl, Form fields dengan rounded-2xl dan focus ring. (3) Helper components baru: InfoItem, StatCard, StatPill, WeightProgressBar, GradeLegend, CategoryCard, StudentCard. (4) Part 7 diupdate dengan UI Design Patterns baru. |
+| Backup | assessment-001.md |
+| Catatan | 5 file penilaian di-refactor: page.tsx, [id]/page.tsx, [id]/[periodId]/page.tsx, formula/page.tsx, input/page.tsx |
+
+## 2026-07-07
+
+### assessment.md (19-feature-specifications/)
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-07-07 |
+| Perubahan | REFACTOR MAJOR: (1) Arsitektur baru: Kategori → Items + Periods → Scores → Nilai Kategori → Formula → Nilai Rapor. (2) Hapus Template & Session, ganti dengan Periods. (3) Items dengan input_type, conversion_type, conversion_value untuk konversi otomatis. (4) Formula untuk kombinasi Nilai Kategori + modul lain. (5) UI disederhanakan: 5 halaman → 2 halaman (Assessment Center + Formula). |
+| Backup | assessment-001.md |
+| Catatan | Migration 005_create_new_assessment_system.sql sudah dibuat |
+
+### assessment.md (19-feature-specifications/)
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-07-07 |
+| Perubahan | Update schema fields: (1) `locked` → `is_locked` di session. (2) `required` → `is_required` di item. (3) TypeScript types diupdate sesuai schema Supabase. (4) Pages diupdate menggunakan property baru. (5) Hook useAssessment diupdate. |
+| Backup | assessment-001.md |
+| Catatan | Sinkronisasi schema TypeScript dengan Supabase |
+
+### assessment.md (19-feature-specifications/)
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-07-07 |
+| Perubahan | Implementasi lengkap Assessment Module: (1) API Routes dengan Supabase (11 file). (2) Hook useAssessment.ts dengan CRUD operations. (3) CRUD halaman Kategori. (4) CRUD halaman Template + Items. (5) CRUD halaman Session + Lock/Unlock. (6) Input Nilai dengan spreadsheet-style. |
+| Backup | assessment-001.md |
+| Catatan | Implementasi menggunakan Supabase, bukan Prisma. Schema sudah ada di Supabase.
+
+### student-registry.md (19-feature-specifications/)
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-07-07 |
+| Perubahan | (1) Tab Detail Siswa digabungkan: "Informasi Pribadi" + "Data Akademik" → "Data Pribadi & Akademik", "Data Orang Tua" + "Wali" → "Data Orang Tua & Wali". Total tab 9 → 7. (2) Info Sections wrapper menggunakan elevated style (white background) agar konsisten dengan tab lain. |
+| Backup | student-registry-001.md |
+| Catatan | Backup dilakukan setelah perubahan kode; backup sebelumnya tetap di 001 |
+
 ## 2026-07-06
 
 ### student-registry.md (19-feature-specifications/)

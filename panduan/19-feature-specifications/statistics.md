@@ -1,754 +1,118 @@
-# Statistics Module
+# Statistics Module — Compact
 Version: 1.0
 
----
+**Purpose:** Statistics is Twosraku's centralized analytics engine, transforming operational data into meaningful insights, trends, summaries, and KPIs. It owns no operational data — it aggregates data from every module and presents it in a structured, consistent way.
 
-# Purpose
+**Philosophy:** data should explain; statistics should support decisions; insights should be understandable; charts are visualizations, not statistics. Every statistic must originate from verified operational data.
 
-Statistics is the centralized analytics engine of Twosraku.
+**Primary Objectives:** provide school-wide analytics; generate KPI summaries; analyze trends; compare historical performance; support decision making; provide reusable statistics for Dashboard and Reports.
 
-It transforms operational data into meaningful insights, trends, summaries, and key performance indicators (KPIs).
+**Scope:** Overview Statistics, Academic, Attendance, Assessment, Character, Special Unit, Savings, Spiritual Statistics, Operational Statistics, Trend Analysis, Comparisons, KPIs, Future Predictive Analytics.
 
-Statistics does not own operational data.
+**Integrated Modules:** Dashboard, Student Registry, Attendance, Assessment, Character Points, Special Units, Savings, Spiritual, Reports, Future Modules. Statistics never stores duplicated operational data.
 
-Instead, it aggregates data from every module and presents it in a structured and consistent way.
+**Navigation:** Statistics → Overview, Academic, Attendance, Assessment, Character, Special Units, Savings, Spiritual, Trends, Comparisons, KPIs, Analytics Settings.
 
----
+### Overview
+**Purpose:** complete summary of school performance.
+**Widgets:** Total/Active Students, Attendance Rate, Assessment Average, Character Balance, Active Special Unit Members, Savings Total, Spiritual Participation, Academic Performance, School Health Index (future).
 
-# Philosophy
+### Academic Statistics
+Students per Grade/Major, Gender Distribution, Graduation Projection, Enrollment Trend, Academic Year Summary.
 
-Data should explain.
+### Attendance Statistics
+Attendance/Absence/Late Rate, Weekly/Monthly Trend, Class/Major/Teacher Comparison, Most Improved Class, Highest/Lowest Attendance.
 
-Statistics should support decisions.
+### Assessment Statistics
+Average/Highest/Lowest Score, Median, Score Distribution, Assessment Completion, Pass/Fail Rate, Trend by Semester/Academic Year.
 
-Insights should be understandable.
+### Character Statistics
+Positive/Negative Points, Most Awarded Students, Most Violations, Class/Major Comparison, Monthly/Yearly Trend, Top Character Categories.
 
-Charts are visualizations, not statistics.
+### Special Units Statistics
+Active Members, Membership Growth, Assignment Completion, Training Attendance, Achievements, Member Distribution, Activity Trend.
 
-Every statistic must originate from verified operational data.
+### Savings Statistics
+Total/Average Savings, Monthly Deposits/Withdrawals, Highest/Lowest Balance, Student Participation, Savings Growth.
 
----
+### Spiritual Statistics
+Participation Rate, Activity Attendance, Prayer Attendance, Quran Reading, Character Integration, Monthly Activities, Annual Summary.
 
-# Primary Objectives
+### Trend Analysis
+**Purpose:** display performance over time.
+**Periods:** Daily, Weekly, Monthly, Semester, Yearly, Custom.
+**Types:** Growth, Decline, Stable, Comparison, Forecast (future).
 
-Provide school-wide analytics.
+### Comparison Engine
+**Purpose:** compare data across dimensions — Class, Major, Academic Year, Semester, Student, Teacher, Special Unit, Custom Group.
 
-Generate KPI summaries.
+### KPI Dashboard
+**Examples:** Overall Attendance, Average Assessment, Character Index, Discipline Index, Savings Growth, Special Unit Participation, Spiritual Participation, Academic Achievement.
 
-Analyze trends.
+### Charts
+Supported: Line, Bar, Stacked Bar, Pie, Donut, Area, Radar, Heatmap, Table, Cards. Charts are interchangeable; every chart has a table equivalent.
 
-Compare historical performance.
+### Filters
+Academic Year, Semester, Class, Major, Student, Teacher, Date Range, Status, Category, Custom Filters. Multiple filters may combine.
 
-Support decision making.
+### Drill Down
+**Purpose:** navigate from summary to detail. Examples: Attendance Rate → Class → Student → Attendance Record; Assessment Average → Assessment → Student Score; Character Summary → Category → Individual Record.
 
-Provide reusable statistics for Dashboard and Reports.
+### Export
+Supported: PDF, Excel, CSV, Print. Respects current filters.
 
----
+### Search
+Searches: Student, Class, Major, Teacher, Indicator, Chart, Report, KPI.
 
-# Scope
+### Dashboard Integration
+Dashboard retrieves statistical summaries from the Statistics Engine; does not calculate statistics independently.
 
-Overview Statistics
+### Reports Integration
+Reports reuse the Statistics Engine — calculations are centralized.
 
-Academic Statistics
+### Analytics Settings
+Configure: Default Period, Chart Type, Comparison Method, Trend Period, Default Filters, Refresh Frequency.
 
-Attendance Statistics
+### Notifications
+Statistics Updated, Analytics Generated, Data Refresh Completed, Calculation Failed.
 
-Assessment Statistics
+### Permissions
+| Role | Access |
+|---|---|
+| Administrator | Full Access |
+| Principal | View All |
+| Vice Principal | View All |
+| Teacher | Assigned Statistics |
+| Staff | Limited Statistics |
+| Students (future) | Own Statistics |
 
-Character Statistics
+### Audit Log
+Tracks: Statistics Generated/Exported, Analytics Updated, Settings Changed.
 
-Special Unit Statistics
-
-Savings Statistics
-
-Spiritual Statistics
-
-Operational Statistics
-
-Trend Analysis
-
-Comparisons
-
-KPIs
-
-Future Predictive Analytics
-
----
-
-# Integrated Modules
-
-Dashboard
-
-Student Registry
-
-Attendance
-
-Assessment
-
-Character Points
-
-Special Units
-
-Savings
-
-Spiritual
-
-Reports
-
-Future Modules
-
-Statistics never stores duplicated operational data.
-
----
-
-# Navigation
-
-Statistics
-
-├── Overview
-
-├── Academic
-
-├── Attendance
-
-├── Assessment
-
-├── Character
-
-├── Special Units
-
-├── Savings
-
-├── Spiritual
-
-├── Trends
-
-├── Comparisons
-
-├── KPIs
-
-└── Analytics Settings
-
----
-
-# Overview
-
-Purpose
-
-Provide a complete summary of school performance.
-
----
-
-## Widgets
-
-Total Students
-
-Active Students
-
-Attendance Rate
-
-Assessment Average
-
-Character Balance
-
-Active Special Unit Members
-
-Savings Total
-
-Spiritual Participation
-
-Academic Performance
-
-School Health Index (Future)
-
----
-
-# Academic Statistics
-
-Display
-
-Students per Grade
-
-Students per Major
-
-Gender Distribution
-
-Graduation Projection
-
-Enrollment Trend
-
-Academic Year Summary
-
----
-
-# Attendance Statistics
-
-Display
-
-Attendance Rate
-
-Absence Rate
-
-Late Rate
-
-Weekly Trend
-
-Monthly Trend
-
-Class Comparison
-
-Major Comparison
-
-Teacher Comparison
-
-Most Improved Class
-
-Highest Attendance
-
-Lowest Attendance
-
----
-
-# Assessment Statistics
-
-Display
-
-Average Score
-
-Highest Score
-
-Lowest Score
-
-Median
-
-Score Distribution
-
-Assessment Completion
-
-Pass Rate
-
-Fail Rate
-
-Trend by Semester
-
-Trend by Academic Year
-
----
-
-# Character Statistics
-
-Display
-
-Positive Points
-
-Negative Points
-
-Most Awarded Students
-
-Most Violations
-
-Class Comparison
-
-Major Comparison
-
-Monthly Trend
-
-Yearly Trend
-
-Top Character Categories
-
----
-
-# Special Units Statistics
-
-Display
-
-Active Members
-
-Membership Growth
-
-Assignment Completion
-
-Training Attendance
-
-Achievements
-
-Member Distribution
-
-Activity Trend
-
----
-
-# Savings Statistics
-
-Display
-
-Total Savings
-
-Average Savings
-
-Monthly Deposits
-
-Monthly Withdrawals
-
-Highest Balance
-
-Lowest Balance
-
-Student Participation
-
-Savings Growth
-
----
-
-# Spiritual Statistics
-
-Display
-
-Participation Rate
-
-Activity Attendance
-
-Prayer Attendance
-
-Quran Reading
-
-Character Integration
-
-Monthly Activities
-
-Annual Summary
-
----
-
-# Trend Analysis
-
-Purpose
-
-Display performance over time.
-
----
-
-Supported Periods
-
-Daily
-
-Weekly
-
-Monthly
-
-Semester
-
-Yearly
-
-Custom
-
----
-
-Trend Types
-
-Growth
-
-Decline
-
-Stable
-
-Comparison
-
-Forecast (Future)
-
----
-
-# Comparison Engine
-
-Purpose
-
-Compare data across multiple dimensions.
-
----
-
-Supported Comparisons
-
-Class
-
-Major
-
-Academic Year
-
-Semester
-
-Student
-
-Teacher
-
-Special Unit
-
-Custom Group
-
----
-
-# KPI Dashboard
-
-Purpose
-
-Display key indicators.
-
----
-
-Examples
-
-Overall Attendance
-
-Average Assessment
-
-Character Index
-
-Discipline Index
-
-Savings Growth
-
-Special Unit Participation
-
-Spiritual Participation
-
-Academic Achievement
-
----
-
-# Charts
-
-Supported
-
-Line
-
-Bar
-
-Stacked Bar
-
-Pie
-
-Donut
-
-Area
-
-Radar
-
-Heatmap
-
-Table
-
-Cards
-
-Charts are interchangeable.
-
-Every chart has a table equivalent.
-
----
-
-# Filters
-
-Academic Year
-
-Semester
-
-Class
-
-Major
-
-Student
-
-Teacher
-
-Date Range
-
-Status
-
-Category
-
-Custom Filters
-
-Multiple filters may be combined.
-
----
-
-# Drill Down
-
-Purpose
-
-Navigate from summary to detail.
-
----
-
-Example
-
-Attendance Rate
-
-↓
-
-Class
-
-↓
-
-Student
-
-↓
-
-Attendance Record
-
----
-
-Assessment Average
-
-↓
-
-Assessment
-
-↓
-
-Student Score
-
----
-
-Character Summary
-
-↓
-
-Category
-
-↓
-
-Individual Record
-
----
-
-# Export
-
-Supported Formats
-
-PDF
-
-Excel
-
-CSV
-
-Print
-
-Export respects current filters.
-
----
-
-# Search
-
-Search
-
-Student
-
-Class
-
-Major
-
-Teacher
-
-Indicator
-
-Chart
-
-Report
-
-KPI
-
----
-
-# Dashboard Integration
-
-Dashboard retrieves statistical summaries from Statistics Engine.
-
-Dashboard does not calculate statistics independently.
-
----
-
-# Reports Integration
-
-Reports reuse Statistics Engine.
-
-Statistical calculations are centralized.
-
----
-
-# Analytics Settings
-
-Configure
-
-Default Period
-
-Chart Type
-
-Comparison Method
-
-Trend Period
-
-Default Filters
-
-Refresh Frequency
-
----
-
-# Notifications
-
-Statistics Updated
-
-Analytics Generated
-
-Data Refresh Completed
-
-Calculation Failed
-
----
-
-# Permissions
-
-Administrator
-
-Full Access
-
-Principal
-
-View All
-
-Vice Principal
-
-View All
-
-Teacher
-
-Assigned Statistics
-
-Staff
-
-Limited Statistics
-
-Students (Future)
-
-Own Statistics
-
----
-
-# Audit Log
-
-Track
-
-Statistics Generated
-
-Statistics Exported
-
-Analytics Updated
-
-Settings Changed
-
----
-
-# Performance Requirements
-
-Dashboard Summary
-
-<500 ms
-
-Statistics Query
-
-<2 Seconds
-
-Large Aggregation
-
-<5 Seconds
-
-Support
-
-10 Million Records
+### Performance Requirements
+| Action | Target |
+|---|---|
+| Dashboard Summary | < 500 ms |
+| Statistics Query | < 2 seconds |
+| Large Aggregation | < 5 seconds |
+| Records Supported | 10 million |
 
 Server-side aggregation required.
 
----
+### Accessibility
+Keyboard Navigation, Screen Reader, High Contrast, Visible Focus, Responsive Layout, WCAG AA.
 
-# Accessibility
+### Security
+Role-based Access, Permission Validation, Audit Logging, Server-side Calculation, No direct database exposure.
 
-Keyboard Navigation
+### Future Enhancements
+Predictive Analytics, AI Insights, Risk Detection, Performance Forecast, Dropout Prediction, Scholarship Recommendation, Student Performance Index, Institution Health Score, Machine Learning Models.
 
-Screen Reader
+### Definition of Done
+Complete when: statistics generated centrally; Dashboard uses the Statistics Engine; Reports reuse statistical calculations; KPIs available; trend analysis works correctly; permissions enforced; performance targets achieved; accessibility standards satisfied; follows the Design System.
 
-High Contrast
-
-Visible Focus
-
-Responsive Layout
-
-WCAG AA
-
----
-
-# Security
-
-Role-based Access
-
-Permission Validation
-
-Audit Logging
-
-Server-side Calculation
-
-No direct database exposure
+### Final Principle
+Statistics is not a collection of charts — it is the centralized analytics engine of Twosraku. Every metric, KPI, trend, comparison, and visualization should originate from verified operational data, providing consistent insights across the entire application.
 
 ---
-
-# Future Enhancements
-
-Predictive Analytics
-
-AI Insights
-
-Risk Detection
-
-Performance Forecast
-
-Dropout Prediction
-
-Scholarship Recommendation
-
-Student Performance Index
-
-Institution Health Score
-
-Machine Learning Models
-
----
-
-# Definition of Done
-
-The Statistics Module is complete when
-
-Statistics are generated centrally.
-
-Dashboard uses Statistics Engine.
-
-Reports reuse statistical calculations.
-
-KPIs are available.
-
-Trend analysis works correctly.
-
-Permissions are enforced.
-
-Performance targets are achieved.
-
-Accessibility standards are satisfied.
-
-The module follows the Design System.
-
----
-
-# Final Principle
-
-Statistics is not a collection of charts.
-
-Statistics is the centralized analytics engine of Twosraku.
-
-Every metric, KPI, trend, comparison, and visualization should originate from verified operational data, providing consistent insights across the entire application.
+# End of Statistics Module (Compact)

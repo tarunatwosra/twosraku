@@ -1,598 +1,98 @@
-# Dashboard Module
+# Dashboard Module — Compact
 Version: 1.0
 
----
+**Purpose:** Dashboard is Twosraku's primary landing page — a real-time overview of school activities, student statistics, attendance, assessments, and character development. It owns no data itself; it aggregates information from other modules into a concise, actionable format, letting administrators understand the school's current state within seconds.
 
-# Purpose
+**Scope:** read-only analytics module — users cannot create, edit, or delete data here. Responsibilities: display summary statistics; highlight important information; provide quick access to frequent actions; notify users of important events; surface issues requiring attention.
 
-Dashboard is the primary landing page of Twosraku.
+**Supported Users:** Administrator, Vice Principal, Teacher (limited), Staff (limited), Principal. Different roles see different widgets depending on permissions.
 
-It provides a real-time overview of school activities, student statistics, attendance, assessments, and character development.
+**Data Sources:** Student Registry, Attendance, Assessment, Character Points, Authentication, System Settings, Academic Calendar. Dashboard must never store duplicated data.
 
-The Dashboard does not own any data.
+**Navigation:** Main Navigation → Dashboard (default landing page after login).
 
-Instead, it aggregates information from other modules and presents it in a concise, actionable format.
+**Layout Structure — 5 sections:** Page Header → Quick Statistics → Analytical Widgets → Operational Widgets → Activity Timeline.
 
-The Dashboard should allow administrators to understand the current state of the school within a few seconds.
+### Page Header
+Contains: Page Title, Current Academic Year, Current Semester, Date, Global Search, Notification Button, Profile Menu, Quick Actions (Add Student, Record Attendance, Input Assessment, Record Character Point, Generate Report).
 
----
+### Quick Statistics
+- **Purpose:** instant overview of school conditions.
+- **Widgets:** Total Students, Male/Female Students, Active Classes, Teachers, Attendance Today, Assessment Completion, Character Violations.
+- Each KPI shows: Current Value, Trend, Percentage Change, Mini Sparkline, Last Updated. Clicking a KPI opens the related module.
 
-# Scope
+### Attendance Widget
+Displays: Attendance Today, Present, Permission, Sick, Absent, Late. Visualization: Donut Chart, Summary Card. Trend: comparison with yesterday.
 
-Dashboard is a read-only analytics module.
+### Assessment Widget
+Displays: Assessment Completion, Average/Highest/Lowest Score, Subjects Waiting for Assessment. Visualization: Progress Ring, Bar Chart.
 
-Users cannot create, edit, or delete data directly from this page.
+### Character Widget
+Displays: Positive/Negative Points, Top Positive Students, Students Requiring Attention. Visualization: Stacked Bar Chart, Leaderboard.
 
-Primary responsibilities:
+### Student Distribution
+Displays students by Class, Major, Gender. Visualization: Bar Chart, Donut Chart.
 
-- Display summary statistics.
-- Highlight important information.
-- Provide quick access to frequently used actions.
-- Notify users of important events.
-- Surface potential issues requiring attention.
+### Recent Activities
+Displays: Recently Added Students, Recent Attendance, Latest Assessments, Latest Character Records. Newest first, max 20 items.
 
----
+### Notifications
+Displays unread notifications (e.g. Attendance not submitted, Assessment deadline, Student transferred, System maintenance). Users may mark as read.
 
-# Supported Users
+### Academic Calendar
+Displays: Today's Events, Upcoming Events, Examinations, School Holidays, Important Activities.
 
-Administrator
+### Global Search
+Searches: Students, Teachers, Classes, Assessment, Attendance, Character Records. Results grouped by category.
 
-Vice Principal
+### Quick Actions
+- **Purpose:** reduce navigation time.
+- **Supported:** Add Student, Take Attendance, Create Assessment, Record Character Point, Generate Report. Only actions permitted by the user's role are shown.
 
-Teacher (Limited)
+### Refresh Strategy
+Auto-refreshes every 5 minutes; users may refresh manually. Only changed widgets should reload — avoid full-page refreshes.
 
-Staff (Limited)
+### Business Rules
+Dashboard data is read-only; all values originate from source modules; statistics auto-update when source data changes; widgets should not calculate independently when aggregated values are available.
 
-Principal
-
-Different roles may see different widgets depending on permissions.
-
----
-
-# Data Sources
-
-Dashboard retrieves data from:
-
-Student Registry
-
-Attendance
-
-Assessment
-
-Character Points
-
-Authentication
-
-System Settings
-
-Academic Calendar
-
-The Dashboard must never store duplicated data.
-
----
-
-# Navigation
-
-Main Navigation
-
-↓
-
-Dashboard
-
-This page is the default landing page after successful login.
-
----
-
-# Layout Structure
-
-The page consists of five sections.
-
-Section 1
-
-Page Header
-
-Section 2
-
-Quick Statistics
-
-Section 3
-
-Analytical Widgets
-
-Section 4
-
-Operational Widgets
-
-Section 5
-
-Activity Timeline
-
----
-
-# Page Header
-
-Contains
-
-Page Title
-
-Current Academic Year
-
-Current Semester
-
-Date
-
-Global Search
-
-Notification Button
-
-Profile Menu
-
-Quick Actions
-
-Quick Actions include
-
-Add Student
-
-Record Attendance
-
-Input Assessment
-
-Record Character Point
-
-Generate Report
-
----
-
-# Quick Statistics
-
-Purpose
-
-Provide an instant overview of school conditions.
-
-Widgets
-
-Total Students
-
-Male Students
-
-Female Students
-
-Active Classes
-
-Teachers
-
-Attendance Today
-
-Assessment Completion
-
-Character Violations
-
-Each KPI displays
-
-Current Value
-
-Trend
-
-Percentage Change
-
-Mini Sparkline
-
-Last Updated
-
-Clicking a KPI opens the related module.
-
----
-
-# Attendance Widget
-
-Displays
-
-Attendance Today
-
-Present
-
-Permission
-
-Sick
-
-Absent
-
-Late
-
-Visualization
-
-Donut Chart
-
-Summary Card
-
-Trend
-
-Comparison with yesterday.
-
----
-
-# Assessment Widget
-
-Displays
-
-Assessment Completion
-
-Average Score
-
-Highest Score
-
-Lowest Score
-
-Subjects Waiting for Assessment
-
-Visualization
-
-Progress Ring
-
-Bar Chart
-
----
-
-# Character Widget
-
-Displays
-
-Positive Points
-
-Negative Points
-
-Top Positive Students
-
-Students Requiring Attention
-
-Visualization
-
-Stacked Bar Chart
-
-Leaderboard
-
----
-
-# Student Distribution
-
-Displays
-
-Students by
-
-Class
-
-Major
-
-Gender
-
-Visualization
-
-Bar Chart
-
-Donut Chart
-
----
-
-# Recent Activities
-
-Displays
-
-Recently Added Students
-
-Recent Attendance
-
-Latest Assessments
-
-Latest Character Records
-
-Newest first.
-
-Maximum
-
-20 items.
-
----
-
-# Notifications
-
-Display
-
-Unread Notifications
-
-Examples
-
-Attendance not submitted
-
-Assessment deadline
-
-Student transferred
-
-System maintenance
-
-Users may mark notifications as read.
-
----
-
-# Academic Calendar
-
-Display
-
-Today's Events
-
-Upcoming Events
-
-Examinations
-
-School Holidays
-
-Important Activities
-
----
-
-# Global Search
-
-Searches
-
-Students
-
-Teachers
-
-Classes
-
-Assessment
-
-Attendance
-
-Character Records
-
-Results grouped by category.
-
----
-
-# Quick Actions
-
-Purpose
-
-Reduce navigation time.
-
-Supported Actions
-
-Add Student
-
-Take Attendance
-
-Create Assessment
-
-Record Character Point
-
-Generate Report
-
-Only actions permitted by the user's role are displayed.
-
----
-
-# Refresh Strategy
-
-Dashboard refreshes automatically every 5 minutes.
-
-Users may manually refresh data.
-
-Only changed widgets should reload.
-
-Avoid full-page refreshes.
-
----
-
-# Business Rules
-
-Dashboard data is read-only.
-
-All displayed values originate from source modules.
-
-If source data changes, dashboard statistics update automatically.
-
-Widgets should not perform calculations independently when aggregated values are available.
-
----
-
-# Permissions
-
-Administrator
-
-Full Dashboard
-
-Principal
-
-Full Dashboard
-
-Teacher
-
-Attendance
-
-Assessment
-
-Own Classes
-
-Staff
-
-Operational widgets only
+### Permissions
+| Role | Access |
+|---|---|
+| Administrator | Full Dashboard |
+| Principal | Full Dashboard |
+| Teacher | Attendance, Assessment, Own Classes |
+| Staff | Operational widgets only |
 
 Unauthorized widgets must remain hidden.
 
----
+### Loading / Empty / Error States
+- **Loading:** each widget loads independently using skeleton placeholders; one failed widget must not block others.
+- **Empty:** show Icon, Title, Description, Recommended Action (e.g. "No attendance has been recorded today.").
+- **Error:** show a friendly message + Retry Button; never expose technical errors.
 
-# Loading State
+### Performance Requirements
+Should load within 2 seconds on a standard school internet connection. Heavy calculations performed server-side; widgets request only the data they need.
 
-Each widget loads independently.
+### Accessibility
+Keyboard Navigation, Visible Focus, Screen Reader Labels, Accessible Charts, Reduced Motion.
 
-Use skeleton placeholders.
+### Responsive Behavior
+Desktop = multi-column grid; Tablet = reduced columns; Mobile = single column. Widget order stays consistent across devices.
 
-One failed widget must not block the others.
+### Dashboard Dependencies
+Student Registry → Attendance → Assessment → Character Points → Dashboard. Cannot function without master data.
 
----
+### Audit
+Dashboard itself generates no audit records; audit information belongs to source modules.
 
-# Empty State
+### Future Enhancements
+Custom Dashboard, Widget Rearrangement, Saved Layouts, Real-Time Updates, AI Insights, Predictive Analytics, Parent Dashboard, Teacher Dashboard, Student Dashboard.
 
-If a widget has no data,
+### Definition of Done
+Complete when it: displays accurate data; loads quickly; uses reusable widgets; handles loading/empty/error states; respects permissions; provides meaningful insights; supports responsive layouts; follows the Design System.
 
-display
-
-Icon
-
-Title
-
-Description
-
-Recommended Action
-
-Example
-
-"No attendance has been recorded today."
-
----
-
-# Error State
-
-If a widget cannot retrieve data,
-
-display
-
-Friendly message
-
-Retry Button
-
-Do not expose technical errors.
+### Final Principle
+Dashboard is not a reporting page — it is a decision-making interface. Every widget should help users identify what requires attention and where to navigate next.
 
 ---
-
-# Performance Requirements
-
-Dashboard should load within
-
-2 seconds
-
-on a standard school internet connection.
-
-Heavy calculations should be performed server-side.
-
-Widgets should request only the data they require.
-
----
-
-# Accessibility
-
-Every widget must support
-
-Keyboard Navigation
-
-Visible Focus
-
-Screen Reader Labels
-
-Accessible Charts
-
-Reduced Motion
-
----
-
-# Responsive Behavior
-
-Desktop
-
-Multi-column grid
-
-Tablet
-
-Reduced columns
-
-Mobile
-
-Single column
-
-Widget order remains consistent across devices.
-
----
-
-# Dashboard Dependencies
-
-Student Registry
-
-↓
-
-Attendance
-
-↓
-
-Assessment
-
-↓
-
-Character Points
-
-↓
-
-Dashboard
-
-Dashboard cannot function without master data.
-
----
-
-# Audit
-
-Dashboard itself does not generate audit records.
-
-Audit information belongs to the source modules.
-
----
-
-# Future Enhancements
-
-Custom Dashboard
-
-Widget Rearrangement
-
-Saved Layouts
-
-Real-Time Updates
-
-AI Insights
-
-Predictive Analytics
-
-Parent Dashboard
-
-Teacher Dashboard
-
-Student Dashboard
-
----
-
-# Definition of Done
-
-The Dashboard is complete when it:
-
-Displays accurate data.
-
-Loads quickly.
-
-Uses reusable widgets.
-
-Handles loading, empty, and error states.
-
-Respects permissions.
-
-Provides meaningful insights.
-
-Supports responsive layouts.
-
-Follows the Design System.
-
----
-
-# Final Principle
-
-Dashboard is not a reporting page.
-
-Dashboard is a decision-making interface.
-
-Every widget should help users identify what requires attention and where they should navigate next.
+# End of Dashboard Module (Compact)

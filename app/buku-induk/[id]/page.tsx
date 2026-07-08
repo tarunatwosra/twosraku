@@ -715,13 +715,11 @@ export default function StudentDetailPage() {
   const { academicYear } = useAcademicYear()
 
   const { student, loading, error } = useStudent(studentId)
-  const [activeTab, setActiveTab] = useState("personal")
+  const [activeTab, setActiveTab] = useState("personal-academic")
 
   const tabs = [
-    { id: "personal", label: "Informasi Pribadi", icon: <User className="w-4 h-4" /> },
-    { id: "academic", label: "Data Akademik", icon: <BookOpen className="w-4 h-4" /> },
-    { id: "parents", label: "Data Orang Tua", icon: <Heart className="w-4 h-4" /> },
-    { id: "guardian", label: "Wali", icon: <User className="w-4 h-4" /> },
+    { id: "personal-academic", label: "Data Pribadi & Akademik", icon: <User className="w-4 h-4" /> },
+    { id: "parents-guardian", label: "Data Orang Tua & Wali", icon: <Heart className="w-4 h-4" /> },
     { id: "documents", label: "Dokumen", icon: <FileText className="w-4 h-4" /> },
     { id: "attendance", label: "Absensi", icon: <Calendar className="w-4 h-4" /> },
     { id: "assessment", label: "Penilaian", icon: <Award className="w-4 h-4" /> },
@@ -856,11 +854,21 @@ export default function StudentDetailPage() {
       </Card>
 
       {/* Tab Content */}
-      <div className="mt-6">
-        {activeTab === "personal" && <PersonalInfoSection student={student} />}
-        {activeTab === "academic" && <AcademicInfoSection student={student} />}
-        {activeTab === "parents" && <ParentInfoSection student={student} />}
-        {activeTab === "guardian" && <GuardianSection student={student} />}
+      <div className="mt-6 space-y-6">
+        {activeTab === "personal-academic" && (
+          <Card variant="elevated" padding="lg">
+            <PersonalInfoSection student={student} />
+            <div className="border-t border-[var(--border-light)] my-6" />
+            <AcademicInfoSection student={student} />
+          </Card>
+        )}
+        {activeTab === "parents-guardian" && (
+          <Card variant="elevated" padding="lg">
+            <ParentInfoSection student={student} />
+            <div className="border-t border-[var(--border-light)] my-6" />
+            <GuardianSection student={student} />
+          </Card>
+        )}
         {activeTab === "documents" && <DocumentsTab studentId={student.id} />}
         {activeTab === "attendance" && (
           <AttendanceSummary studentId={student.id} academicYearId={academicYear?.id} />

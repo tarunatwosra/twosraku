@@ -8,6 +8,7 @@ import {
   Users,
   ClipboardCheck,
   BarChart3,
+  Calculator,
   CalendarDays,
   BookOpen,
   School,
@@ -64,10 +65,10 @@ const navigationSections: NavSection[] = [
   {
     title: "PENILAIAN",
     items: [
-      { icon: BarChart3, label: "Dashboard", href: "/penilaian" },
-      { icon: BarChart3, label: "Template", href: "/penilaian/template" },
-      { icon: BarChart3, label: "Sesi", href: "/penilaian/session" },
-      { icon: BarChart3, label: "Input Nilai", href: "/penilaian/input" },
+      { icon: BarChart3, label: "Pusat Penilaian", href: "/penilaian" },
+      { icon: Calculator, label: "Input Nilai", href: "/penilaian/input" },
+      { icon: FileText, label: "Hasil Penilaian", href: "/penilaian/hasil" },
+      { icon: Settings, label: "Formula", href: "/penilaian/formula" },
     ],
   },
   {

@@ -1,866 +1,124 @@
-# Global Search & Command Center
+# Global Search & Command Center — Compact
 Version: 2.0
 
----
+**Purpose:** Global Search is Twosraku's Universal Command Center, combining Universal Search, Navigation, Quick Actions, Command Palette, Recent Activities, and Saved Searches into one productivity interface. Users should find information or execute actions without manually navigating menus.
 
-# Purpose
+**Philosophy:** search everything; navigate instantly; execute commands; reduce clicks and navigation; improve productivity. Every accessible resource should be discoverable.
 
-Global Search is the Universal Command Center of Twosraku.
+**Core Concepts:** five engines working together while remaining independent — Search Engine, Navigation Engine, Command Engine, History Engine, Suggestion Engine.
 
-It combines
+**Core Architecture:** User → Ctrl+K → Global Search (Search/Command/Navigation/History/Suggestion Engines) → Selected Result → Application Module.
 
-Universal Search
+**Primary Objectives:** universal search; universal navigation; command execution; quick access; context awareness; permission-aware results; keyboard-first workflow; future AI integration.
 
-Navigation
+**Navigation:** Global Search → Universal Search, Command Palette, Recent Searches, Recent Commands, Favorites, Saved Searches, Search History, Analytics, Settings.
 
-Quick Actions
+### Universal Search
+- **Purpose:** search all indexed resources.
+- **Searchable Resources:** Students, Attendance, Assessment, Character Points, Special Units, Reports, Notifications, Users, Settings, Academic Years, Documents (future). No module implements its own global search.
 
-Command Palette
+### Navigation Engine
+**Purpose:** navigate anywhere instantly. Examples: Dashboard, Student Registry, Attendance, Assessment, Reports, Settings, Character, Special Units, Users, Audit Logs.
 
-Recent Activities
+### Command Palette
+- **Purpose:** execute application commands directly. Commands are searchable and require permissions.
+- **Examples:** Create Student, Open Student Registry, Record Attendance, Generate Report, Create Assessment, Create Character Record, Assign Special Unit, Import Students, Export Attendance, Open Settings, Open Reports, Create Academic Year, Lock/Unlock Assessment, Backup Database, Restart Background Jobs, Clear Cache, Logout.
+- **Categories:** Navigation, Create, Update, Generate, Export, Import, Administration, System, Utilities.
+- **Command Result shows:** Title, Description, Category, Shortcut, Permission, Destination, Action Type.
 
-Saved Searches
+### Context Awareness
+Results depend on Current Module, User Role, Permissions, Recent Activities, Frequently Used Commands, Search History (e.g. typing "attendance" inside the Attendance Module prioritizes Attendance actions).
 
-into a single productivity interface.
+### Search Ranking
+Priority order: Exact Match → Recent Usage → Pinned Results → Favorites → Starts With → Contains → Alphabetical.
 
-Users should be able to find information or execute actions without manually navigating menus.
+### Search Suggestions
+Recent Students, Recent Reports, Frequently Used Commands, Pinned Pages, Favorite Searches, Recent Notifications, Upcoming Tasks. Suggestions improve over time.
 
----
+### Recent Searches
+Stored per user. Properties: Keyword, Module, Timestamp, Selected Result, Execution Time. Users may Reuse, Delete, Clear History, or Disable History.
 
-# Philosophy
+### Recent Commands
+**Purpose:** allow quick repetition. Examples: Generate Attendance Report, Create Assessment, Import Students, Open Character Dashboard, Open Settings. Chronological order.
 
-Search everything.
+### Favorites
+Users may pin Students, Reports, Pages, Commands, Settings. Pinned items appear before search results.
 
-Navigate instantly.
+### Saved Searches
+**Purpose:** store reusable searches. Examples: Class X TKJ, Negative Character, Outstanding Students, Today's Attendance, Semester 2 Assessments. Includes filters.
 
-Execute commands.
+### Advanced Search
+Supports: Keyword, Category, Module, Academic Year, Semester, Class, Major, Date Range, Status, Custom Filters. Multiple filters may combine.
 
-Reduce clicks.
+### Search Results
+Each result contains: Icon, Title, Subtitle, Module, Category, Description, Highlighted Keywords, Last Updated, Quick Actions, Permission Indicator.
 
-Reduce navigation.
+### Quick Actions
+Without opening pages: Open, Edit, Delete, Export, Print, Copy Link, Pin, Favorite, View Details. Depends on permissions.
 
-Improve productivity.
+### Keyboard Shortcuts
+| Shortcut | Action |
+|---|---|
+| Ctrl+K | Open Search |
+| ↑ ↓ | Navigate Results |
+| Enter | Execute |
+| Esc | Close |
+| Tab / Shift+Tab | Next / Previous Group |
+| Ctrl+Enter | Open in New Tab |
+| Alt+Enter | Preview |
 
-Every accessible resource should be discoverable.
+### Search Index
+Indexed data: Student Names/Numbers, Classes, Majors, Attendance, Assessments, Character Records, Special Unit Members, Reports, Users, Commands, Settings, Documents (future). Indexes update automatically.
 
----
+### Command Permissions
+Every command validates Authentication, Authorization, Business Rules. Unavailable commands remain hidden.
 
-# Core Concepts
+### Dashboard Integration
+Dashboard Search opens Global Search; Dashboard doesn't implement independent search.
 
-Global Search consists of five engines.
+### Notification Integration
+Search includes Announcements, Unread Notifications, Reminders, Tasks, System Alerts.
 
-Search Engine
+### Report Integration
+Search covers Reports, Templates, Saved Reports, Generated Reports.
 
-Navigation Engine
+### Search Analytics
+Tracks: Popular Keywords, Popular Commands, Failed Searches, Search Duration, Most Accessed Results, Unused Commands. Improves discoverability.
 
-Command Engine
+### Search Settings
+Users may configure: History, Suggestions, Pinned Results, Search Limit, Recent Commands, Recent Searches, Command Visibility, Keyboard Shortcuts.
 
-History Engine
+### Empty State
+"No results found." Suggestions: search another keyword, use Advanced Search, create new record, run related command.
 
-Suggestion Engine
-
-Each engine works together while remaining independent.
-
----
-
-# Core Architecture
-
-User
-
-↓
-
-Ctrl + K
-
-↓
-
-Global Search
-
-├── Search Engine
-
-├── Command Engine
-
-├── Navigation Engine
-
-├── History Engine
-
-└── Suggestion Engine
-
-↓
-
-Selected Result
-
-↓
-
-Application Module
-
----
-
-# Primary Objectives
-
-Universal Search
-
-Universal Navigation
-
-Command Execution
-
-Quick Access
-
-Context Awareness
-
-Permission-aware Results
-
-Keyboard-first Workflow
-
-Future AI Integration
-
----
-
-# Navigation
-
-Global Search
-
-├── Universal Search
-
-├── Command Palette
-
-├── Recent Searches
-
-├── Recent Commands
-
-├── Favorites
-
-├── Saved Searches
-
-├── Search History
-
-├── Analytics
-
-└── Settings
-
----
-
-# Universal Search
-
-Purpose
-
-Search all indexed resources.
-
-Searchable Resources
-
-Students
-
-Attendance
-
-Assessment
-
-Character Points
-
-Special Units
-
-Reports
-
-Notifications
-
-Users
-
-Settings
-
-Academic Years
-
-Documents (Future)
-
-No module implements its own global search.
-
----
-
-# Navigation Engine
-
-Purpose
-
-Navigate anywhere instantly.
-
-Examples
-
-Dashboard
-
-Student Registry
-
-Attendance
-
-Assessment
-
-Reports
-
-Settings
-
-Character
-
-Special Units
-
-Users
-
-Audit Logs
-
----
-
-# Command Palette
-
-Purpose
-
-Execute application commands directly.
-
-Commands are searchable.
-
-Commands require permissions.
-
----
-
-## Examples
-
-Create Student
-
-Open Student Registry
-
-Record Attendance
-
-Generate Report
-
-Create Assessment
-
-Create Character Record
-
-Assign Special Unit
-
-Import Students
-
-Export Attendance
-
-Open Settings
-
-Open Reports
-
-Create Academic Year
-
-Lock Assessment
-
-Unlock Assessment
-
-Backup Database
-
-Restart Background Jobs
-
-Clear Cache
-
-Logout
-
----
-
-## Command Categories
-
-Navigation
-
-Create
-
-Update
-
-Generate
-
-Export
-
-Import
-
-Administration
-
-System
-
-Utilities
-
----
-
-## Command Result
-
-Each command displays
-
-Title
-
-Description
-
-Category
-
-Shortcut
-
-Permission
-
-Destination
-
-Action Type
-
----
-
-# Context Awareness
-
-Search results depend on
-
-Current Module
-
-User Role
-
-Permissions
-
-Recent Activities
-
-Frequently Used Commands
-
-Search History
-
-Example
-
-Typing
-
-attendance
-
-inside Attendance Module
-
-prioritizes Attendance actions.
-
----
-
-# Search Ranking
-
-Priority
-
-Exact Match
-
-↓
-
-Recent Usage
-
-↓
-
-Pinned Results
-
-↓
-
-Favorites
-
-↓
-
-Starts With
-
-↓
-
-Contains
-
-↓
-
-Alphabetical
-
----
-
-# Search Suggestions
-
-Suggestions include
-
-Recent Students
-
-Recent Reports
-
-Frequently Used Commands
-
-Pinned Pages
-
-Favorite Searches
-
-Recent Notifications
-
-Upcoming Tasks
-
-Suggestions improve over time.
-
----
-
-# Recent Searches
-
-Stored per user.
-
-Properties
-
-Keyword
-
-Module
-
-Timestamp
-
-Selected Result
-
-Execution Time
-
-Users may
-
-Reuse
-
-Delete
-
-Clear History
-
-Disable History
-
----
-
-# Recent Commands
-
-Purpose
-
-Allow quick repetition.
-
-Examples
-
-Generate Attendance Report
-
-Create Assessment
-
-Import Students
-
-Open Character Dashboard
-
-Open Settings
-
-Commands appear in chronological order.
-
----
-
-# Favorites
-
-Users may pin
-
-Students
-
-Reports
-
-Pages
-
-Commands
-
-Settings
-
-Pinned items appear before search results.
-
----
-
-# Saved Searches
-
-Purpose
-
-Store reusable searches.
-
-Examples
-
-Class X TKJ
-
-Negative Character
-
-Outstanding Students
-
-Today's Attendance
-
-Semester 2 Assessments
-
-Saved searches include filters.
-
----
-
-# Advanced Search
-
-Supports
-
-Keyword
-
-Category
-
-Module
-
-Academic Year
-
-Semester
-
-Class
-
-Major
-
-Date Range
-
-Status
-
-Custom Filters
-
-Multiple filters may be combined.
-
----
-
-# Search Results
-
-Each result contains
-
-Icon
-
-Title
-
-Subtitle
-
-Module
-
-Category
-
-Description
-
-Highlighted Keywords
-
-Last Updated
-
-Quick Actions
-
-Permission Indicator
-
----
-
-# Quick Actions
-
-Without opening pages users may
-
-Open
-
-Edit
-
-Delete
-
-Export
-
-Print
-
-Copy Link
-
-Pin
-
-Favorite
-
-View Details
-
-Actions depend on permissions.
-
----
-
-# Keyboard Shortcuts
-
-Ctrl + K
-
-Open Search
-
-↑ ↓
-
-Navigate Results
-
-Enter
-
-Execute
-
-Esc
-
-Close
-
-Tab
-
-Next Group
-
-Shift + Tab
-
-Previous Group
-
-Ctrl + Enter
-
-Open in New Tab
-
-Alt + Enter
-
-Preview
-
----
-
-# Search Index
-
-Indexed Data
-
-Student Names
-
-Student Numbers
-
-Classes
-
-Majors
-
-Attendance
-
-Assessments
-
-Character Records
-
-Special Unit Members
-
-Reports
-
-Users
-
-Commands
-
-Settings
-
-Documents (Future)
-
-Indexes update automatically.
-
----
-
-# Command Permissions
-
-Every command validates
-
-Authentication
-
-Authorization
-
-Business Rules
-
-Commands unavailable to users remain hidden.
-
----
-
-# Dashboard Integration
-
-Dashboard Search opens Global Search.
-
-Dashboard does not implement independent search.
-
----
-
-# Notification Integration
-
-Search includes
-
-Announcements
-
-Unread Notifications
-
-Reminders
-
-Tasks
-
-System Alerts
-
----
-
-# Report Integration
-
-Search
-
-Reports
-
-Templates
-
-Saved Reports
-
-Generated Reports
-
----
-
-# Search Analytics
-
-Track
-
-Popular Keywords
-
-Popular Commands
-
-Failed Searches
-
-Search Duration
-
-Most Accessed Results
-
-Unused Commands
-
-Analytics improve discoverability.
-
----
-
-# Search Settings
-
-Users may configure
-
-History
-
-Suggestions
-
-Pinned Results
-
-Search Limit
-
-Recent Commands
-
-Recent Searches
-
-Command Visibility
-
-Keyboard Shortcuts
-
----
-
-# Empty State
-
-Display
-
-No results found.
-
-Suggestions
-
-Search another keyword.
-
-Use Advanced Search.
-
-Create new record.
-
-Run related command.
-
----
-
-# Performance Requirements
-
-Open Search
-
-<100 ms
-
-Search Suggestion
-
-<100 ms
-
-First Result
-
-<250 ms
-
-Command Execution
-
-Instant
-
-Support
-
-5 Million Indexed Records
+### Performance Requirements
+| Action | Target |
+|---|---|
+| Open Search | < 100 ms |
+| Search Suggestion | < 100 ms |
+| First Result | < 250 ms |
+| Command Execution | Instant |
+| Indexed Records | 5 million supported |
 
 Search uses indexed server-side data.
 
----
+### Accessibility
+Keyboard-first, Screen Reader, Visible Focus, ARIA Labels, High Contrast, Responsive Layout, WCAG AA.
 
-# Accessibility
+### Security
+Role-based Access, Permission Validation, Encrypted Queries, Audit Logging, Rate Limiting. No restricted data appears in search.
 
-Keyboard-first
+### Audit Log
+Tracks: Search, Command Execution, Pinned Item, Saved Search, History Cleared, Command Failure.
 
-Screen Reader
+### Future Enhancements
+AI Semantic Search, Natural Language Commands, Voice Search, OCR Search, Image Search, Student Face Search, Predictive Suggestions, AI Assistant Integration, Global Command Macros, Workflow Automation.
 
-Visible Focus
+### Definition of Done
+Complete when: every module is searchable; every page is navigable; commands execute securely; search is permission-aware; results are categorized; keyboard navigation is complete; performance targets achieved; accessibility standards satisfied; follows the Design System.
 
-ARIA Labels
-
-High Contrast
-
-Responsive Layout
-
-WCAG AA
-
----
-
-# Security
-
-Role-based Access
-
-Permission Validation
-
-Encrypted Queries
-
-Audit Logging
-
-Rate Limiting
-
-No restricted data appears in search.
+### Final Principle
+Global Search is not a search feature — it is the Universal Command Center of Twosraku. Users should discover information, navigate the application, and execute common actions from one consistent interface without relying on the sidebar.
 
 ---
-
-# Audit Log
-
-Track
-
-Search
-
-Command Execution
-
-Pinned Item
-
-Saved Search
-
-History Cleared
-
-Command Failure
-
----
-
-# Future Enhancements
-
-AI Semantic Search
-
-Natural Language Commands
-
-Voice Search
-
-OCR Search
-
-Image Search
-
-Student Face Search
-
-Predictive Suggestions
-
-AI Assistant Integration
-
-Global Command Macros
-
-Workflow Automation
-
----
-
-# Definition of Done
-
-The Global Search Module is complete when
-
-Every module is searchable.
-
-Every page is navigable.
-
-Commands execute securely.
-
-Search is permission-aware.
-
-Results are categorized.
-
-Keyboard navigation is complete.
-
-Performance targets are achieved.
-
-Accessibility standards are satisfied.
-
-The module follows the Design System.
-
----
-
-# Final Principle
-
-Global Search is not a search feature.
-
-It is the Universal Command Center of Twosraku.
-
-Users should be able to discover information, navigate the application, and execute common actions from one consistent interface without relying on the sidebar.
+# End of Global Search Module (Compact)

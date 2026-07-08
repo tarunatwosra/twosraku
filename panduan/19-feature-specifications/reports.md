@@ -1,652 +1,134 @@
-# Reports Module
+# Reports Module — Compact
 Version: 2.0 (Implementation)
 
----
+**Purpose:** Reports is Twosraku's centralized reporting engine. Instead of every module generating reports independently, all reporting goes through one unified system providing consistent generation, export, scheduling, sharing, and printing app-wide.
 
-# Purpose
+**Philosophy:** reports are generated from verified operational data; reproducible; configurable; never modify source data; historical reports always remain consistent.
 
-Reports is the centralized reporting engine of Twosraku.
+**Primary Objectives (all ✅ implemented):** centralized report generation; multiple report formats; advanced filtering; scheduled reports; reusable report templates; report history; integration with every module.
 
-Instead of allowing every module to generate reports independently, all reporting operations are handled through a unified reporting system.
+**Scope (✅ Implemented):**
+| Feature | Route |
+|---|---|
+| Report Dashboard | `/app/laporan/page.tsx` |
+| Report Templates | `/app/laporan/templates/page.tsx` |
+| Generate Report Wizard | `/app/laporan/generate/page.tsx` |
+| Scheduled Reports | `/app/laporan/scheduled/page.tsx` |
+| Report History | `/app/laporan/history/page.tsx` |
+| Export Engine | via generate wizard |
+| Print Engine | `/app/laporan/print/page.tsx` |
+| Analytics Reports | `/app/laporan/analytics/page.tsx` |
+| Saved Filters | via wizard step 2 |
+| Favorites | via history page (star toggle) |
 
-The Reports Module provides consistent report generation, export, scheduling, sharing, and printing across the entire application.
-
----
-
-# Philosophy
-
-Reports are generated from verified operational data.
-
-Reports should be reproducible.
-
-Reports should be configurable.
-
-Reports should never modify source data.
-
-Historical reports should always remain consistent.
-
----
-
-# Primary Objectives
-
-✅ Provide centralized report generation.
-
-✅ Support multiple report formats.
-
-✅ Allow advanced filtering.
-
-✅ Support scheduled reports.
-
-✅ Provide reusable report templates.
-
-✅ Support report history.
-
-✅ Integrate with every module.
-
----
-
-# Scope (Implemented)
-
-✅ Report Dashboard - `/app/laporan/page.tsx`
-
-✅ Report Templates - `/app/laporan/templates/page.tsx`
-
-✅ Generated Reports - Wizard via `/app/laporan/generate/page.tsx`
-
-✅ Scheduled Reports - `/app/laporan/scheduled/page.tsx`
-
-✅ Report History - `/app/laporan/history/page.tsx`
-
-✅ Export Engine - Via wizard `/app/laporan/generate/page.tsx`
-
-✅ Print Engine - `/app/laporan/print/page.tsx`
-
-✅ Analytics Reports - `/app/laporan/analytics/page.tsx`
-
-✅ Saved Filters - Via wizard step 2
-
-✅ Favorites - Via history page (star toggle)
-
----
-
-# File Structure
-
+**File Structure:**
 ```
-app/
-├── laporan/
-│   ├── page.tsx                    # Reports Dashboard
-│   ├── generate/
-│   │   └── page.tsx                # Generate Report Wizard
-│   ├── templates/
-│   │   └── page.tsx                # Report Templates Management
-│   ├── scheduled/
-│   │   └── page.tsx                # Scheduled Reports Management
-│   ├── history/
-│   │   └── page.tsx                # Report History
-│   ├── print/
-│   │   └── page.tsx                # Print Engine Settings
-│   └── analytics/
-│       └── page.tsx                # Analytics Reports
+app/laporan/
+├── page.tsx            # Reports Dashboard
+├── generate/page.tsx    # Generate Report Wizard
+├── templates/page.tsx   # Report Templates Management
+├── scheduled/page.tsx   # Scheduled Reports Management
+├── history/page.tsx     # Report History
+├── print/page.tsx       # Print Engine Settings
+└── analytics/page.tsx   # Analytics Reports
 ```
 
----
+**Integrated Modules (✅ all implemented):** Dashboard, Student Registry (Buku Induk), Attendance (Presensi), Assessment (Penilaian), Character Points (Poin Karakter), Special Units (Pasukan Khusus), Savings (Tabungan), Spiritual. Every module exposes report data through the Reports Engine.
 
-# Integrated Modules
+**Navigation:** Laporan (sidebar: LAPORAN) → Dashboard (`/laporan`), Generate Report (`/laporan/generate`), Template (`/laporan/templates`), Terjadwal (`/laporan/scheduled`), Riwayat (`/laporan/history`), Print Engine (`/laporan/print`), Analytics (`/laporan/analytics`).
 
-✅ Dashboard
+### Reports Dashboard (`/app/laporan/page.tsx`)
+- **Widgets (✅ implemented):** Recent Reports, Favorite Reports, Scheduled Reports, Quick Actions.
+- **Quick Actions:** Generate Report → `/laporan/generate`; Create Schedule → `/laporan/scheduled`; Export Data (via wizard); Print Report → `/laporan/print`; Manage Templates → `/laporan/templates`.
 
-✅ Student Registry (Buku Induk)
+### Report Categories (✅ Implemented)
+Student Reports, Attendance Reports, Assessment Reports, Character Reports, Special Unit Reports, Analytics Reports.
 
-✅ Attendance (Presensi)
+### Report Templates (`/app/laporan/templates/page.tsx`)
+- **Properties (✅ implemented):** Template Name, Category, Description, Module, Paper Size (A4/Letter/Legal), Orientation (Portrait/Landscape), Columns, Chart Type (bar/line/pie/donut), Version, Status (active/deprecated/archived).
+- **Business Rules (✅ implemented):** reusable; never contain report data; may be duplicated; cannot modify source data.
 
-✅ Assessment (Penilaian)
+### Generate Report (`/app/laporan/generate/page.tsx`)
+**Workflow (implemented):** Select Report Type → Apply Filters → Preview → Generate → Export / Print / Save.
 
-✅ Character Points (Poin Karakter)
+### Filters (✅ Implemented)
+Academic Year, Semester, Date Range, Grade (Tingkat), Class, Status.
 
-✅ Special Units (Pasukan Khusus)
+### Report Preview
+**Features (✅ implemented):** Page Navigation, Export Preview, Report Summary.
 
-✅ Savings (Tabungan)
+### Saved Reports
+**Stored Configuration (✅ implemented):** Template, Filters, Sorting, Grouping, Export Format.
 
-✅ Spiritual (Spiritual)
+### Scheduled Reports (`/app/laporan/scheduled/page.tsx`)
+- **Frequency (✅ implemented):** Daily, Weekly, Monthly, Semester, Yearly, Custom.
+- **Actions (✅ implemented):** Generate, Export, Print, Email (future).
 
-Every module exposes report data through the Reports Engine.
+### Report History (`/app/laporan/history/page.tsx`)
+**Properties (✅ implemented):** Report Name, Generated By/At, Module, Filters, Export Format, Status, Duration, Record Count, Favorite toggle. History cannot be edited.
 
----
+### Export Engine
+- **Supported (✅ implemented):** PDF, Excel (.xlsx), CSV, Print. Future: Word, PowerPoint, JSON.
+- **Export Rules (✅ implemented):** respects Filters, Sorting, Grouping, Permissions, Selected Columns.
 
-# Navigation Structure
+### Print Engine (`/app/laporan/print/page.tsx`)
+**Support (✅ implemented):** A4, Letter, Legal, Landscape, Portrait, Custom Header, Custom Footer, School Logo placeholder, Page Number, Watermark.
 
-```
-Laporan (Sidebar: LAPORAN)
-├── Dashboard                    # /laporan
-├── Generate Report              # /laporan/generate
-├── Template                     # /laporan/templates
-├── Terjadwal                   # /laporan/scheduled
-├── Riwayat                     # /laporan/history
-├── Print Engine                # /laporan/print
-└── Analytics                   # /laporan/analytics
-```
+### Analytics Reports (`/app/laporan/analytics/page.tsx`)
+- **Widgets (✅ implemented):** KPI Cards (Total Siswa, Kehadiran, Nilai, Poin Karakter), Attendance Trend (Bar Chart), Assessment Trend (Line Chart), Character Trend (Line Chart), Module Distribution (Donut Chart), Quick Stats, Module Performance Table.
+- **Statistics shown (✅ implemented):** Total Reports, Download Count, Template Usage, Average Generation Time, Scheduled Reports Count.
 
----
+### Search (✅ Implemented)
+By: Report Name, Module, Template, Creator, Date, Category.
 
-# Reports Dashboard (`/app/laporan/page.tsx`)
+### Favorites (✅ Implemented)
+Users may mark reports as favorites; favorites appear on the dashboard; star toggle in history page.
 
-## Widgets Implemented
+### Notifications (Future)
+Report Generated, Schedule Completed, Export Finished, Export Failed, Schedule Failed, Storage Warning.
 
-✅ Recent Reports
+### Permissions (Future)
+| Role | Access |
+|---|---|
+| Administrator | Full Access |
+| Principal | View All |
+| Vice Principal | Generate |
+| Teacher | Generate Assigned Reports |
+| Staff | Limited Access |
+| Students | No Access |
 
-✅ Favorite Reports
+### Audit Log (Future)
+Tracks: Generated, Exported, Printed, Deleted, Scheduled, Cancelled, Downloaded. Immutable.
 
-✅ Scheduled Reports
+### Performance Requirements (Current Implementation)
+Generate Standard Report — simulated < 5 seconds. Large Report — simulated < 30 seconds. Export Excel 100,000 Rows — future. Export PDF 10,000 Rows — future. Server-side processing required — future.
 
-✅ Quick Actions
+### Accessibility
+✅ Keyboard Navigation, ✅ Screen Reader support (aria-*), ✅ High Contrast, ✅ Visible Focus, ✅ Responsive Preview. WCAG AA — future.
 
-## Quick Actions
+### Security (Future)
+✅ Role-based Access, ✅ Server-side Validation, ✅ Soft Delete, ✅ Audit Logging, ✅ Permission Validation, ✅ Encrypted Downloads, ✅ Temporary Download Links.
 
-✅ Generate Report → `/laporan/generate`
+### Future Enhancements
+✅ Interactive Reports. Future: AI Report Summary, Natural Language Query, Scheduled Email Reports, Power BI Integration, Google Sheets Integration, Microsoft Excel Live Export, Parent Portal Reports, Student Portal Reports, Digital Signature, Report Versioning.
 
-✅ Create Schedule → `/laporan/scheduled`
+### Definition of Done
+✅ every module generates reports through the Reports Engine; ✅ templates reusable; ✅ reports reproducible; ✅ historical reports remain consistent; ✅ export formats function correctly; permissions enforced (future); performance targets achieved (simulated); ✅ accessibility standards satisfied; ✅ follows the Design System.
 
-✅ Export Data → Via wizard
+### Final Principle
+Reports is not a printing page — it is the centralized reporting engine of Twosraku. Every report should be accurate, reproducible, configurable, secure, and consistent across all modules.
 
-✅ Print Report → `/laporan/print`
+### Implementation Notes
+- **Components Used:** AppShell (layout wrapper), Card, Button, Badge (ui components), Lucide icons.
+- **Design Tokens:** Primary #4F7CFF, Success #22C55E, Warning #F59E0B, Danger #EF4444, Info #06B6D4.
+- **Border Radius:** Cards 28px, Buttons 18px, Inputs 18px, Badges 999px (pill), Modals 32px.
+- **Spacing Scale:** 4, 8, 12, 16, 20, 24, 28, 32, 40, 48, 56, 64, 72, 80.
 
-✅ Manage Templates → `/laporan/templates`
-
----
-
-# Report Categories (Implemented)
-
-✅ Student Reports (Laporan Siswa)
-
-✅ Attendance Reports (Laporan Absensi)
-
-✅ Assessment Reports (Laporan Penilaian)
-
-✅ Character Reports (Laporan Poin Karakter)
-
-✅ Special Unit Reports (Laporan Pasukan Khusus)
-
-✅ Analytics Reports (Laporan Analytics)
-
----
-
-# Report Templates (`/app/laporan/templates/page.tsx`)
-
-## Template Properties Implemented
-
-✅ Template Name
-
-✅ Category
-
-✅ Description
-
-✅ Module
-
-✅ Paper Size (A4, Letter, Legal)
-
-✅ Orientation (Portrait, Landscape)
-
-✅ Columns
-
-✅ Chart Type (bar, line, pie, donut)
-
-✅ Version
-
-✅ Status (active, deprecated, archived)
-
-## Business Rules Implemented
-
-✅ Templates are reusable.
-
-✅ Templates never contain report data.
-
-✅ Templates may be duplicated.
-
-✅ Templates cannot modify source data.
-
----
-
-# Generate Report (`/app/laporan/generate/page.tsx`)
-
-## Workflow Implemented
-
-1. Select Report Type →
-
-2. Apply Filters →
-
-3. Preview →
-
-4. Generate →
-
-5. Export / Print / Save
-
----
-
-# Filters Implemented
-
-✅ Academic Year
-
-✅ Semester
-
-✅ Date Range
-
-✅ Grade (Tingkat)
-
-✅ Class
-
-✅ Status
-
----
-
-# Report Preview
-
-## Features Implemented
-
-✅ Page Navigation
-
-✅ Export Preview
-
-✅ Report Summary
-
----
-
-# Saved Reports
-
-## Stored Configuration
-
-✅ Template
-
-✅ Filters
-
-✅ Sorting
-
-✅ Grouping
-
-✅ Export Format
-
----
-
-# Scheduled Reports (`/app/laporan/scheduled/page.tsx`)
-
-## Schedule Frequency Implemented
-
-✅ Daily
-
-✅ Weekly
-
-✅ Monthly
-
-✅ Semester
-
-✅ Yearly
-
-✅ Custom
-
-## Schedule Actions Implemented
-
-✅ Generate
-
-✅ Export
-
-✅ Print
-
-✅ Email (Future)
-
----
-
-# Report History (`/app/laporan/history/page.tsx`)
-
-## History Properties Implemented
-
-✅ Report Name
-
-✅ Generated By
-
-✅ Generated At
-
-✅ Module
-
-✅ Filters
-
-✅ Export Format
-
-✅ Status
-
-✅ Duration
-
-✅ Record Count
-
-✅ Favorite toggle
-
-History cannot be edited.
-
----
-
-# Export Engine
-
-## Supported Formats
-
-✅ PDF
-
-✅ Excel (.xlsx)
-
-✅ CSV
-
-✅ Print
-
-Future
-
-✅ Word
-
-✅ PowerPoint
-
-✅ JSON
-
-## Export Rules
-
-✅ Filters
-
-✅ Sorting
-
-✅ Grouping
-
-✅ Permissions
-
-✅ Selected Columns
-
----
-
-# Print Engine (`/app/laporan/print/page.tsx`)
-
-## Support Implemented
-
-✅ A4
-
-✅ Letter
-
-✅ Legal
-
-✅ Landscape
-
-✅ Portrait
-
-✅ Custom Header
-
-✅ Custom Footer
-
-✅ School Logo placeholder
-
-✅ Page Number
-
-✅ Watermark
-
----
-
-# Analytics Reports (`/app/laporan/analytics/page.tsx`)
-
-## Analytics Widgets
-
-✅ KPI Cards (Total Siswa, Kehadiran, Nilai, Poin Karakter)
-
-✅ Attendance Trend Chart (Bar Chart)
-
-✅ Assessment Trend Chart (Line Chart)
-
-✅ Character Trend Chart (Line Chart)
-
-✅ Module Distribution (Donut Chart)
-
-✅ Quick Stats
-
-✅ Module Performance Table
-
-## Statistics Shown
-
-✅ Total Reports
-
-✅ Download Count
-
-✅ Template Usage
-
-✅ Average Generation Time
-
-✅ Scheduled Reports Count
-
----
-
-# Search
-
-## Search by Implemented
-
-✅ Report Name
-
-✅ Module
-
-✅ Template
-
-✅ Creator
-
-✅ Date
-
-✅ Category
-
----
-
-# Favorites
-
-✅ Users may mark reports as favorites.
-
-✅ Favorite reports appear on the dashboard.
-
-✅ Star toggle in history page.
-
----
-
-# Notifications
-
-Future
-
-✅ Report Generated
-
-✅ Schedule Completed
-
-✅ Export Finished
-
-✅ Export Failed
-
-✅ Schedule Failed
-
-✅ Storage Warning
-
----
-
-# Permissions
-
-Future
-
-Administrator - Full Access
-
-Principal - View All
-
-Vice Principal - Generate
-
-Teacher - Generate Assigned Reports
-
-Staff - Limited Access
-
-Students - No Access
-
----
-
-# Audit Log
-
-Future
-
-Track
-
-✅ Generated
-
-✅ Exported
-
-✅ Printed
-
-✅ Deleted
-
-✅ Scheduled
-
-✅ Cancelled
-
-✅ Downloaded
-
-Audit history is immutable.
-
----
-
-# Performance Requirements
-
-Current Implementation
-
-Generate Standard Report - Simulated < 5 seconds
-
-Large Report - Simulated < 30 seconds
-
-Export Excel - 100,000 Rows - Future
-
-Export PDF - 10,000 Rows - Future
-
-Server-side processing required - Future
-
----
-
-# Accessibility
-
-✅ Keyboard Navigation
-
-✅ Screen Reader support (aria-*)
-
-✅ High Contrast support
-
-✅ Visible Focus
-
-✅ Responsive Preview
-
-WCAG AA - Future
-
----
-
-# Security
-
-Future
-
-✅ Role-based Access
-
-✅ Server-side Validation
-
-✅ Soft Delete
-
-✅ Audit Logging
-
-✅ Permission Validation
-
-✅ Encrypted Downloads
-
-✅ Temporary Download Links
-
----
-
-# Future Enhancements
-
-✅ Interactive Reports
-
-✅ AI Report Summary - Future
-
-✅ Natural Language Query - Future
-
-✅ Scheduled Email Reports - Future
-
-✅ Power BI Integration - Future
-
-✅ Google Sheets Integration - Future
-
-✅ Microsoft Excel Live Export - Future
-
-✅ Parent Portal Reports - Future
-
-✅ Student Portal Reports - Future
-
-✅ Digital Signature - Future
-
-✅ Report Versioning - Future
-
----
-
-# Definition of Done
-
-✅ Every module generates reports through the Reports Engine.
-
-✅ Report templates are reusable.
-
-✅ Reports are reproducible.
-
-✅ Historical reports remain consistent.
-
-✅ Export formats function correctly.
-
-✅ Permissions are enforced (Future).
-
-✅ Performance targets are achieved (Simulated).
-
-✅ Accessibility standards are satisfied.
-
-✅ The module follows the Design System.
-
----
-
-# Final Principle
-
-Reports is not a printing page.
-
-Reports is the centralized reporting engine of Twosraku.
-
-Every report should be accurate, reproducible, configurable, secure, and consistent across all modules.
-
----
-
-# Implementation Notes
-
-## Components Used
-
-- AppShell (layout wrapper)
-- Card (ui component)
-- Button (ui component)
-- Badge (ui component)
-- Lucide icons
-
-## Design Tokens Applied
-
-- Primary: #4F7CFF
-- Success: #22C55E
-- Warning: #F59E0B
-- Danger: #EF4444
-- Info: #06B6D4
-
-## Border Radius Applied
-
-- Cards: 28px
-- Buttons: 18px
-- Inputs: 18px
-- Badges: 999px (pill)
-- Modals: 32px
-
-## Spacing Scale
-
-- 4, 8, 12, 16, 20, 24, 28, 32, 40, 48, 56, 64, 72, 80
-
----
-
-# Version History
-
+### Version History
 | Version | Date | Changes |
-|---------|------|---------|
+|---|---|---|
 | 1.0 | Initial | Initial specification |
 | 2.0 | 2026-07-03 | Implementation completed |
+
+---
+# End of Reports Module (Compact)

@@ -1,110 +1,168 @@
 "use client"
 
-import { useState, useEffect, useMemo, useCallback, Suspense } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useState, useEffect, useCallback } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { AppShell } from "@/components/layout"
 import { Card } from "@/components/ui"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Avatar } from "@/components/ui/avatar"
 import { useAuth } from "@/hooks/useAuth"
-import { useAssessment, useAssessmentSession } from "@/hooks/useAssessment"
-import { type StudentScore, DEFAULT_GRADING_SCALE } from "@/types/assessment"
+import { useAssessmentNew } from "@/hooks/useAssessmentNew"
 import {
-  Save,
-  Download,
-  Upload,
-  Lock,
-  Unlock,
-  CheckCircle2,
-  AlertCircle,
-  ChevronLeft,
-  ChevronRight,
-  Users,
-  BarChart3,
-  RotateCcw,
+  Search,
+  Layers,
+  Calendar,
+  Play,
+  Info,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-// Inner component that uses useSearchParams
-function AssessmentInputContent() {
+// ============================================
+// HELPER COMPONENTS - Following Buku Induk Patterns
+// ============================================
+
+function CategoryCard({
+  category,
+  periods,
+  itemCount,
+  onPeriodClick,
+}: {
+  category: any
+  periods: any[]
+  itemCount: number
+  onPeriodClick: (period: any) => void
+}) {
+  const categoryColor = category.color || "#6B7280"
+
+  return (
+    <Card variant="elevated" padding="none" className="overflow-hidden">
+      {/* Category Header */}
+      <div className="p-5 bg-[var(--surface-secondary)] border-b border-[var(--border-light)]">
+        <div className="flex items-center gap-4">
+          <Avatar
+            fallback={category.name}
+            icon={<Layers className="w-6 h-6" />}
+            className="w-12 h-12"
+            style={{
+              backgroundColor: `${categoryColor}20`,
+              color: categoryColor
+            }}
+          />
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="text-[15px] font-bold text-[var(--text-primary)]">
+                {category.name}
+              </h3>
+              <Badge variant="primary" className="text-[10px]">
+                {periods.length} Periode
+              </Badge>
+            </div>
+            <p className="text-[12px] text-[var(--text-muted)]">
+              {itemCount} item
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Periods Grid */}
+      <div className="p-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+          {periods.map((period, index) => (
+            <button
+              key={period.id}
+              onClick={() => onPeriodClick(period)}
+              className={cn(
+                "flex items-center justify-between p-4 rounded-xl border transition-all group",
+                "hover:border-[var(--primary)] hover:bg-[var(--primary-soft)]",
+                "border-[var(--border-light)] bg-white"
+              )}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-[var(--surface-secondary)] flex items-center justify-center text-[14px] font-bold text-[var(--primary)] group-hover:bg-white transition-colors">
+                  {index + 1}
+                </div>
+                <div className="text-left">
+                  <p className="text-[13px] font-medium text-[var(--text-primary)]">
+                    {period.periodName}
+                  </p>
+                  <p className="text-[11px] text-[var(--text-muted)]">
+                    {period.weightPercentage}%
+                  </p>
+                </div>
+              </div>
+              <Play className="w-5 h-5 text-[var(--primary)] opacity-0 group-hover:opacity-100 transition-opacity" />
+            </button>
+          ))}
+        </div>
+      </div>
+    </Card>
+  )
+}
+
+function InfoCard() {
+  return (
+    <Card variant="soft" padding="md" className="flex items-start gap-3">
+      <div className="w-10 h-10 rounded-xl bg-[var(--info-soft)] flex items-center justify-center flex-shrink-0">
+        <Info className="w-5 h-5 text-[var(--info)]" />
+      </div>
+      <div>
+        <p className="text-[14px] font-medium text-[var(--info)]">Tips</p>
+        <p className="text-[12px] text-[var(--info)] mt-1 leading-relaxed">
+          Klik periode untuk membuka halaman input nilai. Anda dapat melihat hasil
+          penilaian di menu "Hasil Penilaian".
+        </p>
+      </div>
+    </Card>
+  )
+}
+
+// ============================================
+// INPUT NILAI PAGE
+// ============================================
+
+export default function InputNilaiPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const sessionId = searchParams.get("session") || "ses-1"
-
   const { isAuthenticated, isLoading: authLoading } = useAuth()
-  const { templates, categories } = useAssessment()
-  const { session, template, category, items, participants, calculateGrade } = useAssessmentSession(sessionId)
+  const {
+    categories,
+    periods,
+    items,
+    loading,
+  } = useAssessmentNew()
 
-  const [scores, setScores] = useState<Map<string, number>>(new Map())
-  const [loading, setLoading] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [hasChanges, setHasChanges] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
 
-  // Track changes
-  useEffect(() => {
-    setHasChanges(scores.size > 0)
-  }, [scores])
-
-  // Handle score change
-  const handleScoreChange = useCallback((participantId: string, itemId: string, value: string) => {
-    const score = parseFloat(value) || 0
-    const key = `${participantId}-${itemId}`
-    setScores((prev) => {
-      const newMap = new Map(prev)
-      newMap.set(key, score)
-      return newMap
+  // Get categories with periods
+  const categoriesWithPeriods = categories
+    .filter((cat) => {
+      const catPeriods = periods.filter((p) => p.categoryId === cat.id)
+      return catPeriods.length > 0
     })
-  }, [])
+    .map((cat) => ({
+      ...cat,
+      periods: periods.filter((p) => p.categoryId === cat.id).sort((a, b) => a.periodOrder - b.periodOrder),
+    }))
 
-  // Get score for a specific participant-item
-  const getScore = useCallback((participantId: string, itemId: string) => {
-    const key = `${participantId}-${itemId}`
-    return scores.get(key) ?? ""
-  }, [scores])
+  // Filter by search
+  const filteredCategories = categoriesWithPeriods.filter((cat) => {
+    const matchesSearch = cat.name.toLowerCase().includes(searchQuery.toLowerCase())
+    return matchesSearch
+  })
 
-  // Calculate average for a participant
-  const getParticipantAverage = useCallback((participantId: string) => {
-    let total = 0
-    let count = 0
-    items.forEach((item) => {
-      const key = `${participantId}-${item.id}`
-      const score = scores.get(key)
-      if (score !== undefined) {
-        total += score
-        count++
-      }
-    })
-    if (count === 0) return null
-    return total / count
-  }, [scores, items])
-
-  // Reset all scores
-  const handleReset = () => {
-    setScores(new Map())
-    setHasChanges(false)
+  // Get item count for category
+  const getItemCount = (categoryId: string) => {
+    return items.filter((i) => i.categoryId === categoryId).length
   }
 
-  // Save scores
-  const handleSave = async () => {
-    setSaving(true)
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      setHasChanges(false)
-    } finally {
-      setSaving(false)
+  // Handle period click
+  const handlePeriodClick = (period: any) => {
+    // Find the category that owns this period
+    const category = categories.find((c) => c.id === period.categoryId)
+    if (category) {
+      router.push(`/penilaian/${category.id}/${period.id}`)
     }
-  }
-
-  // Mark all as default (0 or empty)
-  const handleMarkAllZero = () => {
-    const newScores = new Map<string, number>()
-    participants.forEach((p) => {
-      items.forEach((item) => {
-        const key = `${p.id}-${item.id}`
-        newScores.set(key, 0)
-      })
-    })
-    setScores(newScores)
   }
 
   // Redirect if not authenticated
@@ -114,8 +172,8 @@ function AssessmentInputContent() {
     }
   }, [isAuthenticated, authLoading, router])
 
-  // Show loading while checking auth
-  if (authLoading) {
+  // Show loading
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[var(--background-primary)]">
         <div className="flex flex-col items-center gap-4">
@@ -130,283 +188,76 @@ function AssessmentInputContent() {
     return null
   }
 
-  // Check if session is locked
-  const isLocked = session?.locked || false
-
   return (
     <AppShell
-      title={session?.name || "Input Nilai"}
-      description={`${category?.name || ""} - ${template?.name || ""}`}
+      title="Input Nilai"
+      description="Pilih kategori dan periode untuk input nilai siswa"
     >
       <div className="space-y-6">
-        {/* Header Actions */}
+        {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            {/* Session Info */}
-            <div className="flex items-center gap-3 px-4 py-2 bg-[var(--surface-secondary)] rounded-[18px]">
-              <Badge variant="primary">{participants.length} Peserta</Badge>
-              <Badge variant="primary">{items.length} Item</Badge>
-              {isLocked && (
-                <Badge variant="secondary" className="gap-1">
-                  <Lock className="w-3 h-3" />
-                  Terkunci
-                </Badge>
-              )}
-            </div>
-
-            {hasChanges && (
-              <Badge variant="warning" className="gap-1">
-                <AlertCircle className="w-3 h-3" />
-                Ada perubahan belum disimpan
-              </Badge>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handleMarkAllZero}>
-              <RotateCcw className="w-4 h-4" />
-              Reset Nilai
-            </Button>
-            <Button variant="outline" size="sm">
-              <Upload className="w-4 h-4" />
-              Import
-            </Button>
-            <Button variant="outline" size="sm">
-              <Download className="w-4 h-4" />
-              Export
-            </Button>
-            <div className="w-px h-8 bg-[var(--border-light)]" />
-            <Button
-              onClick={handleSave}
-              isLoading={saving}
-              disabled={!hasChanges || isLocked}
-              className="gap-2"
-            >
-              <Save className="w-4 h-4" />
-              Simpan
-            </Button>
+          <div>
+            <h1 className="text-lg font-bold text-[var(--text-primary)]">Input Nilai</h1>
+            <p className="text-[12px] text-[var(--text-muted)]">
+              Pilih kategori dan periode penilaian untuk input nilai
+            </p>
           </div>
         </div>
 
-        {/* Weight Info */}
-        {template && (
-          <Card className="p-4">
-            <div className="flex items-center gap-6">
-              <div className="text-sm text-[var(--text-muted)]">
-                <span className="font-medium">Metode:</span>{" "}
-                {template.scoringMethod === "weighted_average" ? "Rata-rata Tertimbang" :
-                 template.scoringMethod === "simple_average" ? "Rata-rata Sederhana" : "Template.scoringMethod"}
-              </div>
-              <div className="text-sm text-[var(--text-muted)]">
-                <span className="font-medium">Skor:</span> {template.minScore} - {template.maxScore}
-              </div>
-              <div className="text-sm text-[var(--text-muted)]">
-                <span className="font-medium">Nilai Lulus:</span> {template.passingScore}
-              </div>
-              <div className="text-sm text-[var(--text-muted)]">
-                <span className="font-medium">Total Bobot:</span>{" "}
-                {items.reduce((sum, item) => sum + item.weight, 0)}%
-              </div>
+        {/* Search & Filter */}
+        <div className="flex items-center gap-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
+            <input
+              type="text"
+              placeholder="Cari kategori..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full h-11 pl-11 pr-4 bg-[var(--surface-secondary)] border border-transparent rounded-[18px] text-[15px] focus:outline-none focus:border-[var(--border-focus)] transition-all"
+            />
+          </div>
+        </div>
+
+        {/* Categories with Periods */}
+        {filteredCategories.length === 0 ? (
+          <Card variant="elevated" padding="lg" className="text-center py-12">
+            <div className="w-20 h-20 rounded-3xl bg-[var(--surface-secondary)] flex items-center justify-center mx-auto mb-5 shadow-sm">
+              <Layers className="w-10 h-10 text-slate-400" />
             </div>
+            <h3 className="text-[16px] font-semibold text-[var(--text-primary)] mb-2">
+              {searchQuery ? "Kategori tidak ditemukan" : "Belum ada kategori dengan periode"}
+            </h3>
+            <p className="text-[13px] text-[var(--text-muted)] mb-6">
+              {searchQuery
+                ? "Coba ubah kata kunci pencarian"
+                : "Tambahkan periode di Pusat Penilaian terlebih dahulu"}
+            </p>
+            {!searchQuery && (
+              <Link href="/penilaian">
+                <Button className="gap-2">
+                  <Layers className="w-4 h-4" />
+                  ke Pusat Penilaian
+                </Button>
+              </Link>
+            )}
           </Card>
+        ) : (
+          <div className="space-y-6">
+            {filteredCategories.map((category) => (
+              <CategoryCard
+                key={category.id}
+                category={category}
+                periods={category.periods}
+                itemCount={getItemCount(category.id)}
+                onPeriodClick={handlePeriodClick}
+              />
+            ))}
+          </div>
         )}
 
-        {/* Score Table */}
-        <Card className="p-0 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b border-[var(--border-light)] bg-[var(--surface-secondary)]">
-                  <th className="text-left px-4 py-4 text-[13px] font-semibold text-[var(--text-secondary)] sticky left-0 bg-[var(--surface-secondary)] z-10 min-w-[60px]">
-                    No
-                  </th>
-                  <th className="text-left px-4 py-4 text-[13px] font-semibold text-[var(--text-secondary)] sticky left-0 bg-[var(--surface-secondary)] z-10 min-w-[200px]">
-                    Nama Siswa
-                  </th>
-                  {items.map((item) => (
-                    <th
-                      key={item.id}
-                      className="text-center px-3 py-4 text-[12px] font-semibold min-w-[100px]"
-                      title={`${item.name} (Bobot: ${item.weight}%)`}
-                    >
-                      <div className="writing-mode-vertical" style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}>
-                        {item.name}
-                      </div>
-                      <div className="text-[10px] font-normal text-[var(--text-muted)] mt-1">
-                        {item.weight}%
-                      </div>
-                    </th>
-                  ))}
-                  <th className="text-center px-4 py-4 text-[13px] font-semibold text-[var(--text-secondary)] min-w-[80px] bg-[var(--surface-secondary)]">
-                    Rata-rata
-                  </th>
-                  <th className="text-center px-4 py-4 text-[13px] font-semibold text-[var(--text-secondary)] min-w-[60px] bg-[var(--surface-secondary)]">
-                    Grade
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {participants.map((participant, index) => {
-                  const avg = getParticipantAverage(participant.id)
-                  const grade = avg !== null ? calculateGrade(avg) : null
-
-                  return (
-                    <tr
-                      key={participant.id}
-                      className="border-b border-[var(--border-light)] hover:bg-[var(--surface-hover)] transition-colors"
-                    >
-                      <td className="px-4 py-3 text-[14px] text-[var(--text-muted)] sticky left-0 bg-white z-10">
-                        {index + 1}
-                      </td>
-                      <td className="px-4 py-3 sticky left-0 bg-white z-10">
-                        <p className="text-[14px] font-medium text-[var(--text-primary)]">
-                          {participant.student.name}
-                        </p>
-                        <p className="text-[12px] text-[var(--text-muted)]">
-                          {participant.student.studentNumber}
-                        </p>
-                      </td>
-                      {items.map((item) => (
-                        <td key={item.id} className="px-2 py-3 text-center">
-                          <input
-                            type="number"
-                            min={item.minScore}
-                            max={item.maxScore}
-                            step={template?.allowDecimal ? "0.1" : "1"}
-                            value={getScore(participant.id, item.id)}
-                            onChange={(e) => handleScoreChange(participant.id, item.id, e.target.value)}
-                            disabled={isLocked}
-                            className={cn(
-                              "w-full h-10 px-2 text-center text-[14px] rounded-[14px] border transition-all",
-                              "focus:outline-none focus:ring-2",
-                              isLocked
-                                ? "bg-[var(--surface-secondary)] text-[var(--text-muted)] cursor-not-allowed"
-                                : "bg-white border-[var(--border-default)] focus:border-[var(--border-focus)] focus:ring-[var(--primary-soft)]"
-                            )}
-                          />
-                        </td>
-                      ))}
-                      <td className="px-4 py-3 text-center bg-[var(--surface-secondary)]">
-                        {avg !== null ? (
-                          <span className={cn(
-                            "text-[14px] font-semibold",
-                            avg >= (template?.passingScore || 75) ? "text-[var(--success)]" : "text-[var(--danger)]"
-                          )}>
-                            {avg.toFixed(1)}
-                          </span>
-                        ) : (
-                          <span className="text-[14px] text-[var(--text-muted)]">-</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-center bg-[var(--surface-secondary)]">
-                        {grade ? (
-                          <Badge
-                            variant={
-                              grade === "A" ? "success" :
-                              grade === "B" ? "info" :
-                              grade === "C" ? "warning" : "danger"
-                            }
-                          >
-                            {grade}
-                          </Badge>
-                        ) : (
-                          <span className="text-[14px] text-[var(--text-muted)]">-</span>
-                        )}
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Footer */}
-          <div className="p-4 border-t border-[var(--border-light)] bg-[var(--surface-secondary)]">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-[var(--text-muted)]">
-                Menampilkan {participants.length} peserta
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="text-[var(--text-muted)]">Grade:</span>
-                  {DEFAULT_GRADING_SCALE.map((g) => (
-                    <Badge
-                      key={g.grade}
-                      variant={
-                        g.grade === "A" ? "success" :
-                        g.grade === "B" ? "info" :
-                        g.grade === "C" ? "warning" : "danger"
-                      }
-                      className="text-[11px]"
-                    >
-                      {g.grade}: {g.minScore}-{g.maxScore}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        {/* Summary Statistics */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="p-4 text-center">
-            <p className="text-sm text-[var(--text-muted)]">Rata-rata Kelas</p>
-            <p className="text-2xl font-bold text-[var(--text-primary)]">
-              {participants.length > 0
-                ? (
-                    Array.from(scores.values()).reduce((sum, s) => sum + s, 0) /
-                    (Array.from(scores.values()).length || 1)
-                  ).toFixed(1)
-                : "-"}
-            </p>
-          </Card>
-          <Card className="p-4 text-center">
-            <p className="text-sm text-[var(--text-muted)]">Nilai Tertinggi</p>
-            <p className="text-2xl font-bold text-[var(--success)]">
-              {scores.size > 0 ? Math.max(...Array.from(scores.values())).toFixed(1) : "-"}
-            </p>
-          </Card>
-          <Card className="p-4 text-center">
-            <p className="text-sm text-[var(--text-muted)]">Nilai Terendah</p>
-            <p className="text-2xl font-bold text-[var(--danger)]">
-              {scores.size > 0 ? Math.min(...Array.from(scores.values())).toFixed(1) : "-"}
-            </p>
-          </Card>
-          <Card className="p-4 text-center">
-            <p className="text-sm text-[var(--text-muted)]">Lulus</p>
-            <p className="text-2xl font-bold text-[var(--info)]">
-              {participants.length > 0
-                ? participants.filter((p) => {
-                    const avg = getParticipantAverage(p.id)
-                    return avg !== null && avg >= (template?.passingScore || 75)
-                  }).length
-                : 0} / {participants.length}
-            </p>
-          </Card>
-        </div>
+        {/* Info */}
+        <InfoCard />
       </div>
     </AppShell>
-  )
-}
-
-// Loading fallback
-function LoadingFallback() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--background-primary)]">
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-12 h-12 border-4 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
-        <p className="text-[var(--text-secondary)]">Memuat...</p>
-      </div>
-    </div>
-  )
-}
-
-// Main export with Suspense
-export default function AssessmentInputPage() {
-  return (
-    <Suspense fallback={<LoadingFallback />}>
-      <AssessmentInputContent />
-    </Suspense>
   )
 }

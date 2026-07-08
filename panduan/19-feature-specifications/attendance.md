@@ -1,744 +1,126 @@
-# Attendance Module (Presensi)
+# Attendance Module (Presensi) — Compact
 Version: 1.0
 
----
+**Purpose:** Attendance is the operational module for recording, monitoring, and reporting student attendance throughout the academic year. Provides accurate records for every student and is the primary source for attendance reports, dashboard statistics, and discipline monitoring.
 
-# Purpose
+**Scope**
+- Manages: Daily Attendance, Attendance Recap, Attendance Reports, Attendance History, Attendance Analytics. Attendance only records student presence.
+- Not managed here: Behavior, Grades, Discipline (separate modules).
 
-Attendance is the operational module responsible for recording, monitoring, and reporting student attendance throughout the academic year.
+**Primary Objectives:** record attendance accurately; prevent duplicates; provide attendance statistics; support reporting; provide attendance history; integrate with Dashboard and Character Points.
 
-It provides accurate attendance records for every student and becomes the primary source for attendance reports, dashboard statistics, and discipline monitoring.
+**Supported Users**
+| Role | Access |
+|---|---|
+| Administrator | Full Access |
+| Homeroom Teacher | Own Classes |
+| Teacher | Own Subjects (optional) |
+| Staff | Read Only |
+| Principal | Read Only |
 
----
+**Dependencies:** Student Registry, Academic Calendar, Class, Academic Year, Semester. Attendance cannot exist without an active student.
 
-# Scope
+**Navigation:** Main Navigation → Attendance, with sub-pages: Attendance Input, Attendance Recap, Attendance Report, Attendance History, Attendance Settings.
 
-Attendance manages:
+**Attendance Workflow:** Select Academic Year → Semester → Class → Date → Display Student List → Record Attendance → Save → Generate Statistics.
 
-- Daily Attendance
-- Attendance Recap
-- Attendance Reports
-- Attendance History
-- Attendance Analytics
+**Attendance Status**
+| Code | Status | Meaning |
+|---|---|---|
+| H | Present | Student attends normally |
+| T | Late | Arrives after allowed time |
+| I | Permission | Has official permission |
+| S | Sick | Absent due to illness |
+| A | Absent | Absent without explanation |
 
-Attendance only records student presence.
+Schools may rename labels per internal policy.
 
-Behavior, grades, and discipline are managed in separate modules.
+**Business Rules:** one attendance record per student per date (no duplicates); cannot record for future dates; cannot edit after academic period is locked; archived students can't receive attendance; transferred students can't receive attendance after transfer date; graduated students become read-only.
 
----
+### Attendance Input Page
+- **Contains:** Academic Year, Semester, Class, Attendance Date, Student Table, Attendance Status, Notes, Save Button.
+- **Student Table columns:** Attendance Status, Student Number, Student Name, Gender, Photo (optional), Notes, Quick Actions. Default sort: class attendance number.
+- **Attendance Entry:** default status = Present; users only change students with a different status — minimizes data entry.
+- **Bulk Actions:** Mark All Present, Mark Selected Sick/Permission/Absent, Reset Attendance.
+- **Notes:** optional, for Late/Permission/special circumstances, max 255 characters.
 
-# Primary Objectives
+### Attendance Recap
+Displays: Daily, Weekly, Monthly, Semester, Annual Recap.
 
-Record attendance accurately.
+### Attendance Statistics
+Displays: Attendance Percentage, Present/Late/Permission/Sick/Absent Count, Most Frequent Status.
+**Formula:** Attendance Percentage = Present Days / Total School Days × 100. Late may optionally count as Present per school policy.
 
-Prevent duplicate attendance.
+### Student Attendance Summary
+Per student: Attendance Percentage, Present, Late, Permission, Sick, Absent, Attendance Trend.
 
-Provide attendance statistics.
+### Reports
+Daily/Weekly/Monthly/Semester/Annual Attendance, Student Attendance Report, Class Attendance Report, School Attendance Report.
 
-Support reporting.
+### Search & Filters
+- **Search by:** Student Name, Student Number, Class, Major, Date.
+- **Filters:** Academic Year, Semester, Class, Major, Date Range, Attendance Status, Homeroom Teacher. Multiple filters supported.
 
-Provide attendance history.
+### Import & Export
+- **Import:** Excel, CSV. Validates: Duplicate attendance, Student existence, Class consistency, Attendance date.
+- **Export:** Excel, CSV, PDF, Print. Respects active filters.
 
-Integrate with Dashboard and Character Points.
+### Validation Rules
+- **Required:** Academic Year, Semester, Class, Attendance Date, Attendance Status, Student.
+- **Optional:** Notes.
 
----
+### Relationships
+One Student → Many Attendance Records → Attendance Summary → Dashboard → Reports.
 
-# Supported Users
+### Permissions
+| Role | Access |
+|---|---|
+| Administrator | Full Access |
+| Homeroom Teacher | Own Classes |
+| Teacher | Read |
+| Staff | Read |
+| Principal | Read |
 
-Administrator
+### Dashboard Integration
+Displays: Attendance Today, Attendance Trend, Attendance Percentage, Attendance by Class, Attendance Distribution, Students Requiring Attention. Dashboard does not calculate attendance independently.
 
-Full Access
+### Character Point Integration
+Excessive absences may trigger Character Point recommendations (e.g. Absent ≥ 3 times within one month → Suggested Character Review). Actual character points remain under manual approval.
 
-Homeroom Teacher
+### Assessment Integration
+Attendance may display alongside assessment summaries. Does not affect grades automatically unless configured by school policy.
 
-Own Classes
+### Notifications
+Attendance Not Submitted, Attendance Completed, Duplicate Attendance, Attendance Locked, Late Attendance Entry.
 
-Teacher
+### Audit Log
+Records: Created/Updated/Locked/Deleted By & At. All modifications must be traceable.
 
-Own Subjects (Optional)
+### Loading / Empty / Error States
+- **Loading:** Skeleton Table/Statistics/Charts — each widget loads independently.
+- **Empty:** No Students/Attendance/Reports/Search Results — provide a recommended next action.
+- **Error:** Duplicate Attendance, Student Not Found, Academic Period Locked, Permission Denied, Network Error — clear, non-technical messages.
 
-Staff
+### Performance Requirements
+Support 100,000+ attendance records via server-side pagination/filtering/search, lazy loading, optimized indexing.
 
-Read Only
+### Accessibility
+Keyboard Navigation, Visible Focus, Accessible Tables, ARIA Labels, High Contrast, Reduced Motion.
 
-Principal
+### Responsive Behavior
+Desktop = Full Table; Tablet = Horizontal Scroll; Mobile = Card Layout. Attendance actions remain accessible on all devices.
 
-Read Only
+### Security
+Records cannot be permanently deleted by standard users (soft delete recommended); every modification logged; role-based permissions mandatory.
 
----
+### Future Enhancements
+QR Code Attendance, RFID Attendance, Face Recognition, GPS Attendance, Teacher Mobile App, Offline Attendance, Automatic Attendance Reminder, Attendance Approval Workflow, Parent Notifications, AI Attendance Analysis.
 
-# Dependencies
+### Definition of Done
+Complete when it: records attendance accurately; prevents duplicates; supports bulk input; provides comprehensive reports; integrates with Dashboard; supports responsive layouts; maintains audit history; follows the Design System.
 
-Attendance depends on:
-
-Student Registry
-
-Academic Calendar
-
-Class
-
-Academic Year
-
-Semester
-
-Attendance cannot exist without an active student.
-
----
-
-# Navigation
-
-Main Navigation
-
-↓
-
-Attendance
-
-Sub Pages
-
-Attendance Input
-
-Attendance Recap
-
-Attendance Report
-
-Attendance History
-
-Attendance Settings
-
----
-
-# Attendance Workflow
-
-Select Academic Year
-
-↓
-
-Select Semester
-
-↓
-
-Select Class
-
-↓
-
-Select Date
-
-↓
-
-Display Student List
-
-↓
-
-Record Attendance
-
-↓
-
-Save
-
-↓
-
-Generate Statistics
+### Final Principle
+Attendance is one of the most frequently used modules in Twosraku. It must prioritize speed, simplicity, and reliability while ensuring every record is accurate, traceable, and immediately available for reporting and analytics.
 
 ---
-
-# Attendance Status
-
-Present (H)
-
-Student attends normally.
-
-Late (T)
-
-Student arrives after the allowed time.
-
-Permission (I)
-
-Student has official permission.
-
-Sick (S)
-
-Student is absent due to illness.
-
-Absent (A)
-
-Student is absent without explanation.
-
-Schools may rename labels according to internal policy.
-
----
-
-# Business Rules
-
-One student may only have one attendance record per date.
-
-Attendance cannot be duplicated.
-
-Attendance cannot be recorded for future dates.
-
-Attendance cannot be edited after the academic period is locked.
-
-Archived students cannot receive attendance.
-
-Transferred students cannot receive attendance after transfer date.
-
-Graduated students become read-only.
-
----
-
-# Attendance Input Page
-
-Contains
-
-Academic Year
-
-Semester
-
-Class
-
-Attendance Date
-
-Student Table
-
-Attendance Status
-
-Notes
-
-Save Button
-
----
-
-# Student Table
-
-Columns
-
-Attendance Status
-
-Student Number
-
-Student Name
-
-Gender
-
-Photo (Optional)
-
-Notes
-
-Quick Actions
-
-Default sorting follows class attendance number.
-
----
-
-# Attendance Entry
-
-Default status
-
-Present
-
-Users only change students with different attendance status.
-
-This minimizes data entry.
-
----
-
-# Bulk Actions
-
-Mark All Present
-
-Mark Selected Sick
-
-Mark Selected Permission
-
-Mark Selected Absent
-
-Reset Attendance
-
----
-
-# Notes
-
-Optional.
-
-Can contain explanations for:
-
-Late
-
-Permission
-
-Special circumstances
-
-Maximum 255 characters.
-
----
-
-# Attendance Recap
-
-Displays
-
-Daily Recap
-
-Weekly Recap
-
-Monthly Recap
-
-Semester Recap
-
-Annual Recap
-
----
-
-# Attendance Statistics
-
-Displays
-
-Attendance Percentage
-
-Present Count
-
-Late Count
-
-Permission Count
-
-Sick Count
-
-Absent Count
-
-Most Frequent Status
-
----
-
-# Attendance Formula
-
-Attendance Percentage
-
-=
-
-Present Days
-
-/
-
-Total School Days
-
-×
-
-100
-
-Late may optionally count as Present according to school policy.
-
----
-
-# Student Attendance Summary
-
-Each student has
-
-Attendance Percentage
-
-Present
-
-Late
-
-Permission
-
-Sick
-
-Absent
-
-Attendance Trend
-
----
-
-# Reports
-
-Daily Attendance
-
-Weekly Attendance
-
-Monthly Attendance
-
-Semester Attendance
-
-Annual Attendance
-
-Student Attendance Report
-
-Class Attendance Report
-
-School Attendance Report
-
----
-
-# Search
-
-Search by
-
-Student Name
-
-Student Number
-
-Class
-
-Major
-
-Date
-
----
-
-# Filters
-
-Academic Year
-
-Semester
-
-Class
-
-Major
-
-Date Range
-
-Attendance Status
-
-Homeroom Teacher
-
-Multiple filters supported.
-
----
-
-# Import
-
-Supported
-
-Excel
-
-CSV
-
-Import validates:
-
-Duplicate attendance
-
-Student existence
-
-Class consistency
-
-Attendance date
-
----
-
-# Export
-
-Excel
-
-CSV
-
-PDF
-
-Print
-
-Export respects active filters.
-
----
-
-# Validation Rules
-
-Required
-
-Academic Year
-
-Semester
-
-Class
-
-Attendance Date
-
-Attendance Status
-
-Student
-
-Optional
-
-Notes
-
----
-
-# Relationships
-
-One Student
-
-↓
-
-Many Attendance Records
-
-↓
-
-Attendance Summary
-
-↓
-
-Dashboard
-
-↓
-
-Reports
-
----
-
-# Permissions
-
-Administrator
-
-Full Access
-
-Homeroom Teacher
-
-Own Classes
-
-Teacher
-
-Read
-
-Staff
-
-Read
-
-Principal
-
-Read
-
----
-
-# Dashboard Integration
-
-Dashboard displays
-
-Attendance Today
-
-Attendance Trend
-
-Attendance Percentage
-
-Attendance by Class
-
-Attendance Distribution
-
-Students Requiring Attention
-
-Dashboard does not calculate attendance independently.
-
----
-
-# Character Point Integration
-
-Excessive absences may trigger Character Point recommendations.
-
-Example
-
-Absent ≥ 3 times within one month
-
-↓
-
-Suggested Character Review
-
-Actual character points remain under manual approval.
-
----
-
-# Assessment Integration
-
-Attendance may be displayed alongside assessment summaries.
-
-Attendance does not affect grades automatically unless configured by school policy.
-
----
-
-# Notifications
-
-Attendance Not Submitted
-
-Attendance Completed
-
-Duplicate Attendance
-
-Attendance Locked
-
-Late Attendance Entry
-
----
-
-# Audit Log
-
-Record
-
-Created By
-
-Created At
-
-Updated By
-
-Updated At
-
-Locked By
-
-Deleted By
-
-All attendance modifications must be traceable.
-
----
-
-# Loading State
-
-Skeleton Table
-
-Skeleton Statistics
-
-Skeleton Charts
-
-Each widget loads independently.
-
----
-
-# Empty State
-
-No Students
-
-No Attendance
-
-No Reports
-
-No Search Results
-
-Provide a recommended next action.
-
----
-
-# Error Handling
-
-Duplicate Attendance
-
-Student Not Found
-
-Academic Period Locked
-
-Permission Denied
-
-Network Error
-
-Display clear, non-technical messages.
-
----
-
-# Performance Requirements
-
-Support
-
-100,000+ attendance records.
-
-Use
-
-Server-side pagination
-
-Server-side filtering
-
-Server-side search
-
-Lazy loading
-
-Optimized indexing
-
----
-
-# Accessibility
-
-Keyboard Navigation
-
-Visible Focus
-
-Accessible Tables
-
-ARIA Labels
-
-High Contrast
-
-Reduced Motion
-
----
-
-# Responsive Behavior
-
-Desktop
-
-Full Table
-
-Tablet
-
-Horizontal Scroll
-
-Mobile
-
-Card Layout
-
-Attendance actions remain accessible on all devices.
-
----
-
-# Security
-
-Attendance records cannot be permanently deleted by standard users.
-
-Soft Delete is recommended.
-
-Every modification must be logged.
-
-Role-based permissions are mandatory.
-
----
-
-# Future Enhancements
-
-QR Code Attendance
-
-RFID Attendance
-
-Face Recognition
-
-GPS Attendance
-
-Teacher Mobile App
-
-Offline Attendance
-
-Automatic Attendance Reminder
-
-Attendance Approval Workflow
-
-Parent Notifications
-
-AI Attendance Analysis
-
----
-
-# Definition of Done
-
-Attendance is complete when it:
-
-Records attendance accurately.
-
-Prevents duplicate entries.
-
-Supports bulk input.
-
-Provides comprehensive reports.
-
-Integrates with Dashboard.
-
-Supports responsive layouts.
-
-Maintains audit history.
-
-Follows the Design System.
-
----
-
-# Final Principle
-
-Attendance is one of the most frequently used modules in Twosraku.
-
-It must prioritize speed, simplicity, and reliability while ensuring every attendance record is accurate, traceable, and immediately available for reporting and analytics.
+# End of Attendance Module (Compact)
