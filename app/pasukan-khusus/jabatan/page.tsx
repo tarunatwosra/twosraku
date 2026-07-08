@@ -230,16 +230,16 @@ export default function PositionsPage() {
         {/* Statistics */}
         <div className="grid grid-cols-3 gap-4">
           <Card className="p-4">
-            <p className="text-sm text-[var(--text-muted)]">Total Jabatan</p>
-            <p className="text-2xl font-bold text-[var(--text-primary)]">{stats.total}</p>
+            <p className="text-body-sm text-[var(--text-muted)]">Total Jabatan</p>
+            <p className="text-stat-lg text-[var(--text-primary)]">{stats.total}</p>
           </Card>
           <Card className="p-4">
-            <p className="text-sm text-[var(--text-muted)]">Jabatan Aktif</p>
-            <p className="text-2xl font-bold text-[var(--success)]">{stats.active}</p>
+            <p className="text-body-sm text-[var(--text-muted)]">Jabatan Aktif</p>
+            <p className="text-stat-lg text-[var(--success)]">{stats.active}</p>
           </Card>
           <Card className="p-4">
-            <p className="text-sm text-[var(--text-muted)]">Total Anggota</p>
-            <p className="text-2xl font-bold text-[var(--text-primary)]">{stats.totalMembers}</p>
+            <p className="text-body-sm text-[var(--text-muted)]">Total Anggota</p>
+            <p className="text-stat-lg text-[var(--text-primary)]">{stats.totalMembers}</p>
           </Card>
         </div>
 

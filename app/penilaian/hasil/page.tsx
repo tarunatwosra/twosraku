@@ -203,26 +203,26 @@ export default function HasilPenilaianPage() {
         {/* Summary Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <Card className="p-4 text-center">
-            <p className="text-sm text-[var(--text-muted)]">Jumlah Siswa</p>
-            <p className="text-2xl font-bold text-[var(--text-primary)]">
+            <p className="text-body-sm text-[var(--text-muted)]">Jumlah Siswa</p>
+            <p className="text-stat-lg text-[var(--text-primary)]">
               {filteredStudents.length}
             </p>
           </Card>
           <Card className="p-4 text-center">
-            <p className="text-sm text-[var(--text-muted)]">Rata-rata Rapor</p>
-            <p className="text-2xl font-bold text-[var(--info)]">
+            <p className="text-body-sm text-[var(--text-muted)]">Rata-rata Rapor</p>
+            <p className="text-stat-lg text-[var(--info)]">
               {calculateStats("rapor_total").avg.toFixed(1)}
             </p>
           </Card>
           <Card className="p-4 text-center">
-            <p className="text-sm text-[var(--text-muted)]">Nilai Tertinggi</p>
-            <p className="text-2xl font-bold text-[var(--success)]">
+            <p className="text-body-sm text-[var(--text-muted)]">Nilai Tertinggi</p>
+            <p className="text-stat-lg text-[var(--success)]">
               {calculateStats("rapor_total").max}
             </p>
           </Card>
           <Card className="p-4 text-center">
-            <p className="text-sm text-[var(--text-muted)]">Nilai Terendah</p>
-            <p className="text-2xl font-bold text-[var(--danger)]">
+            <p className="text-body-sm text-[var(--text-muted)]">Nilai Terendah</p>
+            <p className="text-stat-lg text-[var(--danger)]">
               {calculateStats("rapor_total").min || "-"}
             </p>
           </Card>

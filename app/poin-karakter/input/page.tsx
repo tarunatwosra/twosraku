@@ -327,7 +327,7 @@ export default function CharacterInputPage() {
                   </div>
                   {records.length > 0 && (
                     <div className={cn(
-                      "text-2xl font-bold",
+                      "text-stat-lg",
                       totalPoints >= 0 ? "text-[var(--success)]" : "text-[var(--danger)]"
                     )}>
                       {totalPoints > 0 ? "+" : ""}{totalPoints}

@@ -43,7 +43,6 @@ function CategoryCard({
         <div className="flex items-center gap-4">
           <Avatar
             fallback={category.name}
-            icon={<Layers className="w-6 h-6" />}
             className="w-12 h-12"
             style={{
               backgroundColor: `${categoryColor}20`,

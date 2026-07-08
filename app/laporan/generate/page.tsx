@@ -253,13 +253,13 @@ function GenerateReportContent() {
           {/* Step 1: Select Report */}
           {currentStep === 1 && (
             <div>
-              <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-6">
+              <h2 className="text-section-title mb-6">
                 Pilih Jenis Laporan
               </h2>
 
               {Object.entries(groupedReports).map(([category, reports]) => (
                 <div key={category} className="mb-6">
-                  <h3 className="text-[14px] font-medium text-[var(--text-muted)] mb-3">
+                  <h3 className="text-body-sm font-medium text-[var(--text-muted)] mb-3">
                     {category}
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -302,7 +302,7 @@ function GenerateReportContent() {
           {/* Step 2: Filters */}
           {currentStep === 2 && (
             <div>
-              <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-2">
+              <h2 className="text-section-title mb-2">
                 Filter Data
               </h2>
               <p className="text-sm text-[var(--text-muted)] mb-6">
@@ -442,7 +442,7 @@ function GenerateReportContent() {
           {/* Step 3: Preview */}
           {currentStep === 3 && (
             <div>
-              <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-2">
+              <h2 className="text-section-title mb-2">
                 Pratinjau Laporan
               </h2>
               <p className="text-sm text-[var(--text-muted)] mb-6">

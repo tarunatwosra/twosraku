@@ -16,7 +16,7 @@ export type { AcademicYear as AcademicYearSettings, Semester as SemesterSettings
 export type { Command, CommandCategory, CommandAction, SearchResult, SearchResultType, SearchResultAction, SearchFilters, SearchHistory, SavedSearch, FavoriteItem, CommandPaletteState, CommandResult, RecentActivity, KeyboardShortcut, NavigationItem, SearchAnalytics, SearchSettings } from "./command"
 
 // Attendance types
-export type { Attendance, AttendanceRecord, AttendanceSession, AttendanceSummary, ClassAttendance, AttendanceFilter, AttendanceReport, AttendanceStatus, AttendanceStatistics, StudentAttendanceHistory, DailyRecap, WeeklyRecap, MonthlyRecap, SemesterRecap } from "./attendance"
+export type { Attendance, AttendanceRecord, AttendanceSession, AttendanceSummary, ClassAttendance, AttendanceFilter, AttendanceReport, AttendanceStatus, AttendanceStatistics, StudentAttendanceHistory, DailyRecap, WeeklyRecap, MonthlyRecap } from "./attendance"
 export { ATTENDANCE_STATUS_CONFIG } from "./attendance"
 
 // Assessment types

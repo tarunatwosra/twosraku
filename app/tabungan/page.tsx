@@ -111,14 +111,14 @@ export default function SavingsPage() {
                 placeholder="Cari transaksi atau siswa..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-11 pl-11 pr-4 bg-[var(--surface-secondary)] border border-transparent rounded-[18px] text-[15px] focus:outline-none focus:border-[var(--border-focus)]"
+                className="w-full h-11 pl-11 pr-4 bg-[var(--surface-secondary)] border border-transparent rounded-[18px] text-body focus:outline-none focus:border-[var(--border-focus)]"
               />
             </div>
             <input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="h-11 px-4 bg-[var(--surface-secondary)] border border-transparent rounded-[18px] text-[15px] focus:outline-none focus:border-[var(--border-focus)]"
+              className="h-11 px-4 bg-[var(--surface-secondary)] border border-transparent rounded-[18px] text-body focus:outline-none focus:border-[var(--border-focus)]"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -174,7 +174,7 @@ export default function SavingsPage() {
             <Card className="p-0 overflow-hidden">
               <div className="p-6 border-b border-[var(--border-light)]">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                  <h2 className="text-section-title">
                     Transaksi Terbaru
                   </h2>
                   <Button variant="ghost" size="sm" onClick={() => router.push("/tabungan/mutasi")}>
@@ -206,7 +206,7 @@ export default function SavingsPage() {
                         )}
                       </div>
                       <div>
-                        <p className="text-[15px] font-medium text-[var(--text-primary)]">
+                        <p className="text-h5 text-[var(--text-primary)]">
                           {txn.student}
                         </p>
                         <p className="text-[13px] text-[var(--text-muted)]">
@@ -217,7 +217,7 @@ export default function SavingsPage() {
                     <div className="text-right">
                       <p
                         className={cn(
-                          "text-[15px] font-bold",
+                          "text-body font-bold",
                           txn.type === "deposit"
                             ? "text-[var(--success)]"
                             : "text-[var(--danger)]"
@@ -249,7 +249,7 @@ export default function SavingsPage() {
           <div className="space-y-6">
             {/* Quick Actions */}
             <Card className="p-6">
-              <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
+              <h2 className="text-section-title mb-4">
                 Aksi Cepat
               </h2>
               <div className="space-y-2">
@@ -282,7 +282,7 @@ export default function SavingsPage() {
 
             {/* Monthly Summary */}
             <Card className="p-6">
-              <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
+              <h2 className="text-section-title mb-4">
                 Ringkasan Bulan Ini
               </h2>
               <div className="space-y-4">
@@ -318,7 +318,7 @@ export default function SavingsPage() {
             {/* Cash Closing Status */}
             <Card className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                <h2 className="text-section-title">
                   Cash Closing
                 </h2>
                 <Badge variant="success">Seimbang</Badge>
@@ -368,9 +368,9 @@ function StatCard({
           {icon}
         </div>
         <div>
-          <p className="text-2xl font-bold text-[var(--text-primary)]">{value}</p>
-          <p className="text-sm text-[var(--text-muted)]">{title}</p>
-          {subtitle && <p className="text-xs text-[var(--text-muted)]">{subtitle}</p>}
+          <p className="text-stat-lg text-[var(--text-primary)]">{value}</p>
+          <p className="text-caption text-[var(--text-muted)]">{title}</p>
+          {subtitle && <p className="text-tiny text-[var(--text-muted)]">{subtitle}</p>}
         </div>
       </div>
     </Card>

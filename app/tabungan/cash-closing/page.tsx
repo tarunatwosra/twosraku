@@ -108,10 +108,10 @@ export default function CashClosingPage() {
                 <Wallet className="w-7 h-7 text-[var(--primary)]" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                <h2 className="text-section-title">
                   Session Kasir: {DEMO_SESSION.date}
                 </h2>
-                <p className="text-sm text-[var(--text-muted)]">
+                <p className="text-body-sm text-[var(--text-muted)]">
                   Kasir: {DEMO_SESSION.cashier} • Dibuka: {DEMO_SESSION.openingTime} WIB
                 </p>
               </div>
@@ -129,7 +129,7 @@ export default function CashClosingPage() {
           <Card className="p-6">
             <div className="flex items-center gap-2 mb-6">
               <Calculator className="w-5 h-5 text-[var(--text-muted)]" />
-              <h3 className="text-lg font-semibold text-[var(--text-primary)]">
+              <h3 className="text-section-title">
                 Perhitungan Sistem
               </h3>
             </div>
@@ -180,7 +180,7 @@ export default function CashClosingPage() {
           <Card className="p-6">
             <div className="flex items-center gap-2 mb-6">
               <FileText className="w-5 h-5 text-[var(--text-muted)]" />
-              <h3 className="text-lg font-semibold text-[var(--text-primary)]">
+              <h3 className="text-section-title">
                 Hitung Fisik
               </h3>
             </div>
@@ -226,7 +226,7 @@ export default function CashClosingPage() {
                   </Badge>
                 </div>
                 <p className={cn(
-                  "text-2xl font-bold",
+                  "text-stat-lg",
                   isBalanced
                     ? "text-[var(--success)]"
                     : difference > 0
@@ -236,12 +236,12 @@ export default function CashClosingPage() {
                   {isBalanced ? formatCurrency(0) : formatCurrency(Math.abs(difference))}
                 </p>
                 {difference > 0 && (
-                  <p className="text-xs text-[var(--warning)] mt-1">
+                  <p className="text-caption text-[var(--warning)] mt-1">
                     Terdapat kelebihan uang fisik
                   </p>
                 )}
                 {difference < 0 && (
-                  <p className="text-xs text-[var(--danger)] mt-1">
+                  <p className="text-caption text-[var(--danger)] mt-1">
                     Terdapat kekurangan uang fisik
                   </p>
                 )}
@@ -267,10 +267,10 @@ export default function CashClosingPage() {
         {/* Transaction List */}
         <Card className="p-0 overflow-hidden">
           <div className="p-6 border-b border-[var(--border-light)]">
-            <h3 className="text-lg font-semibold text-[var(--text-primary)]">
+            <h3 className="text-section-title">
               Transaksi Hari Ini
             </h3>
-            <p className="text-sm text-[var(--text-muted)]">
+            <p className="text-body-sm text-[var(--text-muted)]">
               {DEMO_SESSION.transactions.length} transaksi
             </p>
           </div>

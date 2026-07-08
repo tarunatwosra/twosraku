@@ -403,16 +403,16 @@ function ImportContent() {
 
               <div className="grid grid-cols-3 gap-4 max-w-md mx-auto mb-8">
                 <div className="p-4 bg-[var(--surface-secondary)] rounded-xl">
-                  <p className="text-2xl font-bold text-[var(--success)]">{validCount}</p>
-                  <p className="text-[12px] text-[var(--text-muted)]">Berhasil</p>
+                  <p className="text-stat-lg text-[var(--success)]">{validCount}</p>
+                  <p className="text-caption text-[var(--text-muted)]">Berhasil</p>
                 </div>
                 <div className="p-4 bg-[var(--surface-secondary)] rounded-xl">
-                  <p className="text-2xl font-bold text-[var(--warning)]">0</p>
-                  <p className="text-[12px] text-[var(--text-muted)]">Diupdate</p>
+                  <p className="text-stat-lg text-[var(--warning)]">0</p>
+                  <p className="text-caption text-[var(--text-muted)]">Diupdate</p>
                 </div>
                 <div className="p-4 bg-[var(--surface-secondary)] rounded-xl">
-                  <p className="text-2xl font-bold text-[var(--danger)]">{invalidCount}</p>
-                  <p className="text-[12px] text-[var(--text-muted)]">Gagal</p>
+                  <p className="text-stat-lg text-[var(--danger)]">{invalidCount}</p>
+                  <p className="text-caption text-[var(--text-muted)]">Gagal</p>
                 </div>
               </div>
 

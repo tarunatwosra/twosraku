@@ -22,6 +22,7 @@ import {
   LogOut,
   GraduationCap,
   X,
+  Calculator,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -44,10 +45,9 @@ const navigationSections: NavSection[] = [
       { icon: BookUser, label: "Buku Induk", href: "/buku-induk" },
       { icon: Users, label: "Data Siswa", href: "/siswa" },
       { icon: ClipboardCheck, label: "Presensi Siswa", href: "/presensi" },
-      { icon: BarChart3, label: "Penilaian", href: "/penilaian" },
-      { icon: BarChart3, label: "Kategori Penilaian", href: "/penilaian/kategori" },
-      { icon: BarChart3, label: "Template Penilaian", href: "/penilaian/template" },
-      { icon: BarChart3, label: "Sesi Penilaian", href: "/penilaian/session" },
+      { icon: BarChart3, label: "Pusat Penilaian", href: "/penilaian" },
+      { icon: Calculator, label: "Input Nilai Cepat", href: "/penilaian/quick" },
+      { icon: FileText, label: "Hasil Penilaian", href: "/penilaian/hasil" },
       { icon: CalendarDays, label: "Jadwal Pelajaran", href: "/jadwal" },
       { icon: BookOpen, label: "Mata Pelajaran", href: "/mapel" },
       { icon: School, label: "Kelas", href: "/kelas" },

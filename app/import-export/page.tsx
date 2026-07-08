@@ -159,7 +159,7 @@ export default function ImportExportPage() {
 
         {/* Module Selection */}
         <Card className="p-6">
-          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
+          <h2 className="text-section-title mb-4">
             Pilih Modul
           </h2>
           <p className="text-sm text-[var(--text-muted)] mb-6">
@@ -202,7 +202,7 @@ export default function ImportExportPage() {
                 <Upload className="w-5 h-5 text-[var(--primary)]" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                <h2 className="text-section-title">
                   Import Data
                 </h2>
                 <p className="text-sm text-[var(--text-muted)]">
@@ -246,7 +246,7 @@ export default function ImportExportPage() {
                 <Download className="w-5 h-5 text-[var(--info)]" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                <h2 className="text-section-title">
                   Export Data
                 </h2>
                 <p className="text-sm text-[var(--text-muted)]">
@@ -288,7 +288,7 @@ export default function ImportExportPage() {
         <Card className="p-0 overflow-hidden">
           <div className="p-6 border-b border-[var(--border-light)]">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+              <h2 className="text-section-title">
                 Operasi Terbaru
               </h2>
               <Button variant="ghost" size="sm" onClick={() => router.push("/import-export/history")}>
@@ -425,7 +425,7 @@ function StatCard({
           {icon}
         </div>
         <div>
-          <p className="text-2xl font-bold text-[var(--text-primary)]">{value}</p>
+          <p className="text-stat-lg text-[var(--text-primary)]">{value}</p>
           <p className="text-sm text-[var(--text-muted)]">{title}</p>
         </div>
       </div>

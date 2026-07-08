@@ -19,14 +19,14 @@ export default function GeneralSettingsPage() {
     <AppShell title="Pengaturan Umum" description="Konfigurasi umum aplikasi">
       <div className="max-w-2xl">
         <Card className="p-6">
-          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-6">
+          <h2 className="text-section-title mb-6">
             Pengaturan Umum
           </h2>
 
           <div className="space-y-6">
             {/* App Name */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-[var(--text-secondary)]">
+              <label className="text-body-sm font-medium text-[var(--text-secondary)]">
                 Nama Aplikasi
               </label>
               <Input
@@ -36,14 +36,14 @@ export default function GeneralSettingsPage() {
                 }
                 placeholder="Nama aplikasi"
               />
-              <p className="text-xs text-[var(--text-muted)]">
+              <p className="text-caption text-[var(--text-muted)]">
                 Nama ini akan ditampilkan di judul halaman dan logo
               </p>
             </div>
 
             {/* Short Name */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-[var(--text-secondary)]">
+              <label className="text-body-sm font-medium text-[var(--text-secondary)]">
                 Nama Singkat
               </label>
               <Input
@@ -57,7 +57,7 @@ export default function GeneralSettingsPage() {
 
             {/* Timezone */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-[var(--text-secondary)]">
+              <label className="text-body-sm font-medium text-[var(--text-secondary)]">
                 Zona Waktu
               </label>
               <select
@@ -75,7 +75,7 @@ export default function GeneralSettingsPage() {
 
             {/* Date Format */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-[var(--text-secondary)]">
+              <label className="text-body-sm font-medium text-[var(--text-secondary)]">
                 Format Tanggal
               </label>
               <select
@@ -93,7 +93,7 @@ export default function GeneralSettingsPage() {
 
             {/* Time Format */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-[var(--text-secondary)]">
+              <label className="text-body-sm font-medium text-[var(--text-secondary)]">
                 Format Waktu
               </label>
               <select
@@ -110,7 +110,7 @@ export default function GeneralSettingsPage() {
 
             {/* Session Timeout */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-[var(--text-secondary)]">
+              <label className="text-body-sm font-medium text-[var(--text-secondary)]">
                 Batas Waktu Sesi (menit)
               </label>
               <Input
@@ -124,14 +124,14 @@ export default function GeneralSettingsPage() {
                 min={5}
                 max={120}
               />
-              <p className="text-xs text-[var(--text-muted)]">
+              <p className="text-caption text-[var(--text-muted)]">
                 Sesi akan berakhir setelah tidak ada aktivitas selama waktu ini
               </p>
             </div>
 
             {/* Default Page Size */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-[var(--text-secondary)]">
+              <label className="text-body-sm font-medium text-[var(--text-secondary)]">
                 Jumlah Baris Default
               </label>
               <select

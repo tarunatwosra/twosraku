@@ -66,9 +66,8 @@ const navigationSections: NavSection[] = [
     title: "PENILAIAN",
     items: [
       { icon: BarChart3, label: "Pusat Penilaian", href: "/penilaian" },
-      { icon: Calculator, label: "Input Nilai", href: "/penilaian/input" },
+      { icon: Calculator, label: "Input Nilai Cepat", href: "/penilaian/quick" },
       { icon: FileText, label: "Hasil Penilaian", href: "/penilaian/hasil" },
-      { icon: Settings, label: "Formula", href: "/penilaian/formula" },
     ],
   },
   {

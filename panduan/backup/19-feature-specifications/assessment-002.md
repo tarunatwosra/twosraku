@@ -1,16 +1,15 @@
 # Assessment Module (Penilaian)
-Version: 6.0
+Version: 5.0
 
 ## Part 1 — Purpose & Architecture
 
 **Purpose:** Sistem penilaian terpusat dengan konsep Kategori, Periode, Item, Formula, dan Nilai Rapor. Mendukung konversi otomatis dan integrasi dengan modul lain.
 
-**Implementation Status:** ✅ IMPLEMENTED (v6.0)
+**Implementation Status:** ✅ IMPLEMENTED (v5.0)
 - **Database:** Supabase (PostgreSQL) - Migration 005
 - **Hooks:** `useAssessmentNew.ts`, `useAssessmentCategory()`, `usePeriodScoring()`
-- **UI Pages:** Pusat Penilaian (Kategori + Formula), Quick Score, Hasil Penilaian, Category Detail
-- **Data Source:** Semua data dari Supabase (kategori, periode, item, kelas, siswa, nilai)
-- **Features:** Template presets (3 templates), Inline item creation, Table-based input, Filter Kelas, Hasil kategori column
+- **UI Pages:** Assessment Center, Category Detail, Period Scoring, Formula, **Quick Score**
+- **New Features:** Template presets, Inline item creation, Quick Score mode
 
 **Core Concepts:**
 - **Kategori** — Jenis penilaian (Jasmani Taruna, PBB, dll). Bisa dinilai berkali-kali.
@@ -375,9 +374,11 @@ const {
 
 ```
 Penilaian
-├── Pusat Penilaian    (/penilaian)  ← Kategori + Formula
-├── Input Nilai Cepat (/penilaian/quick)
-└── Hasil Penilaian  (/penilaian/hasil)
+├── Pusat Penilaian    (/penilaian)
+├── Input Nilai Cepat (/penilaian/quick) ← NEW
+├── Input Nilai      (/penilaian/input)
+├── Hasil Penilaian  (/penilaian/hasil)
+└── Formula         (/penilaian/formula)
 ```
 
 ### Halaman: Pusat Penilaian (/penilaian)
@@ -389,96 +390,49 @@ Penilaian
 - Filter pencarian
 - Create/Edit/Delete kategori
 - **Template selector di modal Kategori Baru**
-- **Formula Penilaian** (card terpisah, digabung dalam 1 halaman)
 - Referensi grading scale
 
 **Layout:**
 ```
-┌─────────────────────────────────────────────────────────────┐
-│ [🔍 Cari...]  [Filter]  [Formula] [+ Kategori Baru]         │
-├─────────────────────────────────────────────────────────────┤
-│ [📊 12] [📅 48] [🎯 120] [📐 4]  ← Stat Cards             │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  ┌─ SECTION 1: KATEGORI PENILAIAN ───────────────────────┐  │
-│  │                                                         │  │
-│  │ ┌─ Category Card (Elevated + Gradient) ──────────────┐ │  │
-│  │ │ [Avatar] Nama Kategori      [Stats] [Actions]      │ │  │
-│  │ │ Description...                    ▼                │ │  │
-│  │ ├─ Expanded ───────────────────────────────────────┤ │  │
-│  │ │ Periode: [Jan] [Apr] [Jul] [Okt]               │ │  │
-│  │ │ Items: [Push Up] [Sit Up] [Pull Up]...          │ │  │
-│  │ └──────────────────────────────────────────────────┘ │  │
-│  │                                                         │  │
-│  └─────────────────────────────────────────────────────────┘  │
-│                                                             │
-│  ┌─ SECTION 2: FORMULA PENILAIAN ───────────────────────┐  │
-│  │ [📐 Icon] Formula Penilaian                          │  │
-│  │                                                         │  │
-│  │ ┌─ Formula Card ───────────────────────────────────┐  │  │
-│  │ │ [📐] Semester Ganjil     [Aktif]  [✏️] [🗑️]     │  │  │
-│  │ │ Jasmani 50% + Kehadiran 20% + Kerajinan 30%      │  │  │
-│  │ │ Total: 100% ✅  ████████████ 100%                 │  │  │
-│  │ └───────────────────────────────────────────────────┘  │  │
-│  │                                                         │  │
-│  └─────────────────────────────────────────────────────────┘  │
-│                                                             │
-│  ┌─ Referensi Sistem Penilaian ──────────────────────────┐  │
-│  │ [A 90-100] [B 80-89] [C 70-79] [D 60-69] [E 0-59]   │  │
-│  └─────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────┐
+│ [🔍 Cari...]  [Filter]  [Kelola Formula] [+ Kategori] │
+├─────────────────────────────────────────────────────┤
+│ [📊 12] [📅 48] [🎯 120] [📐 4]  ← Stat Cards     │
+├─────────────────────────────────────────────────────┤
+│ ┌─ Category Card (Elevated + Gradient) ─────────────┐│
+│ │ [Avatar] Nama Kategori        [Stats] [Actions] ││
+│ │ Description...                    ▼             ││
+│ ├─ Expanded ─────────────────────────────────────┤│
+│ │ Periode: [Jan] [Apr] [Jul] [Okt]              ││
+│ │ Items: [Push Up] [Sit Up] [Pull Up]...        ││
+│ └────────────────────────────────────────────────┘│
+├─────────────────────────────────────────────────────┤
+│ ┌─ Referensi Sistem Penilaian ────────────────────┐│
+│ │ [A] [B] [C] [D] [E]                         ││
+│ └────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────┘
 ```
 
 ### NEW: Quick Score Page (/penilaian/quick)
 
-**Tujuan:** Input nilai cepat tanpa setup rumit. Langsung pilih kategori → periode → kelas → input.
+**Tujuan:** Input nilai cepat tanpa setup rumit. Langsung pilih kategori → periode → input.
 
 **Fitur:**
-- Filter 3 level: Kategori → Periode → Kelas
+- Pilih kategori dan periode dari dropdown
 - Preview item yang akan dinilai
 - **Tambah item baru inline** (tanpa ke halaman lain)
-- Input nilai dalam **format tabel** (bukan card expandable)
-- Preview konversi real-time di bawah setiap input
-- **Kolom hasil kategori** di sebelah kanan tabel
-- **1 tombol Simpan Semua** (tidak ada simpan per siswa)
+- Input nilai per siswa dengan preview konversi real-time
+- Simpan per siswa atau simpan semua
 - Stats pills (total siswa, rata-rata, tertinggi, terendah)
 
-**Layout:**
+**Alur Kerja:**
 ```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│ Pilih Kategori, Periode & Kelas                                               │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│ [Kategori ▼] | [Periode ▼] | [Kelas ▼]                                       │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│ Item: [Push Up ×2.5] [Sit Up ×2] [Pull Up ×5] [+ Tambah Item]               │
-└─────────────────────────────────────────────────────────────────────────────────┘
+SEBELUM: Pusat Penilaian → Kategori → Setup Item/Periode → Input Nilai
+         (5+ klik + setup awal)
 
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│ [Total: 30] [Rata: 82.3] [Tertinggi: 95] [Terendah: 65]  [Simpan Semua]    │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│ [🔍 Cari...]                                                                  │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│ ┌───────────────────────────────────────────────────────┬───────────────────┐  │
-│ │ TABLE INPUT                                          │ HASIL KATEGORI   │  │
-│ │ ┌──┬──────────┬─────────┬─────────┬─────────┬───────┐│                   │  │
-│ │ │No│Nama      │Push Up  │Sit Up   │Pull Up │...    ││   ┌─────────┐   │  │
-│ │ │  │          │[35___]  │[40___]  │[5___]  │       ││   │ 85.5 B  │   │  │
-│ │ │  │          │→ 87     │→ 80     │→ 25     │       ││   └─────────┘   │  │
-│ │ │  │          │         │         │         │       ││                   │  │
-│ │ ├──┼──────────┼─────────┼─────────┼─────────┼───────┤│   ┌─────────┐   │  │
-│ │ │  │          │[30___]  │[35___]  │[3___]   │       ││   │ 77.5 C  │   │  │
-│ │ │  │          │→ 75     │→ 70     │→ 15     │       ││   └─────────┘   │  │
-│ │ └──┴──────────┴─────────┴─────────┴─────────┴───────┘│                   │  │
-│ └───────────────────────────────────────────────────────┴───────────────────┘  │
-└─────────────────────────────────────────────────────────────────────────────────┘
+SESUDAH: Input Nilai Cepat → Pilih Kategori → Input → Selesai
+         (2 klik langsung input)
 ```
-
-**Komponen UI:**
-- Filter dropdown (Kategori → Periode → Kelas)
-- Tabel input nilai dengan header item
-- Kolom hasil kategori dengan grade badge
-- Preview konversi di bawah input
-- Modal inline item creation
 
 ### NEW: Template Presets (Modal Kategori Baru)
 
@@ -489,7 +443,6 @@ Penilaian
 |----------|-------|---------|
 | Jasmani Standar | Push Up (×2.5), Sit Up (×2), Pull Up (×5), Lari 2.4km | Triwulan 1-4 (25%) |
 | PBB Mingguan | Seragam, Atensi, Sikap Baris, Pengetahuan, Presensi | Minggu 1-4, 5-8, 9-12, 13-16 |
-| Kerajinan Tangan | Kualitas Produk, Ketepatan Waktu, Kebersihan | Bulan 1-3 (33%, 33%, 34%) |
 
 **Alur dengan Template:**
 ```
@@ -525,6 +478,73 @@ Penilaian
 │ │ └─────────────────┘  │ │ └─────────────────┘ ││
 │ └──────────────────────┘ └───────────────────────┘│
 └─────────────────────────────────────────────────────┘
+```
+
+### Halaman: Input Penilaian (/penilaian/[id]/[periodId])
+
+**Fitur:**
+- Header dengan category avatar dan stats pills
+- Card-based scoring per siswa
+- Auto-convert saat input
+- Preview rata-rata dan grade
+- Save per siswa atau save all
+- Grade legend
+
+**Layout:**
+```
+┌─────────────────────────────────────────────────────┐
+│ ← [Avatar] Januari 2026  [🔄] [Import] [Export]     │
+├─────────────────────────────────────────────────────┤
+│ [Rata-rata: 82.3] [Tertinggi: 95] [Terendah: 65] │
+│ [Total: 30]              [! Ada perubahan...]        │
+├─────────────────────────────────────────────────────┤
+│ [🔍 Cari nama atau nomor...]                        │
+├─────────────────────────────────────────────────────┤
+│ ┌─ Student Card ────────────────────────────────┐  │
+│ │ [👤] Nama Siswa        85.5 [B]        ▼     │  │
+│ ├─ Expanded ───────────────────────────────────┤  │
+│ │ [Push Up] [35___] → 87.5                    │  │
+│ │ [Sit Up]  [40___] → 80.0                    │  │
+│ │                        [Simpan]              │  │
+│ └──────────────────────────────────────────────┘  │
+├─────────────────────────────────────────────────────┤
+│ Legenda: [A 90-100] [B 80-89] [C 70-79]...      │
+└─────────────────────────────────────────────────────┘
+```
+
+### Halaman: Formula (/penilaian/formula)
+
+**Fitur:**
+- CRUD Formula
+- Tambah komponen (Nilai Kategori atau Konversi Modul)
+- Weight validation (harus 100%)
+- Preview formula
+- Grade reference
+
+**Layout:**
+```
+┌─────────────────────────────────────────────────────┐
+│ ← Formula & Nilai Rapor        [+ Formula Baru]    │
+├─────────────────────────────────────────────────────┤
+│ ┌─ Info Card ───────────────────────────────────┐  │
+│ │ ℹ️ Tentang Formula...                          │  │
+│ └──────────────────────────────────────────────┘  │
+├─────────────────────────────────────────────────────┤
+│ ┌─ Formula Card ────────────────────────────────┐  │
+│ │ [📐] Semester Ganjil       [Aktif]  [✏️][🗑️]│  │
+│ │ ┌────────────────────────────────────────┐  │  │
+│ │ │ 🏷️ Jasmani Taruna              50%    │  │  │
+│ │ │ 🏷️ PBB                      30%    │  │  │
+│ │ │ 📐 Kehadiran (Konversi)      20%    │  │  │
+│ │ └────────────────────────────────────────┘  │  │
+│ │ Total: 100% ✅ ████████████ 100%           │  │
+│ └──────────────────────────────────────────────┘  │
+├─────────────────────────────────────────────────────┤
+│ ┌─ Referensi Grade ─────────────────────────────┐  │
+│ │ [A 90-100] [B 80-89] [C 70-79]...         │  │
+│ └──────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -533,13 +553,14 @@ Penilaian
 ```
 app/
 ├── penilaian/
-│   ├── page.tsx              ← Pusat Penilaian (Kategori + Formula)
-│   ├── quick/
-│   │   └── page.tsx        ← Quick Score (Input Nilai Cepat + Filter Kelas + Tabel)
+│   ├── page.tsx              ← Assessment Center (Daftar Kategori)
 │   ├── [id]/
 │   │   └── page.tsx         ← Detail Kategori (Items + Periode)
-│   └── hasil/
-│       └── page.tsx           ← Hasil Penilaian
+│   ├── [id]/
+│   │   └── [periodId]/
+│   │       └── page.tsx     ← Input Penilaian
+│   └── formula/
+│       └── page.tsx          ← Kelola Formula
 
 hooks/
 ├── useAssessment.ts          ← Legacy hook (v3.x)
@@ -592,7 +613,7 @@ calculateCategoryScoreValue(categoryId, periodScoresMap)
 ---
 
 **Last Updated:** 2026-07-08
-**Version:** 6.0 - Penggabungan Formula ke halaman Pusat Penilaian
+**Version:** 5.0 - UI Refactor (Selaras dengan Buku Induk)
 
 ---
-# End of Assessment Module (v6.0)
+# End of Assessment Module (v4.0)

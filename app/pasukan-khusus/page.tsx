@@ -175,7 +175,7 @@ export default function SpecialUnitsPage() {
             <Card className="p-0 overflow-hidden">
               <div className="p-6 border-b border-[var(--border-light)]">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                  <h2 className="text-section-title">
                     Daftar Anggota
                   </h2>
                   <div className="flex items-center gap-2">
@@ -284,7 +284,7 @@ export default function SpecialUnitsPage() {
           <div className="space-y-6">
             {/* Positions */}
             <Card className="p-6">
-              <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
+              <h2 className="text-section-title mb-4">
                 Struktur Organisasi
               </h2>
               <div className="space-y-3">
@@ -302,7 +302,7 @@ export default function SpecialUnitsPage() {
 
             {/* Upcoming Activities */}
             <Card className="p-6">
-              <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
+              <h2 className="text-section-title mb-4">
                 Jadwal Mendatang
               </h2>
               <div className="space-y-3">
@@ -344,7 +344,7 @@ export default function SpecialUnitsPage() {
 
             {/* Quick Actions */}
             <Card className="p-6">
-              <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
+              <h2 className="text-section-title mb-4">
                 Aksi Cepat
               </h2>
               <div className="space-y-2">
@@ -396,7 +396,7 @@ function StatCard({
           {icon}
         </div>
         <div>
-          <p className="text-2xl font-bold text-[var(--text-primary)]">{value}</p>
+          <p className="text-stat-lg text-[var(--text-primary)]">{value}</p>
           <p className="text-sm text-[var(--text-muted)]">{title}</p>
         </div>
       </div>

@@ -383,8 +383,8 @@ function StatCard({
 
   return (
     <Card className="p-4">
-      <p className="text-sm text-[var(--text-muted)]">{title}</p>
-      <p className={cn("text-2xl font-bold", colors[color].split(" ")[1])}>{value}</p>
+      <p className="text-body-sm text-[var(--text-muted)]">{title}</p>
+      <p className={cn("text-stat-lg", colors[color].split(" ")[1])}>{value}</p>
     </Card>
   )
 }

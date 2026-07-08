@@ -330,8 +330,8 @@ export default function ScheduledReportsPage() {
                 <Clock className="w-5 h-5 text-[var(--text-muted)]" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-[var(--text-primary)]">{stats.total}</p>
-                <p className="text-sm text-[var(--text-muted)]">Total Terjadwal</p>
+                <p className="text-stat-lg text-[var(--text-primary)]">{stats.total}</p>
+                <p className="text-body-sm text-[var(--text-muted)]">Total Terjadwal</p>
               </div>
             </div>
           </Card>
@@ -341,8 +341,8 @@ export default function ScheduledReportsPage() {
                 <Play className="w-5 h-5 text-[var(--success)]" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-[var(--success)]">{stats.active}</p>
-                <p className="text-sm text-[var(--text-muted)]">Aktif</p>
+                <p className="text-stat-lg text-[var(--success)]">{stats.active}</p>
+                <p className="text-body-sm text-[var(--text-muted)]">Aktif</p>
               </div>
             </div>
           </Card>
@@ -352,8 +352,8 @@ export default function ScheduledReportsPage() {
                 <Pause className="w-5 h-5 text-[var(--warning)]" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-[var(--warning)]">{stats.paused}</p>
-                <p className="text-sm text-[var(--text-muted)]">Dijeda</p>
+                <p className="text-stat-lg text-[var(--warning)]">{stats.paused}</p>
+                <p className="text-body-sm text-[var(--text-muted)]">Dijeda</p>
               </div>
             </div>
           </Card>
@@ -363,8 +363,8 @@ export default function ScheduledReportsPage() {
                 <Calendar className="w-5 h-5 text-[var(--info)]" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-[var(--info)]">{stats.nextRunToday}</p>
-                <p className="text-sm text-[var(--text-muted)]">Jadwal Hari Ini</p>
+                <p className="text-stat-lg text-[var(--info)]">{stats.nextRunToday}</p>
+                <p className="text-body-sm text-[var(--text-muted)]">Jadwal Hari Ini</p>
               </div>
             </div>
           </Card>

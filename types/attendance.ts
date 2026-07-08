@@ -1,12 +1,11 @@
-// Attendance Types
+// Attendance Types - v2.0
+// Status: HSIA (Hadir, Sakit, Ijin, Alpa)
 
-export type AttendanceStatus = "present" | "late" | "permission" | "sick" | "absent"
+export type AttendanceStatus = "present" | "sick" | "permission" | "absent"
 
 export interface Attendance {
   id: string
   studentId: string
-  academicYearId: string
-  semesterId: string
   classId: string
   date: string
   status: AttendanceStatus
@@ -33,8 +32,6 @@ export interface AttendanceRecord {
 }
 
 export interface AttendanceSession {
-  academicYearId: string
-  semesterId: string
   classId: string
   date: string
   records: AttendanceRecord[]
@@ -46,9 +43,8 @@ export interface AttendanceSession {
 export interface AttendanceSummary {
   totalStudents: number
   present: number
-  late: number
-  permission: number
   sick: number
+  permission: number
   absent: number
   percentage: number
 }
@@ -56,16 +52,12 @@ export interface AttendanceSummary {
 export interface ClassAttendance {
   classId: string
   className: string
-  academicYearId: string
-  semesterId: string
   date: string
   summary: AttendanceSummary
   records: AttendanceRecord[]
 }
 
 export interface AttendanceFilter {
-  academicYearId?: string
-  semesterId?: string
   classId?: string
   date?: string
   startDate?: string
@@ -75,11 +67,8 @@ export interface AttendanceFilter {
 
 export interface AttendanceReport {
   id: string
-  type: "daily" | "weekly" | "monthly" | "semester" | "annual"
+  type: "daily" | "weekly" | "monthly"
   title: string
-  academicYearId: string
-  semesterId?: string
-  classId?: string
   date?: string
   startDate: string
   endDate: string
@@ -88,33 +77,29 @@ export interface AttendanceReport {
   data: AttendanceSummary
 }
 
-// Status display
+// Status display - HSIA
 export const ATTENDANCE_STATUS_CONFIG: Record<
   AttendanceStatus,
   { label: string; shortLabel: string; color: string }
 > = {
   present: { label: "Hadir", shortLabel: "H", color: "success" },
-  late: { label: "Terlambat", shortLabel: "T", color: "warning" },
-  permission: { label: "Izin", shortLabel: "I", color: "info" },
   sick: { label: "Sakit", shortLabel: "S", color: "warning" },
-  absent: { label: "Alpha", shortLabel: "A", color: "danger" },
+  permission: { label: "Izin", shortLabel: "I", color: "info" },
+  absent: { label: "Alpa", shortLabel: "A", color: "danger" },
 }
 
 // Statistics
 export interface AttendanceStatistics {
   attendancePercentage: number
   presentCount: number
-  lateCount: number
-  permissionCount: number
   sickCount: number
+  permissionCount: number
   absentCount: number
   mostFrequentStatus: AttendanceStatus
 }
 
 export interface StudentAttendanceHistory {
   studentId: string
-  academicYearId: string
-  semesterId: string
   statistics: AttendanceStatistics
   records: Attendance[]
 }
@@ -142,17 +127,11 @@ export interface MonthlyRecap {
   month: number
   year: number
   summary: AttendanceSummary
-  byWeek: WeeklyRecap[]
+  byDay: DailyRecap[]
 }
 
-export interface SemesterRecap {
-  academicYearId: string
-  semesterId: string
-  summary: AttendanceStatistics
-  byMonth: MonthlyRecap[]
-  byClass: {
-    classId: string
-    className: string
-    statistics: AttendanceStatistics
-  }[]
+export interface TrendData {
+  date: string
+  percentage: number
+  dayName: string
 }

@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar } from "@/components/ui/avatar"
 import { useAuth } from "@/hooks/useAuth"
 import { useAssessmentNew } from "@/hooks/useAssessmentNew"
-import { AssessmentCategory, AssessmentPeriod, DEFAULT_GRADING_SCALE } from "@/types/assessment"
+import { AssessmentCategory, AssessmentPeriod, AssessmentFormula, FormulaComponent, DEFAULT_GRADING_SCALE } from "@/types/assessment"
 import {
   Plus,
   Search,
@@ -30,8 +30,231 @@ import {
   Calculator,
   X,
   BookOpen,
+  Zap,
+  Copy,
+  Save,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+
+// ============================================
+// TEMPLATE PRESETS
+// ============================================
+
+interface CategoryTemplate {
+  name: string
+  description: string
+  icon: string
+  color: string
+  items: {
+    name: string
+    inputType: InputType
+    conversionType: ConversionType
+    conversionValue?: string
+    weight: number
+  }[]
+  periods: {
+    name: string
+    weight: number
+  }[]
+}
+
+const PRESET_TEMPLATES: CategoryTemplate[] = [
+  {
+    name: "Jasmani Standar",
+    description: "Tes jasmani standar militer",
+    icon: "🏃",
+    color: "#22C55E",
+    items: [
+      { name: "Push Up", inputType: "count", conversionType: "multiply", conversionValue: "2.5", weight: 25 },
+      { name: "Sit Up", inputType: "count", conversionType: "multiply", conversionValue: "2", weight: 25 },
+      { name: "Pull Up", inputType: "count", conversionType: "multiply", conversionValue: "5", weight: 25 },
+      { name: "Lari 2.4km", inputType: "time", conversionType: "lookup_table", conversionValue: '{"10:00":100,"11:00":95,"12:00":90,"13:00":85,"14:00":80,"15:00":75,"16:00":70,"17:00":65,"18:00":60,"19:00":55,"20:00":50}', weight: 25 },
+    ],
+    periods: [
+      { name: "Triwulan 1", weight: 25 },
+      { name: "Triwulan 2", weight: 25 },
+      { name: "Triwulan 3", weight: 25 },
+      { name: "Triwulan 4", weight: 25 },
+    ],
+  },
+  {
+    name: "PBB Mingguan",
+    description: "Pelatihan baris-berbarit mingguan",
+    icon: "🎖️",
+    color: "#3B82F6",
+    items: [
+      { name: "Seragam", inputType: "boolean", conversionType: "direct", weight: 20 },
+      { name: "Atensi", inputType: "boolean", conversionType: "direct", weight: 20 },
+      { name: "Sikap Baris", inputType: "boolean", conversionType: "direct", weight: 20 },
+      { name: "Pengetahuan", inputType: "number", conversionType: "direct", weight: 20 },
+      { name: "Presensi", inputType: "percentage", conversionType: "direct", weight: 20 },
+    ],
+    periods: [
+      { name: "Minggu 1-4", weight: 25 },
+      { name: "Minggu 5-8", weight: 25 },
+      { name: "Minggu 9-12", weight: 25 },
+      { name: "Minggu 13-16", weight: 25 },
+    ],
+  },
+  {
+    name: "Kerajinan Tangan",
+    description: "Penilaian kerajinan dan keterampilan",
+    icon: "👐",
+    color: "#F59E0B",
+    items: [
+      { name: "Kualitas Produk", inputType: "number", conversionType: "direct", weight: 40 },
+      { name: "Ketepatan Waktu", inputType: "number", conversionType: "direct", weight: 30 },
+      { name: "Kebersihan", inputType: "number", conversionType: "direct", weight: 30 },
+    ],
+    periods: [
+      { name: "Bulan 1", weight: 33 },
+      { name: "Bulan 2", weight: 33 },
+      { name: "Bulan 3", weight: 34 },
+    ],
+  },
+]
+
+import { InputType, ConversionType } from "@/types/assessment"
+
+// ============================================
+// FORMULA CARD COMPONENT
+// ============================================
+
+function FormulaCard({
+  formula,
+  onEdit,
+  onDelete,
+}: {
+  formula: AssessmentFormula
+  onEdit: () => void
+  onDelete: () => void
+}) {
+  const totalWeight = formula.components.reduce((sum, c) => sum + c.weight, 0)
+  const isValid = totalWeight === 100
+
+  return (
+    <Card variant="elevated" padding="lg" className="relative overflow-hidden">
+      {/* Gradient decoration */}
+      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-500/5 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
+
+      <div className="relative">
+        {/* Header */}
+        <div className="flex items-start justify-between mb-5">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100/50 flex items-center justify-center shadow-sm">
+              <Calculator className="w-6 h-6 text-purple-600" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="text-[15px] font-bold text-[var(--text-primary)]">
+                  {formula.name}
+                </h3>
+                <Badge
+                  variant={formula.status === "active" ? "success" : "secondary"}
+                  className={cn(
+                    "text-[10px] font-semibold rounded-full",
+                    formula.status === "active"
+                      ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
+                      : "bg-slate-100 text-slate-600 border border-slate-200"
+                  )}
+                >
+                  {formula.status === "active" ? "Aktif" : "Tidak Aktif"}
+                </Badge>
+              </div>
+              {formula.description && (
+                <p className="text-[12px] text-[var(--text-muted)]">
+                  {formula.description}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="sm" onClick={onEdit} className="w-9 h-9 rounded-lg">
+              <Edit2 className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={onDelete} className="w-9 h-9 rounded-lg hover:bg-red-50">
+              <Trash2 className="w-4 h-4 text-red-500" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Components */}
+        {formula.components.length > 0 && (
+          <div className="space-y-2 mb-4">
+            {formula.components.map((component, index) => (
+              <div
+                key={index}
+                className="flex items-center justify-between p-3 bg-[var(--surface-secondary)] rounded-xl"
+              >
+                <div className="flex items-center gap-3">
+                  {component.type === "category" ? (
+                    <div className="w-8 h-8 rounded-lg bg-[var(--primary-soft)] flex items-center justify-center">
+                      <Layers className="w-4 h-4 text-[var(--primary)]" />
+                    </div>
+                  ) : (
+                    <div className="w-8 h-8 rounded-lg bg-[var(--info-soft)] flex items-center justify-center">
+                      <Calculator className="w-4 h-4 text-[var(--info)]" />
+                    </div>
+                  )}
+                  <span className="text-[14px] font-medium text-[var(--text-primary)]">
+                    {component.name}
+                  </span>
+                  {component.type === "module" && (
+                    <span className="text-[10px] text-[var(--text-muted)] px-1.5 py-0.5 bg-[var(--surface-primary)] rounded">
+                      Konversi Modul
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[14px] font-bold text-purple-600">
+                    {component.weight}%
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Weight Summary */}
+        <div className="p-3 bg-[var(--surface-secondary)] rounded-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-[12px] text-[var(--text-muted)] uppercase tracking-wide">
+              Total Bobot
+            </span>
+            <div className="flex items-center gap-2">
+              {isValid ? (
+                <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+              ) : (
+                <AlertCircle className="w-5 h-5 text-amber-500" />
+              )}
+              <span className={cn(
+                "text-[14px] font-bold",
+                isValid ? "text-emerald-600" : "text-amber-600"
+              )}>
+                {totalWeight}%
+              </span>
+            </div>
+          </div>
+          <div className="mt-2 w-full h-2 bg-white rounded-full overflow-hidden">
+            <div
+              className={cn(
+                "h-full transition-all duration-500 rounded-full",
+                isValid ? "bg-emerald-500" : "bg-amber-500"
+              )}
+              style={{ width: `${Math.min(totalWeight, 100)}%` }}
+            />
+          </div>
+          {!isValid && (
+            <p className="text-[11px] text-amber-600 mt-2">
+              Total bobot harus = 100%
+            </p>
+          )}
+        </div>
+      </div>
+    </Card>
+  )
+}
 
 // ============================================
 // HELPER COMPONENTS - Following Buku Induk Patterns
@@ -81,8 +304,8 @@ function StatCard({
           {icon}
         </div>
         <div>
-          <p className="text-2xl font-bold text-[var(--text-primary)]">{value}</p>
-          <p className="text-xs text-[var(--text-muted)]">{title}</p>
+          <p className="text-stat-lg text-[var(--text-primary)]">{value}</p>
+          <p className="text-caption text-[var(--text-muted)]">{title}</p>
         </div>
       </div>
     </Card>
@@ -112,6 +335,7 @@ function CategoryHeaderCard({
   onEdit: () => void
   onDelete: () => void
 }) {
+  const router = useRouter()
   return (
     <Card variant="elevated" padding="lg" className="relative overflow-hidden">
       {/* Background gradient decoration */}
@@ -134,7 +358,6 @@ function CategoryHeaderCard({
           {/* Avatar dengan warna kategori */}
           <Avatar
             fallback={category.name}
-            icon={<Layers className="w-6 h-6" />}
             className="w-14 h-14"
             style={{
               backgroundColor: `${category.color}20`,
@@ -394,6 +617,9 @@ export default function AssessmentCenterPage() {
     createCategory,
     updateCategory,
     deleteCategory,
+    createFormula,
+    updateFormula,
+    deleteFormula,
     refresh,
   } = useAssessmentNew()
 
@@ -408,6 +634,16 @@ export default function AssessmentCenterPage() {
   const [editingCategory, setEditingCategory] = useState<AssessmentCategory | null>(null)
   const [modalLoading, setModalLoading] = useState(false)
 
+  // Formula modal state
+  const [showFormulaModal, setShowFormulaModal] = useState(false)
+  const [editingFormula, setEditingFormula] = useState<AssessmentFormula | null>(null)
+  const [formulaModalLoading, setFormulaModalLoading] = useState(false)
+  const [formulaFormData, setFormulaFormData] = useState({
+    name: "",
+    description: "",
+    components: [] as FormulaComponent[],
+  })
+
   // Form state
   const [formData, setFormData] = useState({
     name: "",
@@ -415,6 +651,13 @@ export default function AssessmentCenterPage() {
     color: "#6B7280",
     status: "active" as "active" | "inactive",
   })
+
+  // Template selection state (for new categories only)
+  const [selectedTemplate, setSelectedTemplate] = useState<CategoryTemplate | null>(null)
+  const [showTemplateSection, setShowTemplateSection] = useState(true)
+
+  // Need to expose createItem and createPeriod from useAssessmentNew
+  // For now, we'll create them after category is created
 
   const colorOptions = [
     "#3B82F6", // Blue
@@ -426,6 +669,113 @@ export default function AssessmentCenterPage() {
     "#06B6D4", // Cyan
     "#F97316", // Orange
   ]
+
+  // Module options for formula components
+  const moduleOptions = [
+    { type: "module" as const, module: "attendance", name: "Kehadiran", weight: 0 },
+  ]
+
+  // Formula handlers
+  const handleCreateFormula = () => {
+    setEditingFormula(null)
+    setFormulaFormData({
+      name: "",
+      description: "",
+      components: [],
+    })
+    setShowFormulaModal(true)
+  }
+
+  const handleEditFormula = (formula: AssessmentFormula) => {
+    setEditingFormula(formula)
+    setFormulaFormData({
+      name: formula.name,
+      description: formula.description || "",
+      components: formula.components || [],
+    })
+    setShowFormulaModal(true)
+  }
+
+  const handleDeleteFormula = async (formula: AssessmentFormula) => {
+    if (!confirm(`Yakin ingin menghapus formula "${formula.name}"?`)) return
+    const result = await deleteFormula(formula.id)
+    if (!result.success) {
+      alert(result.error || "Gagal menghapus formula")
+    }
+  }
+
+  const handleFormulaSubmit = async () => {
+    if (!formulaFormData.name.trim()) {
+      alert("Nama formula wajib diisi")
+      return
+    }
+    if (formulaFormData.components.length === 0) {
+      alert("Minimal harus ada 1 komponen dalam formula")
+      return
+    }
+    const totalWeight = formulaFormData.components.reduce((sum, c) => sum + c.weight, 0)
+    if (totalWeight !== 100) {
+      alert(`Total bobot harus 100%. Saat ini: ${totalWeight}%`)
+      return
+    }
+
+    setFormulaModalLoading(true)
+    try {
+      let result
+      if (editingFormula) {
+        result = await updateFormula(editingFormula.id, {
+          name: formulaFormData.name,
+          description: formulaFormData.description || undefined,
+          components: formulaFormData.components,
+        })
+      } else {
+        result = await createFormula({
+          name: formulaFormData.name,
+          description: formulaFormData.description || undefined,
+          components: formulaFormData.components,
+        })
+      }
+      if (result.success) {
+        setShowFormulaModal(false)
+        refresh()
+      } else {
+        alert(result.error || "Gagal menyimpan formula")
+      }
+    } finally {
+      setFormulaModalLoading(false)
+    }
+  }
+
+  const addFormulaComponent = (type: "category" | "module", id?: string, module?: string) => {
+    let name = ""
+    if (type === "category" && id) {
+      const cat = categories.find((c) => c.id === id)
+      name = cat?.name || "Unknown"
+    } else if (type === "module" && module) {
+      const mod = moduleOptions.find((m) => m.module === module)
+      name = mod?.name || module
+    }
+    setFormulaFormData((prev) => ({
+      ...prev,
+      components: [...prev.components, { type, id, module, name, weight: 0 }],
+    }))
+  }
+
+  const updateFormulaComponent = (index: number, weight: number) => {
+    setFormulaFormData((prev) => ({
+      ...prev,
+      components: prev.components.map((c, i) => (i === index ? { ...c, weight } : c)),
+    }))
+  }
+
+  const removeFormulaComponent = (index: number) => {
+    setFormulaFormData((prev) => ({
+      ...prev,
+      components: prev.components.filter((_, i) => i !== index),
+    }))
+  }
+
+  const totalFormulaWeight = formulaFormData.components.reduce((sum, c) => sum + c.weight, 0)
 
   // Filter categories
   const filteredCategories = categories.filter((cat) => {
@@ -456,6 +806,8 @@ export default function AssessmentCenterPage() {
   // Open create modal
   const handleCreate = () => {
     setEditingCategory(null)
+    setSelectedTemplate(null)
+    setShowTemplateSection(true)
     setFormData({
       name: "",
       description: "",
@@ -499,6 +851,8 @@ export default function AssessmentCenterPage() {
     setModalLoading(true)
     try {
       let result
+
+      // Create or update category
       if (editingCategory) {
         result = await updateCategory(editingCategory.id, {
           name: formData.name,
@@ -516,6 +870,46 @@ export default function AssessmentCenterPage() {
       }
 
       if (result.success) {
+        // If creating new category with template, create items and periods
+        if (!editingCategory && selectedTemplate) {
+          const categoryId = result.data?.id
+          if (categoryId) {
+            // Create items from template
+            for (const item of selectedTemplate.items) {
+              await fetch(`/api/assessment/items`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  category_id: categoryId,
+                  name: item.name,
+                  input_type: item.inputType,
+                  conversion_type: item.conversionType,
+                  conversion_value: item.conversionValue,
+                  score_min: 0,
+                  score_max: 100,
+                  weight: item.weight,
+                  display_order: selectedTemplate.items.indexOf(item),
+                  is_required: true,
+                }),
+              })
+            }
+
+            // Create periods from template
+            for (const period of selectedTemplate.periods) {
+              await fetch(`/api/assessment/periods`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  category_id: categoryId,
+                  period_name: period.name,
+                  period_order: selectedTemplate.periods.indexOf(period) + 1,
+                  weight_percentage: period.weight,
+                }),
+              })
+            }
+          }
+        }
+
         setShowModal(false)
         refresh()
       } else {
@@ -580,12 +974,10 @@ export default function AssessmentCenterPage() {
             </Button>
           </div>
           <div className="flex items-center gap-2">
-            <Link href="/penilaian/formula">
-              <Button variant="outline" className="gap-2">
-                <Calculator className="w-4 h-4" />
-                <span className="hidden sm:inline">Kelola Formula</span>
-              </Button>
-            </Link>
+            <Button onClick={handleCreateFormula} variant="outline" className="gap-2">
+              <Calculator className="w-4 h-4" />
+              <span className="hidden sm:inline">Formula</span>
+            </Button>
             <Button onClick={handleCreate} className="gap-2">
               <Plus className="w-4 h-4" />
               Kategori Baru
@@ -736,6 +1128,79 @@ export default function AssessmentCenterPage() {
           </div>
         )}
 
+        {/* ============================================ */}
+        {/* SECTION 2: FORMULA PENILAIAN */}
+        {/* ============================================ */}
+
+        {/* Formula Section Header */}
+        <div className="flex items-center gap-3 pt-4">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
+            <Calculator className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h2 className="text-[15px] font-bold text-[var(--text-primary)]">Formula Penilaian</h2>
+            <p className="text-[12px] text-[var(--text-muted)]">Kombinasikan Nilai Kategori menjadi formula</p>
+          </div>
+        </div>
+
+        {/* Formula Info Card */}
+        <Card variant="soft" padding="md" className="flex items-start gap-3">
+          <div className="w-8 h-8 rounded-lg bg-[var(--info-soft)] flex items-center justify-center flex-shrink-0">
+            <Calculator className="w-4 h-4 text-[var(--info)]" />
+          </div>
+          <div>
+            <p className="text-[13px] font-medium text-[var(--info)]">Tentang Formula</p>
+            <p className="text-[11px] text-[var(--text-muted)] mt-1 leading-relaxed">
+              Formula digunakan untuk menggabungkan Nilai Kategori dan data dari modul lain
+              (seperti Kehadiran) menjadi satu komponen dalam Nilai Rapor. Total bobot = 100%.
+            </p>
+          </div>
+        </Card>
+
+        {/* Formula List */}
+        {loading ? (
+          <div className="space-y-4">
+            {[1, 2].map((i) => (
+              <Card key={i} variant="elevated" padding="lg" className="animate-pulse">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-[var(--surface-hover)] rounded-xl" />
+                  <div className="flex-1">
+                    <div className="w-48 h-5 bg-[var(--surface-hover)] rounded mb-2" />
+                    <div className="w-32 h-4 bg-[var(--surface-hover)] rounded" />
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        ) : formulas.length === 0 ? (
+          <Card variant="elevated" padding="lg" className="text-center py-10">
+            <div className="w-16 h-16 rounded-2xl bg-purple-50 flex items-center justify-center mx-auto mb-4 shadow-sm">
+              <Calculator className="w-8 h-8 text-purple-400" />
+            </div>
+            <h3 className="text-[15px] font-semibold text-[var(--text-primary)] mb-2">
+              Belum ada formula
+            </h3>
+            <p className="text-[12px] text-[var(--text-muted)] mb-5 max-w-sm mx-auto">
+              Buat formula untuk menggabungkan Nilai Kategori menjadi komponen rapor
+            </p>
+            <Button onClick={handleCreateFormula} className="gap-2">
+              <Plus className="w-4 h-4" />
+              Buat Formula
+            </Button>
+          </Card>
+        ) : (
+          <div className="space-y-4">
+            {formulas.map((formula) => (
+              <FormulaCard
+                key={formula.id}
+                formula={formula}
+                onEdit={() => handleEditFormula(formula)}
+                onDelete={() => handleDeleteFormula(formula)}
+              />
+            ))}
+          </div>
+        )}
+
         {/* Grading Scale Reference - Elevated Card with Gradient */}
         <Card variant="elevated" padding="lg" className="relative overflow-hidden">
           {/* Gradient decoration */}
@@ -803,6 +1268,99 @@ export default function AssessmentCenterPage() {
 
             {/* Modal Body */}
             <div className="p-6 space-y-5">
+              {/* Template Selection - Only show for new categories */}
+              {showTemplateSection && !editingCategory && (
+                <>
+                  {/* Template Selection Header */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Zap className="w-4 h-4 text-amber-500" />
+                      <span className="text-[13px] font-medium text-[var(--text-primary)]">
+                        Mulai dari template?
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => setShowTemplateSection(false)}
+                      className="text-[12px] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                    >
+                      Buat manual
+                    </button>
+                  </div>
+
+                  {/* Template Cards */}
+                  <div className="space-y-2">
+                    {PRESET_TEMPLATES.map((template) => (
+                      <button
+                        key={template.name}
+                        onClick={() => {
+                          setSelectedTemplate(template)
+                          setFormData({
+                            ...formData,
+                            name: template.name,
+                            description: template.description,
+                            color: template.color,
+                          })
+                        }}
+                        className={cn(
+                          "w-full p-4 rounded-xl border-2 text-left transition-all",
+                          selectedTemplate?.name === template.name
+                            ? "border-[var(--primary)] bg-[var(--primary-soft)]"
+                            : "border-[var(--border-light)] hover:border-[var(--primary)]/50"
+                        )}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div
+                            className="w-10 h-10 rounded-lg flex items-center justify-center text-lg"
+                            style={{ backgroundColor: `${template.color}20` }}
+                          >
+                            {template.icon}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[14px] font-semibold text-[var(--text-primary)]">
+                                {template.name}
+                              </span>
+                              {selectedTemplate?.name === template.name && (
+                                <CheckCircle2 className="w-4 h-4 text-[var(--primary)]" />
+                              )}
+                            </div>
+                            <p className="text-[12px] text-[var(--text-muted)] mt-0.5">
+                              {template.items.length} item • {template.periods.length} periode
+                            </p>
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {template.items.slice(0, 3).map((item) => (
+                                <span
+                                  key={item.name}
+                                  className="px-2 py-0.5 bg-white rounded text-[10px] text-[var(--text-secondary)]"
+                                >
+                                  {item.name}
+                                </span>
+                              ))}
+                              {template.items.length > 3 && (
+                                <span className="px-2 py-0.5 text-[10px] text-[var(--text-muted)]">
+                                  +{template.items.length - 3}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-[var(--border-light)]" />
+                    </div>
+                    <div className="relative flex justify-center">
+                      <span className="px-3 bg-white text-[11px] text-[var(--text-muted)] uppercase tracking-wide">
+                        atau
+                      </span>
+                    </div>
+                  </div>
+                </>
+              )}
+
               {/* Name */}
               <div>
                 <label className="text-[12px] font-medium text-[var(--text-primary)] mb-2 block uppercase tracking-wide">
@@ -869,6 +1427,33 @@ export default function AssessmentCenterPage() {
                   <option value="inactive">Tidak Aktif</option>
                 </select>
               </div>
+
+              {/* Template Info - Show when template is selected */}
+              {selectedTemplate && (
+                <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200">
+                  <div className="flex items-center gap-2 mb-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                    <span className="text-[13px] font-medium text-emerald-700">
+                      Template dipilih
+                    </span>
+                  </div>
+                  <p className="text-[12px] text-emerald-600">
+                    {selectedTemplate.items.length} item dan {selectedTemplate.periods.length} periode
+                    akan dibuat otomatis.
+                  </p>
+                </div>
+              )}
+
+              {/* Back to templates button */}
+              {!showTemplateSection && !editingCategory && (
+                <button
+                  onClick={() => setShowTemplateSection(true)}
+                  className="text-[12px] text-[var(--primary)] hover:underline flex items-center gap-1"
+                >
+                  <Zap className="w-3 h-3" />
+                  Lihat template yang tersedia
+                </button>
+              )}
             </div>
 
             {/* Modal Footer */}
@@ -878,6 +1463,201 @@ export default function AssessmentCenterPage() {
               </Button>
               <Button onClick={handleSubmit} isLoading={modalLoading}>
                 {editingCategory ? "Simpan" : "Buat"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================ */}
+      {/* FORMULA MODAL */}
+      {/* ============================================ */}
+      {showFormulaModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="relative p-6 border-b border-[var(--border-light)]">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-500/5 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
+              <div className="relative flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center">
+                    <Calculator className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <h2 className="text-lg font-bold text-[var(--text-primary)]">
+                    {editingFormula ? "Edit Formula" : "Formula Baru"}
+                  </h2>
+                </div>
+                <button
+                  onClick={() => setShowFormulaModal(false)}
+                  className="w-8 h-8 rounded-lg hover:bg-[var(--surface-hover)] flex items-center justify-center transition-colors"
+                >
+                  <X className="w-5 h-5 text-[var(--text-muted)]" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-5">
+              {/* Name */}
+              <div>
+                <label className="text-[12px] font-medium text-[var(--text-primary)] mb-2 block uppercase tracking-wide">
+                  Nama Formula <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formulaFormData.name}
+                  onChange={(e) => setFormulaFormData({ ...formulaFormData, name: e.target.value })}
+                  placeholder="Contoh: Nilai Semester Ganjil"
+                  className="w-full h-12 px-4 bg-[var(--surface-secondary)] border border-transparent rounded-2xl text-[15px] focus:outline-none focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--primary)]/10 transition-all"
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="text-[12px] font-medium text-[var(--text-primary)] mb-2 block uppercase tracking-wide">
+                  Deskripsi
+                </label>
+                <textarea
+                  value={formulaFormData.description}
+                  onChange={(e) => setFormulaFormData({ ...formulaFormData, description: e.target.value })}
+                  placeholder="Deskripsi formula..."
+                  rows={2}
+                  className="w-full px-4 py-3 bg-[var(--surface-secondary)] border border-transparent rounded-2xl text-[15px] focus:outline-none focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--primary)]/10 resize-none transition-all"
+                />
+              </div>
+
+              {/* Components */}
+              <div>
+                <label className="text-[12px] font-medium text-[var(--text-primary)] mb-2 block uppercase tracking-wide">
+                  Komponen Formula <span className="text-red-500">*</span>
+                </label>
+
+                {/* Existing Components */}
+                {formulaFormData.components.length > 0 && (
+                  <div className="space-y-2 mb-4">
+                    {formulaFormData.components.map((component, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-3 p-3 bg-[var(--surface-secondary)] rounded-xl"
+                      >
+                        {component.type === "category" ? (
+                          <div className="w-8 h-8 rounded-lg bg-[var(--primary-soft)] flex items-center justify-center">
+                            <Layers className="w-4 h-4 text-[var(--primary)]" />
+                          </div>
+                        ) : (
+                          <div className="w-8 h-8 rounded-lg bg-[var(--info-soft)] flex items-center justify-center">
+                            <Calculator className="w-4 h-4 text-[var(--info)]" />
+                          </div>
+                        )}
+                        <span className="flex-1 text-[14px] font-medium text-[var(--text-primary)]">
+                          {component.name}
+                        </span>
+                        <input
+                          type="number"
+                          value={component.weight}
+                          onChange={(e) => updateFormulaComponent(index, parseFloat(e.target.value) || 0)}
+                          className="w-20 h-9 px-3 text-center bg-white border border-transparent rounded-xl text-[14px] focus:outline-none focus:border-[var(--border-focus)] focus:ring-2 focus:ring-[var(--primary)]/10"
+                          min={0}
+                          max={100}
+                        />
+                        <span className="text-[14px] text-[var(--text-muted)]">%</span>
+                        <button
+                          onClick={() => removeFormulaComponent(index)}
+                          className="w-8 h-8 rounded-lg hover:bg-red-50 flex items-center justify-center transition-colors"
+                        >
+                          <X className="w-4 h-4 text-red-500" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Add Component Buttons */}
+                <div className="space-y-3">
+                  <p className="text-[12px] text-[var(--text-muted)]">Tambah Komponen:</p>
+
+                  {/* Categories */}
+                  {categories.length > 0 && (
+                    <div>
+                      <p className="text-[11px] text-[var(--text-muted)] mb-2 uppercase tracking-wide">
+                        Nilai Kategori:
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {categories.map((cat) => (
+                          <button
+                            key={cat.id}
+                            onClick={() => addFormulaComponent("category", cat.id)}
+                            className="px-3 py-1.5 text-[12px] bg-[var(--surface-secondary)] rounded-full hover:bg-[var(--primary-soft)] text-[var(--text-secondary)] hover:text-[var(--primary)] transition-colors flex items-center gap-1.5"
+                          >
+                            <Layers className="w-3 h-3" />
+                            {cat.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Modules */}
+                  <div>
+                    <p className="text-[11px] text-[var(--text-muted)] mb-2 uppercase tracking-wide">
+                      Konversi Modul:
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {moduleOptions.map((mod) => (
+                        <button
+                          key={mod.module}
+                          onClick={() => addFormulaComponent("module", undefined, mod.module)}
+                          className="px-3 py-1.5 text-[12px] bg-[var(--info-soft)] rounded-full hover:bg-[var(--info)] hover:text-white text-[var(--info)] transition-colors flex items-center gap-1.5"
+                        >
+                          <Calculator className="w-3 h-3" />
+                          {mod.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Weight Summary */}
+              <div className="p-4 bg-[var(--surface-secondary)] rounded-xl">
+                <div className="flex items-center justify-between">
+                  <span className="text-[14px] text-[var(--text-primary)] font-medium">
+                    Total Bobot
+                  </span>
+                  <div className="flex items-center gap-2">
+                    {totalFormulaWeight === 100 ? (
+                      <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                    ) : (
+                      <AlertCircle className="w-5 h-5 text-amber-500" />
+                    )}
+                    <span
+                      className={cn(
+                        "text-[18px] font-bold",
+                        totalFormulaWeight === 100 ? "text-emerald-600" : "text-amber-600"
+                      )}
+                    >
+                      {totalFormulaWeight}%
+                    </span>
+                  </div>
+                </div>
+                {totalFormulaWeight !== 100 && (
+                  <p className="text-[12px] text-amber-600 mt-2">
+                    Total bobot harus = 100% untuk formula yang valid
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-[var(--border-light)] bg-[var(--surface-secondary)]/50">
+              <Button variant="outline" onClick={() => setShowFormulaModal(false)}>
+                Batal
+              </Button>
+              <Button
+                onClick={handleFormulaSubmit}
+                isLoading={formulaModalLoading}
+                disabled={totalFormulaWeight !== 100}
+              >
+                <Save className="w-4 h-4 mr-1" />
+                {editingFormula ? "Simpan" : "Buat"}
               </Button>
             </div>
           </div>

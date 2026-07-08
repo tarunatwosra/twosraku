@@ -2,7 +2,7 @@
 
 /* ============================================
    Design Tokens - School Information System
-   Version: 1.0
+   Version: 2.0
    ============================================ */
 
 :root {
@@ -217,9 +217,21 @@
   --spacing-10: var(--spacing-10);
   --spacing-12: var(--spacing-12);
 
-  /* Font Family - set by Next.js */
-  --font-sans: var(--font-sans), "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-heading: var(--font-heading), "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
+  /* Font Size Scale (v2.0) */
+  --font-size-display: 40px;
+  --font-size-h1: 36px;
+  --font-size-h2: 28px;
+  --font-size-h3: 22px;
+  --font-size-h4: 18px;
+  --font-size-h5: 16px;
+  --font-size-h6: 15px;
+  --font-size-body: 14px;
+  --font-size-body-sm: 13px;
+  --font-size-caption: 12px;
+  --font-size-tiny: 11px;
+  --font-size-stat-lg: 28px;
+  --font-size-stat-md: 22px;
+  --font-size-stat-sm: 18px;
 }
 
 /* ============================================
@@ -245,9 +257,11 @@ body {
 }
 
 /* ============================================
-   Typography
+   Typography - Revised (v2.0)
+   Smooth hierarchy for better visual rhythm
    ============================================ */
 
+/* Display & Headings */
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading), "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
   font-weight: 600;
@@ -255,10 +269,72 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--text-primary);
 }
 
-h1 { font-size: 36px; }
-h2 { font-size: 28px; }
-h3 { font-size: 24px; }
-h4 { font-size: 20px; }
+h1 { font-size: 36px; }  /* Page titles */
+h2 { font-size: 28px; }  /* Major section headers */
+h3 { font-size: 22px; line-height: 1.35; }  /* Section titles, card headers */
+h4 { font-size: 18px; line-height: 1.4; }  /* Card titles, subsection headers */
+h5 { font-size: 16px; line-height: 1.5; }  /* Sub-section headers, form labels */
+h6 { font-size: 15px; line-height: 1.5; }  /* Inline labels, metadata */
+
+/* Body text */
+body {
+  font-size: 14px;  /* Reduced from 15px for better hierarchy */
+  line-height: 1.6;
+}
+
+/* Stat Value Sizes - for KPI cards and statistics */
+.text-stat-lg {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.text-stat-md {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.text-stat-sm {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* Body & Content text */
+.text-body {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.text-body-sm {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.text-caption {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.text-tiny {
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+/* Section Header - for consistent card/section titles */
+.text-section-title {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* Card Subtitle */
+.text-card-subtitle {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
 
 /* ============================================
    Selection & Scrollbar

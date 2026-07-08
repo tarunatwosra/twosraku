@@ -594,7 +594,7 @@ export default function AcademicSettingsPage() {
           <Card className="p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                <h2 className="text-section-title">
                   Tahun Ajaran
                 </h2>
                 <p className="text-sm text-[var(--text-muted)]">
@@ -667,7 +667,7 @@ export default function AcademicSettingsPage() {
             <Card className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                  <h2 className="text-section-title">
                     Skala Penilaian
                   </h2>
                   <p className="text-sm text-[var(--text-muted)]">{academic.gradingScale.name}</p>
@@ -709,7 +709,7 @@ export default function AcademicSettingsPage() {
             </Card>
 
             <Card className="p-6">
-              <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-6">
+              <h2 className="text-section-title mb-6">
                 Pengaturan Lainnya
               </h2>
 
@@ -768,7 +768,7 @@ export default function AcademicSettingsPage() {
           <Card className="p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-lg font-semibold text-[var(--text-primary)]">Jurusan</h2>
+                <h2 className="text-section-title">Jurusan</h2>
                 <p className="text-sm text-[var(--text-muted)]">Kelola jurusan di sekolah</p>
               </div>
               <Button
@@ -856,7 +856,7 @@ export default function AcademicSettingsPage() {
             <Card className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                  <h2 className="text-section-title">
                     Daftar Kelas
                   </h2>
                   <p className="text-sm text-[var(--text-muted)]">

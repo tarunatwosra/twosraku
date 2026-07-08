@@ -1089,6 +1089,10 @@ export function useAssessmentSession(sessionId?: string) {
         throw error
       }
 
+      if (!data) {
+        return { success: false, error: "No data returned" }
+      }
+
       const newParticipants = data.map(mapParticipant)
       setParticipants((prev) => [...prev, ...newParticipants])
       return { success: true, data: newParticipants }

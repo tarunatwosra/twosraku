@@ -111,7 +111,7 @@ export default function CharacterPointsPage() {
 
         {/* Categories */}
         <Card className="p-6">
-          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
+          <h2 className="text-section-title mb-4">
             Kategori Karakter
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -142,7 +142,7 @@ export default function CharacterPointsPage() {
           {/* Top Positive */}
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-[var(--text-primary)] flex items-center gap-2">
+              <h2 className="text-section-title flex items-center gap-2">
                 <Trophy className="w-5 h-5 text-[var(--success)]" />
                 Siswa Berprestise
               </h2>
@@ -181,7 +181,7 @@ export default function CharacterPointsPage() {
           {/* Top Negative */}
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-[var(--text-primary)] flex items-center gap-2">
+              <h2 className="text-section-title flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5 text-[var(--danger)]" />
                 Perlu Perhatian
               </h2>
@@ -209,7 +209,7 @@ export default function CharacterPointsPage() {
 
         {/* Recent Behaviors */}
         <Card className="p-6">
-          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
+          <h2 className="text-section-title mb-4">
             Perilaku Positif
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -220,7 +220,7 @@ export default function CharacterPointsPage() {
               >
                 <div className="flex items-center gap-2 mb-1">
                   <TrendingUp className="w-4 h-4 text-[var(--success)]" />
-                  <Badge variant="success" className="text-xs">
+                  <Badge variant="success" className="text-caption">
                     +{behavior.pointValue}
                   </Badge>
                 </div>
@@ -231,7 +231,7 @@ export default function CharacterPointsPage() {
             ))}
           </div>
 
-          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4 mt-6">
+          <h2 className="text-section-title mb-4 mt-6">
             Perilaku Negatif
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -242,7 +242,7 @@ export default function CharacterPointsPage() {
               >
                 <div className="flex items-center gap-2 mb-1">
                   <TrendingDown className="w-4 h-4 text-[var(--danger)]" />
-                  <Badge variant="danger" className="text-xs">
+                  <Badge variant="danger" className="text-caption">
                     {behavior.pointValue}
                   </Badge>
                 </div>
@@ -287,8 +287,8 @@ function StatCard({
           {icon}
         </div>
         <div>
-          <p className="text-2xl font-bold text-[var(--text-primary)]">{value}</p>
-          <p className="text-xs text-[var(--text-muted)]">{subtitle}</p>
+          <p className="text-stat-lg text-[var(--text-primary)]">{value}</p>
+          <p className="text-caption text-[var(--text-muted)]">{subtitle}</p>
         </div>
       </div>
     </Card>

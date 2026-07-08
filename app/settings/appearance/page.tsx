@@ -35,10 +35,10 @@ export default function AppearanceSettingsPage() {
       <div className="max-w-2xl space-y-6">
         {/* Theme */}
         <Card className="p-6">
-          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
+          <h2 className="text-section-title mb-4">
             Tema
           </h2>
-          <p className="text-sm text-[var(--text-muted)] mb-4">
+          <p className="text-body-sm text-[var(--text-muted)] mb-4">
             Pilih tampilan yang sesuai dengan preferensi Anda
           </p>
 
@@ -68,7 +68,7 @@ export default function AppearanceSettingsPage() {
                 </div>
                 <span
                   className={cn(
-                    "text-sm font-medium",
+                    "text-body-sm font-medium",
                     appearance.theme === theme.value
                       ? "text-[var(--primary)]"
                       : "text-[var(--text-primary)]"
@@ -86,10 +86,10 @@ export default function AppearanceSettingsPage() {
 
         {/* Accent Color */}
         <Card className="p-6">
-          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
+          <h2 className="text-section-title mb-4">
             Warna Aksen
           </h2>
-          <p className="text-sm text-[var(--text-muted)] mb-4">
+          <p className="text-body-sm text-[var(--text-muted)] mb-4">
             Pilih warna utama untuk elemen UI
           </p>
 
@@ -123,10 +123,10 @@ export default function AppearanceSettingsPage() {
 
         {/* Density */}
         <Card className="p-6">
-          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
+          <h2 className="text-section-title mb-4">
             Kepadatan Tampilan
           </h2>
-          <p className="text-sm text-[var(--text-muted)] mb-4">
+          <p className="text-body-sm text-[var(--text-muted)] mb-4">
             Atur jarak antar elemen
           </p>
 
@@ -155,7 +155,7 @@ export default function AppearanceSettingsPage() {
                   >
                     {density.label}
                   </p>
-                  <p className="text-sm text-[var(--text-muted)]">
+                  <p className="text-body-sm text-[var(--text-muted)]">
                     {density.description}
                   </p>
                 </div>
@@ -169,10 +169,10 @@ export default function AppearanceSettingsPage() {
 
         {/* Sidebar Style */}
         <Card className="p-6">
-          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
+          <h2 className="text-section-title mb-4">
             Gaya Sidebar
           </h2>
-          <p className="text-sm text-[var(--text-muted)] mb-4">
+          <p className="text-body-sm text-[var(--text-muted)] mb-4">
             Pilih tampilan sidebar navigasi
           </p>
 
@@ -201,7 +201,7 @@ export default function AppearanceSettingsPage() {
                   >
                     {style.label}
                   </p>
-                  <p className="text-sm text-[var(--text-muted)]">
+                  <p className="text-body-sm text-[var(--text-muted)]">
                     {style.description}
                   </p>
                 </div>
@@ -215,10 +215,10 @@ export default function AppearanceSettingsPage() {
 
         {/* Card Radius */}
         <Card className="p-6">
-          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
+          <h2 className="text-section-title mb-4">
             Kelengkungan Kartu
           </h2>
-          <p className="text-sm text-[var(--text-muted)] mb-4">
+          <p className="text-body-sm text-[var(--text-muted)] mb-4">
             Atur tingkat kelengkungan sudut kartu
           </p>
 
@@ -236,28 +236,28 @@ export default function AppearanceSettingsPage() {
               className="w-full"
             />
             <div className="flex items-center justify-between">
-              <span className="text-sm text-[var(--text-muted)]">Kotak</span>
+              <span className="text-body-sm text-[var(--text-muted)]">Kotak</span>
               <div
                 className="px-4 py-2 bg-[var(--surface-secondary)]"
                 style={{
                   borderRadius: `${appearance.cardRadius}px`,
                 }}
               >
-                <span className="text-sm font-medium">
+                <span className="text-body-sm font-medium">
                   {appearance.cardRadius}px
                 </span>
               </div>
-              <span className="text-sm text-[var(--text-muted)]">Bulat</span>
+              <span className="text-body-sm text-[var(--text-muted)]">Bulat</span>
             </div>
           </div>
         </Card>
 
         {/* Animation */}
         <Card className="p-6">
-          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
+          <h2 className="text-section-title mb-4">
             Animasi
           </h2>
-          <p className="text-sm text-[var(--text-muted)] mb-4">
+          <p className="text-body-sm text-[var(--text-muted)] mb-4">
             Tingkat animasi antarmuka
           </p>
 
@@ -279,10 +279,10 @@ export default function AppearanceSettingsPage() {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+              <h2 className="text-section-title">
                 Efek Kaca
               </h2>
-              <p className="text-sm text-[var(--text-muted)]">
+              <p className="text-body-sm text-[var(--text-muted)]">
                 Tampilkan efek transparan pada beberapa elemen
               </p>
             </div>

@@ -11,14 +11,14 @@ import { useAttendance, useAttendanceRecap } from "@/hooks/useAttendance"
 import { ATTENDANCE_STATUS_CONFIG, type AttendanceStatus } from "@/types/attendance"
 import {
   Calendar,
-  Clock,
   Users,
   CheckCircle2,
   AlertCircle,
   ChevronRight,
   Plus,
   FileText,
-  TrendingUp,
+  ChevronLeft,
+  ChevronRight as ChevronRightIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -26,17 +26,21 @@ export default function AttendancePage() {
   const router = useRouter()
   const { isAuthenticated, isLoading: authLoading } = useAuth()
   const {
-    summary,
     classId,
     date,
-    isSubmitted,
     classes,
-    loading,
     setClass,
     setDate,
-    markAllPresent,
   } = useAttendance()
   const { getDailyRecap } = useAttendanceRecap()
+
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0])
+  const [selectedClassId, setSelectedClassId] = useState("")
+
+  // Set initial date from hook
+  useEffect(() => {
+    setSelectedDate(date)
+  }, [date])
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -61,99 +65,172 @@ export default function AttendancePage() {
     return null
   }
 
+  // Navigate date
+  const navigateDate = (direction: "prev" | "next") => {
+    const d = new Date(selectedDate)
+    d.setDate(d.getDate() + (direction === "next" ? 1 : -1))
+    setSelectedDate(d.toISOString().split("T")[0])
+  }
+
+  // Format date for display
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString("id-ID", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    })
+  }
+
+  // Handle take attendance
+  const handleTakeAttendance = () => {
+    if (selectedClassId) {
+      router.push(`/presensi/input?class=${selectedClassId}&date=${selectedDate}`)
+    }
+  }
+
   return (
     <AppShell title="Presensi" description="Kelola kehadiran siswa">
       <div className="space-y-6">
-        {/* Quick Actions */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/presensi/input">
-              <Button className="gap-2">
+        {/* Header Card - Date & Class Selection */}
+        <Card className="p-6">
+          <div className="flex items-center justify-between gap-6">
+            {/* Date Selection */}
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigateDate("prev")}
+                  className="w-10 h-10 rounded-xl"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </Button>
+                <div className="flex items-center gap-3 px-5 py-3 bg-[var(--surface-secondary)] rounded-2xl min-w-[280px]">
+                  <Calendar className="w-5 h-5 text-[var(--primary)]" />
+                  <input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    className="bg-transparent text-body font-semibold focus:outline-none cursor-pointer"
+                  />
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigateDate("next")}
+                  className="w-10 h-10 rounded-xl"
+                >
+                  <ChevronRightIcon className="w-5 h-5" />
+                </Button>
+              </div>
+
+              <div className="text-caption text-[var(--text-muted)]">
+                {formatDate(selectedDate)}
+              </div>
+            </div>
+
+            {/* Class Selection */}
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3 px-5 py-3 bg-[var(--surface-secondary)] rounded-2xl min-w-[200px]">
+                <Users className="w-5 h-5 text-[var(--text-muted)]" />
+                <select
+                  value={selectedClassId}
+                  onChange={(e) => setSelectedClassId(e.target.value)}
+                  className="bg-transparent text-[15px] font-medium focus:outline-none cursor-pointer flex-1"
+                >
+                  <option value="">Pilih Kelas</option>
+                  {classes.map((cls) => (
+                    <option key={cls.id} value={cls.id}>
+                      {cls.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <Button
+                onClick={handleTakeAttendance}
+                disabled={!selectedClassId}
+                className="gap-2 px-6"
+              >
                 <Plus className="w-4 h-4" />
                 Ambil Presensi
               </Button>
-            </Link>
-            <Link href="/presensi/rekap">
-              <Button variant="outline" className="gap-2">
-                <FileText className="w-4 h-4" />
-                Lihat Rekap
-              </Button>
-            </Link>
+            </div>
           </div>
-          <p className="text-sm text-[var(--text-muted)]">
-            {new Date().toLocaleDateString("id-ID", {
-              weekday: "long",
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            })}
-          </p>
-        </div>
+        </Card>
 
-        {/* KPI Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <KPICard
-            title="Total Siswa"
-            value={summary.totalStudents}
-            subtitle="terdaftar"
-            icon={<Users className="w-5 h-5" />}
-            color="primary"
-          />
-          <KPICard
-            title="Hadir"
-            value={summary.present}
-            subtitle={`${summary.percentage.toFixed(1)}%`}
-            icon={<CheckCircle2 className="w-5 h-5" />}
-            color="success"
-          />
-          <KPICard
-            title="Izin / Sakit"
-            value={summary.permission + summary.sick}
-            subtitle="dengan izin"
-            icon={<AlertCircle className="w-5 h-5" />}
-            color="warning"
-          />
-          <KPICard
-            title="Alpha"
-            value={summary.absent}
-            subtitle="tanpa keterangan"
-            icon={<AlertCircle className="w-5 h-5" />}
-            color="danger"
-          />
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <Link href="/presensi/rekap" className="block">
+            <Card className="p-5 hover:shadow-md transition-shadow cursor-pointer group">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-[var(--primary-soft)] flex items-center justify-center">
+                    <FileText className="w-6 h-6 text-[var(--primary)]" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-[var(--text-primary)]">Rekapitulasi</p>
+                    <p className="text-caption text-[var(--text-muted)]">Lihat rekap harian & mingguan</p>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-[var(--text-muted)] group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Card>
+          </Link>
+
+          <Card className="p-5">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-[var(--success-soft)] flex items-center justify-center">
+                <CheckCircle2 className="w-6 h-6 text-[var(--success)]" />
+              </div>
+              <div>
+                <p className="text-body-sm text-[var(--text-muted)]">Hadir Hari Ini</p>
+                <p className="text-stat-lg text-[var(--success)]">87%</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-5">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-[var(--danger-soft)] flex items-center justify-center">
+                <AlertCircle className="w-6 h-6 text-[var(--danger)]" />
+              </div>
+              <div>
+                <p className="text-body-sm text-[var(--text-muted)]">Alpha Hari Ini</p>
+                <p className="text-stat-lg text-[var(--danger)]">12</p>
+              </div>
+            </div>
+          </Card>
         </div>
 
         {/* Attendance by Class */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-[var(--text-primary)]">
-              Presensi per Kelas
-            </h2>
-            <Link
-              href="/presensi/rekap"
-              className="text-sm text-[var(--primary)] hover:underline flex items-center gap-1"
-            >
-              Lihat Semua
-              <ChevronRight className="w-4 h-4" />
-            </Link>
+        <Card className="p-0 overflow-hidden">
+          <div className="p-6 border-b border-[var(--border-light)]">
+            <div className="flex items-center justify-between">
+              <h2 className="text-section-title">
+                Presensi per Kelas
+              </h2>
+              <Link
+                href="/presensi/rekap"
+                className="text-sm text-[var(--primary)] hover:underline flex items-center gap-1"
+              >
+                Lihat Semua
+                <ChevronRight className="w-4 h-4" />
+              </Link>
+            </div>
           </div>
 
-          <div className="space-y-3">
+          <div className="divide-y divide-[var(--border-light)]">
             {classes.map((cls) => (
               <Link key={cls.id} href={`/presensi/kelas/${cls.id}`}>
-                <div
-                  className={cn(
-                    "flex items-center justify-between p-4 rounded-lg border transition-colors cursor-pointer",
-                    classId === cls.id
-                      ? "border-[var(--primary)] bg-[var(--primary-soft)]"
-                      : "border-[var(--border)] hover:border-[var(--primary)]"
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-[var(--surface-secondary)] flex items-center justify-center">
-                      <Users className="w-5 h-5 text-[var(--text-secondary)]" />
+                <div className="flex items-center justify-between p-5 hover:bg-[var(--surface-hover)] transition-colors cursor-pointer group">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-[var(--surface-secondary)] flex items-center justify-center group-hover:bg-[var(--primary-soft)] transition-colors">
+                      <Users className="w-6 h-6 text-[var(--text-secondary)] group-hover:text-[var(--primary)] transition-colors" />
                     </div>
                     <div>
-                      <p className="font-medium text-[var(--text-primary)]">
+                      <p className="font-semibold text-[var(--text-primary)]">
                         {cls.name}
                       </p>
                       <p className="text-sm text-[var(--text-muted)]">
@@ -161,11 +238,12 @@ export default function AttendancePage() {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <StatusBadge status="present" count={28} />
-                    <StatusBadge status="late" count={2} />
-                    <StatusBadge status="absent" count={2} />
-                    <ChevronRight className="w-5 h-5 text-[var(--text-muted)]" />
+                  <div className="flex items-center gap-6">
+                    <StatusBadge label="H" count={28} color="success" />
+                    <StatusBadge label="S" count={2} color="warning" />
+                    <StatusBadge label="I" count={1} color="info" />
+                    <StatusBadge label="A" count={1} color="danger" />
+                    <ChevronRight className="w-5 h-5 text-[var(--text-muted)] group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>
               </Link>
@@ -175,11 +253,11 @@ export default function AttendancePage() {
 
         {/* Recent Activity */}
         <Card className="p-6">
-          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
+          <h2 className="text-section-title mb-4">
             Aktivitas Terbaru
           </h2>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             <ActivityItem
               title="Presensi X TKJ 1"
               description="32 siswa - 100% hadir"
@@ -190,7 +268,7 @@ export default function AttendancePage() {
               title="Presensi XI TKJ 1"
               description="30 siswa - 2 izin"
               time="08:45"
-              icon={<AlertCircle className="w-4 h-4 text-[var(--warning)]" />}
+              icon={<AlertCircle className="w-4 h-4 text-[var(--info)]" />}
             />
             <ActivityItem
               title="Presensi XII TKJ 1"
@@ -205,55 +283,27 @@ export default function AttendancePage() {
   )
 }
 
-// KPI Card Component
-interface KPICardProps {
-  title: string
-  value: number
-  subtitle: string
-  icon: React.ReactNode
-  color: "primary" | "success" | "warning" | "danger"
-}
-
-function KPICard({ title, value, subtitle, icon, color }: KPICardProps) {
+// Status Badge Component
+function StatusBadge({
+  label,
+  count,
+  color,
+}: {
+  label: string
+  count: number
+  color: "success" | "warning" | "info" | "danger"
+}) {
   const colors = {
-    primary: "bg-[var(--primary-soft)] text-[var(--primary)]",
     success: "bg-[var(--success-soft)] text-[var(--success)]",
     warning: "bg-[var(--warning-soft)] text-[var(--warning)]",
+    info: "bg-[var(--info-soft)] text-[var(--info)]",
     danger: "bg-[var(--danger-soft)] text-[var(--danger)]",
   }
 
   return (
-    <Card className="p-4">
-      <div className="flex items-center gap-3">
-        <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", colors[color])}>
-          {icon}
-        </div>
-        <div>
-          <p className="text-sm text-[var(--text-muted)]">{title}</p>
-          <p className="text-xl font-bold text-[var(--text-primary)]">
-            {value}
-          </p>
-          <p className="text-xs text-[var(--text-muted)]">{subtitle}</p>
-        </div>
-      </div>
-    </Card>
-  )
-}
-
-// Status Badge Component
-function StatusBadge({ status, count }: { status: AttendanceStatus; count: number }) {
-  const config = ATTENDANCE_STATUS_CONFIG[status]
-  const colors = {
-    present: "bg-[var(--success-soft)] text-[var(--success)]",
-    late: "bg-[var(--warning-soft)] text-[var(--warning)]",
-    permission: "bg-[var(--info-soft)] text-[var(--info)]",
-    sick: "bg-[var(--warning-soft)] text-[var(--warning)]",
-    absent: "bg-[var(--danger-soft)] text-[var(--danger)]",
-  }
-
-  return (
-    <div className={cn("px-2 py-1 rounded text-xs font-medium", colors[status])}>
-      {count} {config.shortLabel}
+    <div className={cn("flex items-center gap-1.5 px-2.5 py-1 rounded-full text-caption font-semibold", colors[color])}>
+      <span>{label}</span>
+      <span className="opacity-70">{count}</span>
     </div>
   )
 }
@@ -271,15 +321,15 @@ function ActivityItem({
   icon: React.ReactNode
 }) {
   return (
-    <div className="flex items-center gap-3">
-      <div className="w-8 h-8 rounded-full bg-[var(--surface-secondary)] flex items-center justify-center">
+    <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-[var(--surface-secondary)] transition-colors">
+      <div className="w-10 h-10 rounded-full bg-[var(--surface-secondary)] flex items-center justify-center">
         {icon}
       </div>
       <div className="flex-1">
         <p className="text-sm font-medium text-[var(--text-primary)]">{title}</p>
-        <p className="text-xs text-[var(--text-muted)]">{description}</p>
+        <p className="text-caption text-[var(--text-muted)]">{description}</p>
       </div>
-      <span className="text-xs text-[var(--text-muted)]">{time}</span>
+      <span className="text-caption text-[var(--text-muted)] font-medium">{time}</span>
     </div>
   )
 }

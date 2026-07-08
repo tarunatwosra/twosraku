@@ -210,10 +210,10 @@ export default function AnalyticsReportsPage() {
                     {Math.abs(card.change)}%
                   </Badge>
                 </div>
-                <p className="text-2xl font-bold text-[var(--text-primary)] mb-1">
+                <p className="text-stat-lg text-[var(--text-primary)] mb-1">
                   {card.value}
                 </p>
-                <p className="text-[13px] text-[var(--text-muted)]">
+                <p className="text-body-sm text-[var(--text-muted)]">
                   {card.title}
                 </p>
               </Card>
@@ -489,7 +489,7 @@ export default function AnalyticsReportsPage() {
 
                 {/* Center text */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-2xl font-bold text-[var(--text-primary)]">156</span>
+                  <span className="text-stat-lg text-[var(--text-primary)]">156</span>
                   <span className="text-[11px] text-[var(--text-muted)]">Total</span>
                 </div>
               </div>

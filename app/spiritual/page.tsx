@@ -161,7 +161,7 @@ export default function SpiritualPage() {
                 placeholder="Cari kegiatan..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-11 pl-11 pr-4 bg-[var(--surface-secondary)] border border-transparent rounded-[18px] text-[15px] focus:outline-none focus:border-[var(--border-focus)]"
+                className="w-full h-11 pl-11 pr-4 bg-[var(--surface-secondary)] border border-transparent rounded-[18px] text-body focus:outline-none focus:border-[var(--border-focus)]"
               />
             </div>
           </div>
@@ -234,10 +234,10 @@ export default function SpiritualPage() {
                 >
                   <TypeIcon className="w-6 h-6" style={{ color: type.color }} />
                 </div>
-                <p className="text-[15px] font-semibold text-[var(--text-primary)]">
+                <p className="text-h5 text-[var(--text-primary)]">
                   {type.name}
                 </p>
-                <p className="text-[13px] text-[var(--text-muted)]">
+                <p className="text-body-sm text-[var(--text-muted)]">
                   {count} kegiatan
                 </p>
               </Card>
@@ -249,7 +249,7 @@ export default function SpiritualPage() {
         <Card className="p-0 overflow-hidden">
           <div className="p-6 border-b border-[var(--border-light)]">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+              <h2 className="text-section-title">
                 Kegiatan Terbaru
               </h2>
               <div className="flex items-center gap-2">
@@ -304,10 +304,10 @@ export default function SpiritualPage() {
                       <TypeIcon className="w-6 h-6" style={{ color: activityType.color }} />
                     </div>
                     <div>
-                      <p className="text-[15px] font-medium text-[var(--text-primary)]">
+                      <p className="text-h5 text-[var(--text-primary)]">
                         {activity.title}
                       </p>
-                      <div className="flex items-center gap-3 text-[13px] text-[var(--text-muted)]">
+                      <div className="flex items-center gap-3 text-body-sm text-[var(--text-muted)]">
                         <span>{new Date(activity.date).toLocaleDateString("id-ID", {
                           day: "numeric",
                           month: "short",
@@ -415,9 +415,9 @@ function StatCard({
           {icon}
         </div>
         <div>
-          <p className="text-2xl font-bold text-[var(--text-primary)]">{value}</p>
-          <p className="text-sm text-[var(--text-muted)]">{title}</p>
-          {subtitle && <p className="text-xs text-[var(--text-muted)]">{subtitle}</p>}
+          <p className="text-stat-lg text-[var(--text-primary)]">{value}</p>
+          <p className="text-caption text-[var(--text-muted)]">{title}</p>
+          {subtitle && <p className="text-tiny text-[var(--text-muted)]">{subtitle}</p>}
         </div>
       </div>
     </Card>

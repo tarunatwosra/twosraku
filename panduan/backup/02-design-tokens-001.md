@@ -1,18 +1,5 @@
 # Design Tokens
-Version: 2.0
-
----
-
-## Changelog
-
-### v2.0 - Typography Revision
-- Complete overhaul of font size hierarchy
-- Added new font size classes: `text-stat-lg`, `text-stat-md`, `text-stat-sm`
-- Added body text classes: `text-body`, `text-body-sm`, `text-caption`, `text-tiny`
-- Added section title class: `text-section-title`
-- Revised heading scale: H3=22px, H4=18px, H5=16px, H6=15px
-- Body text reduced from 15px to 14px for better hierarchy
-- See Font Sizes section for full migration guide
+Version: 1.0
 
 ---
 
@@ -341,75 +328,69 @@ ExtraBold
 
 # Font Sizes
 
-## Revised Typography Scale (v2.0)
+Display
 
-Rentang hierarki font yang lebih smooth untuk hierarki visual yang lebih jelas.
+```
+40px
+```
 
-### Heading Hierarchy
+H1
 
-| Name | Size | Line Height | Usage |
-|------|------|-------------|-------|
-| Display | 40px | 1.2 | Hero sections, landing pages |
-| H1 | 36px | 1.3 | Page titles (used in AppShell) |
-| H2 | 28px | 1.3 | Major section headers |
-| H3 | 22px | 1.35 | Section titles, card headers |
-| H4 | 18px | 1.4 | Card titles, subsection headers |
-| H5 | 16px | 1.5 | Sub-section headers, form labels |
-| H6 | 15px | 1.5 | Inline labels, metadata |
+```
+36px
+```
 
-### Body & Content
+H2
 
-| Name | Size | Line Height | Usage |
-|------|------|-------------|-------|
-| Body | 14px | 1.6 | Main content text |
-| Body Small | 13px | 1.5 | Secondary content |
-| Caption | 12px | 1.5 | Helper text, timestamps |
-| Tiny | 11px | 1.4 | Badges, tags, very small labels |
+```
+28px
+```
 
-### Stat Values
+H3
 
-| Name | Size | Weight | Usage |
-|------|------|--------|-------|
-| Stat Large | 28px | 700 (Bold) | Main stat values in cards |
-| Stat Medium | 22px | 700 (Bold) | Secondary stat values |
-| Stat Small | 18px | 600 (Semibold) | Compact stat values |
+```
+24px
+```
+
+H4
+
+```
+20px
+```
+
+Card Title
+
+```
+18px
+```
+
+Body
+
+```
+15px
+```
+
+Small
+
+```
+14px
+```
+
+Caption
+
+```
+13px
+```
+
+Tiny
+
+```
+12px
+```
 
 ---
 
-## Versi Lama (v1.0) - Deprecated
-
-Font sizes lama yang masih digunakan di beberapa tempat. Targetkan untukMigrasi ke versi baru (v2.0).
-
-```
-Display: 40px
-H1: 36px
-H2: 28px
-H3: 24px  ❌ → Ganti ke H3: 22px
-H4: 20px  ❌ → Ganti ke H5: 16px
-Card Title: 18px → Merge ke H4
-Body: 15px   ❌ → Ganti ke Body: 14px
-Small: 14px  ❌ → Ganti ke Body Small: 13px
-Caption: 13px ❌ → Ganti ke Caption: 12px
-Tiny: 12px   ❌ → Ganti ke Tiny: 11px
-```
-
-### Migration Guide
-
-| Old | New | Notes |
-|-----|-----|-------|
-| `text-[24px]` | `text-h3` atau `text-[22px]` | Heading 3 |
-| `text-[20px]` | `text-h4` atau `text-[18px]` | Heading 4 |
-| `text-lg` (18px) | `text-h4` atau `text-[18px]` | Card titles |
-| `text-[16px]` | `text-h5` atau `text-[16px]` | Form labels |
-| `text-[15px]` | `text-body` atau `text-[14px]` | Body text |
-| `text-[14px]` | `text-[13px]` | Secondary content |
-| `text-[13px]` | `text-caption` atau `text-[12px]` | Captions |
-| `text-[12px]` | `text-tiny` atau `text-[11px]` | Badges |
-| `text-2xl` (24px) | `text-stat-lg` atau `text-[28px]` | Stat values |
-
----
-
-## Line Height
+# Line Height
 
 Display
 

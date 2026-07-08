@@ -15,14 +15,14 @@ export default function SchoolSettingsPage() {
     <AppShell title="Profil Sekolah" description="Informasi identitas sekolah">
       <div className="max-w-2xl">
         <Card className="p-6">
-          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-6">
+          <h2 className="text-section-title mb-6">
             Profil Sekolah
           </h2>
 
           <div className="space-y-6">
             {/* Logo Upload */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-[var(--text-secondary)]">
+              <label className="text-body-sm font-medium text-[var(--text-secondary)]">
                 Logo Sekolah
               </label>
               <div className="flex items-center gap-4">
@@ -49,7 +49,7 @@ export default function SchoolSettingsPage() {
 
             {/* School Name */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-[var(--text-secondary)]">
+              <label className="text-body-sm font-medium text-[var(--text-secondary)]">
                 Nama Sekolah *
               </label>
               <Input
@@ -63,7 +63,7 @@ export default function SchoolSettingsPage() {
 
             {/* NPSN */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-[var(--text-secondary)]">
+              <label className="text-body-sm font-medium text-[var(--text-secondary)]">
                 NPSN
               </label>
               <Input
@@ -77,7 +77,7 @@ export default function SchoolSettingsPage() {
 
             {/* Address */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-[var(--text-secondary)]">
+              <label className="text-body-sm font-medium text-[var(--text-secondary)]">
                 Alamat
               </label>
               <textarea
@@ -94,7 +94,7 @@ export default function SchoolSettingsPage() {
             {/* City & Province */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-[var(--text-secondary)]">
+                <label className="text-body-sm font-medium text-[var(--text-secondary)]">
                   Kota/Kabupaten
                 </label>
                 <Input
@@ -106,7 +106,7 @@ export default function SchoolSettingsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-[var(--text-secondary)]">
+                <label className="text-body-sm font-medium text-[var(--text-secondary)]">
                   Provinsi
                 </label>
                 <Input
@@ -121,7 +121,7 @@ export default function SchoolSettingsPage() {
 
             {/* Postal Code */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-[var(--text-secondary)]">
+              <label className="text-body-sm font-medium text-[var(--text-secondary)]">
                 Kode Pos
               </label>
               <Input
@@ -137,7 +137,7 @@ export default function SchoolSettingsPage() {
             {/* Phone & Email */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-[var(--text-secondary)]">
+                <label className="text-body-sm font-medium text-[var(--text-secondary)]">
                   Telepon
                 </label>
                 <Input
@@ -149,7 +149,7 @@ export default function SchoolSettingsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-[var(--text-secondary)]">
+                <label className="text-body-sm font-medium text-[var(--text-secondary)]">
                   Email
                 </label>
                 <Input
@@ -165,7 +165,7 @@ export default function SchoolSettingsPage() {
 
             {/* Website */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-[var(--text-secondary)]">
+              <label className="text-body-sm font-medium text-[var(--text-secondary)]">
                 Website
               </label>
               <Input
@@ -179,7 +179,7 @@ export default function SchoolSettingsPage() {
 
             {/* Principal Name */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-[var(--text-secondary)]">
+              <label className="text-body-sm font-medium text-[var(--text-secondary)]">
                 Nama Kepala Sekolah
               </label>
               <Input
@@ -193,7 +193,7 @@ export default function SchoolSettingsPage() {
 
             {/* Vision */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-[var(--text-secondary)]">
+              <label className="text-body-sm font-medium text-[var(--text-secondary)]">
                 Visi
               </label>
               <textarea
@@ -209,7 +209,7 @@ export default function SchoolSettingsPage() {
 
             {/* Mission */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-[var(--text-secondary)]">
+              <label className="text-body-sm font-medium text-[var(--text-secondary)]">
                 Misi
               </label>
               <textarea

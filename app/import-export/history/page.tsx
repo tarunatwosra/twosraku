@@ -370,29 +370,29 @@ export default function HistoryPage() {
         {/* Statistics */}
         <div className="grid grid-cols-4 gap-4">
           <Card className="p-4">
-            <p className="text-sm text-[var(--text-muted)]">Total</p>
-            <p className="text-2xl font-bold text-[var(--text-primary)]">{stats.total}</p>
+            <p className="text-body-sm text-[var(--text-muted)]">Total</p>
+            <p className="text-stat-lg text-[var(--text-primary)]">{stats.total}</p>
           </Card>
           <Card className="p-4">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-5 h-5 text-[var(--success)]" />
-              <p className="text-sm text-[var(--text-muted)]">Selesai</p>
+              <p className="text-body-sm text-[var(--text-muted)]">Selesai</p>
             </div>
-            <p className="text-2xl font-bold text-[var(--success)]">{stats.completed}</p>
+            <p className="text-stat-lg text-[var(--success)]">{stats.completed}</p>
           </Card>
           <Card className="p-4">
             <div className="flex items-center gap-2">
               <XCircle className="w-5 h-5 text-[var(--danger)]" />
-              <p className="text-sm text-[var(--text-muted)]">Gagal</p>
+              <p className="text-body-sm text-[var(--text-muted)]">Gagal</p>
             </div>
-            <p className="text-2xl font-bold text-[var(--danger)]">{stats.failed}</p>
+            <p className="text-stat-lg text-[var(--danger)]">{stats.failed}</p>
           </Card>
           <Card className="p-4">
             <div className="flex items-center gap-2">
               <Clock className="w-5 h-5 text-[var(--warning)]" />
-              <p className="text-sm text-[var(--text-muted)]">Diproses</p>
+              <p className="text-body-sm text-[var(--text-muted)]">Diproses</p>
             </div>
-            <p className="text-2xl font-bold text-[var(--warning)]">{stats.processing}</p>
+            <p className="text-stat-lg text-[var(--warning)]">{stats.processing}</p>
           </Card>
         </div>
 

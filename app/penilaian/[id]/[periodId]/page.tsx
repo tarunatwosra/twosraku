@@ -498,7 +498,6 @@ export default function PeriodScoringPage() {
             {/* Category Avatar */}
             <Avatar
               fallback={category.name}
-              icon={<Layers className="w-5 h-5" />}
               className="w-12 h-12"
               style={{
                 backgroundColor: `${categoryColor}20`,

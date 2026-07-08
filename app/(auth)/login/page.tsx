@@ -116,9 +116,9 @@ export default function LoginPage() {
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--primary)] mb-4">
           <GraduationCap className="w-8 h-8 text-white" />
         </div>
-        <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-1">
+        <h3 className="text-section-title text-[var(--text-primary)] mb-1">
           Twosraku
-        </h1>
+        </h3>
         <p className="text-sm text-[var(--text-muted)]">
           Sistem Manajemen SMKN 2 Sragen
         </p>

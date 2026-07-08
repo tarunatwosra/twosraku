@@ -526,7 +526,6 @@ export default function CategoryDetailPage() {
               {/* Category Avatar */}
               <Avatar
                 fallback={category.name}
-                icon={<Layers className="w-6 h-6" />}
                 className="w-14 h-14"
                 style={{
                   backgroundColor: `${categoryColor}20`,

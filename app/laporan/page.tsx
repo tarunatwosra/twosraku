@@ -339,7 +339,7 @@ export default function ReportsDashboardPage() {
 
         {/* Report Categories */}
         <Card className="p-6">
-          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
+          <h2 className="text-section-title mb-4">
             Kategori Laporan
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -373,7 +373,7 @@ export default function ReportsDashboardPage() {
           {/* Selected Category Reports */}
           {selectedCategory && (
             <div className="mt-6 pt-6 border-t border-[var(--border-light)]">
-              <h3 className="text-[16px] font-medium text-[var(--text-primary)] mb-4">
+              <h3 className="text-h5 text-[var(--text-primary)] mb-4">
                 Laporan {REPORT_CATEGORIES.find((c) => c.id === selectedCategory)?.name}
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -399,7 +399,7 @@ export default function ReportsDashboardPage() {
         <Card className="p-0 overflow-hidden">
           <div className="p-6 border-b border-[var(--border-light)]">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+              <h2 className="text-section-title">
                 Laporan Terbaru
               </h2>
               <Button variant="ghost" size="sm" onClick={() => router.push("/laporan/history")}>
@@ -492,8 +492,8 @@ function StatCard({
           {icon}
         </div>
         <div>
-          <p className="text-2xl font-bold text-[var(--text-primary)]">{value}</p>
-          <p className="text-sm text-[var(--text-muted)]">{title}</p>
+          <p className="text-stat-lg text-[var(--text-primary)]">{value}</p>
+          <p className="text-caption text-[var(--text-muted)]">{title}</p>
         </div>
       </div>
     </Card>

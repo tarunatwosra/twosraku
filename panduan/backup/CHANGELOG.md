@@ -28,7 +28,85 @@ Berisi catatan semua perubahan yang dilakukan pada file-file panduan. Setiap kal
 
 <!-- Changelog entries will be added below this line -->
 
-## 2026-07-08
+## 2026-07-08 (Afternoon - Penggabungan Formula)
+
+### assessment.md (19-feature-specifications/)
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-07-08 |
+| Perubahan | REFACTOR v6.0: (1) Gabungkan Formula ke halaman Pusat Penilaian (card terpisah). (2) Hapus folder: template, session, kategori, formula (tetap dihapus). (3) Update sidebar - hapus link ke halaman yang dihapus. (4) Update panduan dengan navigation structure baru. |
+| Backup | assessment-001.md |
+| Catatan | Formula sekarang tampil dalam card di bawah Kategori |
+
+## 2026-07-08 (Typography Revision)
+
+### 02-design-tokens.md
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-07-08 |
+| Perubahan | Typography System v2.0 - Complete overhaul: (1) Revisi hierarki font sizes: H3=22px, H4=18px, H5=16px, H6=15px. (2) Body text: 15px→14px. (3) Caption: 13px→12px. (4) Added utility classes: text-stat-lg (28px), text-stat-md (22px), text-stat-sm (18px), text-body, text-body-sm, text-caption, text-tiny, text-section-title. (5) Migration guide ditambahkan. |
+| Backup | 02-design-tokens-001.md |
+| Catatan | Files updated: globals.css, semua page.tsx di modul (Tabungan, Presensi, Penilaian, Poin Karakter, Spiritual, Laporan, Import-Export, Pasukan Khusus, Settings, dll) |
+
+## 2026-07-08 (Morning - Updated)
+
+### attendance.md (19-feature-specifications/)
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-07-08 |
+| Perubahan | UI/UX REFACTOR v2.1 FINAL: (1) Card wrappers untuk semua sections (Header, Filter, Summary). (2) Consistent spacing: p-4/p-5 cards, space-y-6 sections. (3) Fix hooks order bug di kelas/[id] page. (4) Print & Export features. (5) Realistic dummy data dengan weekend handling. (6) Layout structure diagrams ditambahkan. |
+| Backup | attendance-001.md (v2.1 sebelumnya), attendance-002.md (v1.0) |
+| Catatan | Files: page.tsx, input/page.tsx, rekap/page.tsx, kelas/[id]/page.tsx, hooks/useAttendance.ts |
+
+## 2026-07-08 (Morning)
+
+### attendance.md (19-feature-specifications/)
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-07-08 |
+| Perubahan | UI/UX REFACTOR v2.0: (1) Alur disederhanakan: Tahun Ajaran & Semester auto dari Settings (dihapus dari UI). (2) Status HSIA (Hadir, Sakit, Ijin, Alpa) - hapus Terlambat. (3) Default semua Hadir. (4) Pilih tanggal default hari ini. (5) Filter tab di halaman input. (6) UI diselaraskan dengan student-registry patterns. |
+| Backup | attendance-001.md |
+| Catatan | Refactor UI halaman: /presensi, /presensi/input, /presensi/rekap, /presensi/kelas/[id] |
+
+## 2026-07-08 (Late Night)
+
+### assessment.md (19-feature-specifications/)
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-07-08 |
+| Perubahan | CLEANUP v7.0 FINAL: (1) Hapus folder /penilaian/input (fungsi sudah dipindahkan ke Quick Score). (2) Hapus link "Input Nilai" dari sidebar. (3) Verifikasi semua data sudah dari Supabase. (4) Update status implementasi di panduan. |
+| Backup | assessment-001.md (shifted from previous) |
+| Catatan | Quick Score sudah lengkap dengan filter Kategori→Periode→Kelas dari database |
+
+## 2026-07-08 (Night)
+
+### assessment.md (19-feature-specifications/)
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-07-08 |
+| Perubahan | QUICK SCORE v7.0: (1) Hapus halaman input penilaian lama ([id]/[periodId]/page.tsx). (2) Tambah filter Kelas di Quick Score (setelah filter Periode). (3) Ubah input dari card menjadi tabel. (4) Tambah kolom hasil kategori di kanan. (5) 1 tombol Simpan Semua (hapus simpan per siswa). |
+| Backup | assessment-001.md |
+| Catatan | File input penilaian dihapus |
+
+## 2026-07-08 (Malam)
+
+### assessment.md (19-feature-specifications/)
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-07-08 |
+| Perubahan | QUICK SCORE ENHANCEMENT v6.0: (1) Template "Kerajinan Tangan" ditambahkan (3rd template). (2) Fitur inline item creation di Quick Score page dengan modal untuk tambah item baru. (3) Per-student save dengan badge "Tersimpan". (4) File structure diupdate dengan quick/page.tsx. |
+| Backup | assessment-001.md |
+| Catatan | Backup sebelumnya di-shift: 001→002 |
+
+## 2026-07-08 (Sore)
+
+### assessment.md (19-feature-specifications/)
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-07-08 |
+| Perubahan | FEATURE UPDATE v5.0: (1) Quick Score page baru (/penilaian/quick) untuk input langsung tanpa setup. (2) Template presets di modal Kategori Baru (Jasmani Standar, PBB Mingguan, Kerajinan Tangan). (3) Inline item creation di halaman Quick Score. (4) Update navigation sidebar dengan Quick Score. (5) Navigation structure di panduan diupdate. |
+| Backup | - |
+| Catatan | File baru: app/penilaian/quick/page.tsx |
 
 ### assessment.md (19-feature-specifications/)
 | Field | Value |

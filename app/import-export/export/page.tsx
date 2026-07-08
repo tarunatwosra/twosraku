@@ -555,28 +555,28 @@ export default function ExportWizardPage() {
               {/* Export Summary */}
               <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="p-4 bg-[var(--surface-secondary)] rounded-[14px] text-center">
-                  <p className="text-2xl font-bold text-[var(--primary)]">
+                  <p className="text-stat-lg text-[var(--primary)]">
                     {currentModule?.recordCount.toLocaleString("id-ID")}
                   </p>
-                  <p className="text-xs text-[var(--text-muted)]">Total Record</p>
+                  <p className="text-caption text-[var(--text-muted)]">Total Record</p>
                 </div>
                 <div className="p-4 bg-[var(--surface-secondary)] rounded-[14px] text-center">
-                  <p className="text-2xl font-bold text-[var(--success)]">
+                  <p className="text-stat-lg text-[var(--success)]">
                     {selectedColumns.length}
                   </p>
-                  <p className="text-xs text-[var(--text-muted)]">Kolom</p>
+                  <p className="text-caption text-[var(--text-muted)]">Kolom</p>
                 </div>
                 <div className="p-4 bg-[var(--surface-secondary)] rounded-[14px] text-center">
-                  <p className="text-2xl font-bold text-[var(--text-primary)]">
+                  <p className="text-stat-lg text-[var(--text-primary)]">
                     {filters.academicYear}
                   </p>
-                  <p className="text-xs text-[var(--text-muted)]">Tahun Ajaran</p>
+                  <p className="text-caption text-[var(--text-muted)]">Tahun Ajaran</p>
                 </div>
                 <div className="p-4 bg-[var(--surface-secondary)] rounded-[14px] text-center">
-                  <p className="text-2xl font-bold text-[var(--text-primary)] uppercase">
+                  <p className="text-stat-lg text-[var(--text-primary)] uppercase">
                     {selectedFormat}
                   </p>
-                  <p className="text-xs text-[var(--text-muted)]">Format</p>
+                  <p className="text-caption text-[var(--text-muted)]">Format</p>
                 </div>
               </div>
             </div>
