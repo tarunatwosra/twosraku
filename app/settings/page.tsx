@@ -19,6 +19,7 @@ import {
   Globe,
   Calendar,
   ChevronRight,
+  QrCode,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -42,6 +43,13 @@ const settingsNav = [
     description: "Tahun ajaran, semester, sistem penilaian",
     href: "/settings/academic",
     icon: <GraduationCap className="w-5 h-5" />,
+    badge: null,
+  },
+  {
+    title: "Registrasi Siswa",
+    description: "Pengaturan registrasi mandiri via QR",
+    href: "/settings/registration",
+    icon: <QrCode className="w-5 h-5" />,
     badge: null,
   },
   {
