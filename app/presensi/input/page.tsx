@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, Suspense } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { AppShell } from "@/components/layout"
@@ -21,12 +21,28 @@ import {
   Save,
   ChevronLeft,
   ChevronRight,
+  Loader2,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 type FilterTab = "all" | "sick" | "permission" | "absent"
 
-export default function AttendanceInputPage() {
+// Loading fallback
+function LoadingFallback() {
+  return (
+    <div className="max-w-lg mx-auto px-4 py-6">
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <Loader2 className="w-10 h-10 animate-spin text-[var(--primary)] mx-auto mb-4" />
+          <p className="text-sm text-[var(--text-muted)]">Memuat...</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Inner component that uses useSearchParams
+function AttendanceInputContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -69,7 +85,7 @@ export default function AttendanceInputPage() {
   }, [isAuthenticated, authLoading, router])
 
   if (authLoading || !isAuthenticated) {
-    return null
+    return <LoadingFallback />
   }
 
   // Filter records based on active tab
@@ -393,6 +409,15 @@ export default function AttendanceInputPage() {
         </Card>
       </div>
     </AppShell>
+  )
+}
+
+// Main page component with Suspense wrapper
+export default function AttendanceInputPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <AttendanceInputContent />
+    </Suspense>
   )
 }
 
