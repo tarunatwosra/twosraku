@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { AppShell } from "@/components/layout"
 import { Card, Button } from "@/components/ui"
@@ -18,6 +18,9 @@ import {
   AlertCircle,
   Info,
   CheckCircle,
+  Download,
+  Printer,
+  Maximize2,
 } from "lucide-react"
 import {
   getRegistrationSettings,
@@ -30,8 +33,10 @@ import { cn } from "@/lib/utils"
 
 export default function RegistrationSettingsPage() {
   const router = useRouter()
+  const qrRef = useRef<HTMLDivElement>(null)
   const [isEnabled, setIsEnabled] = useState(false)
   const [registrationUrl, setRegistrationUrl] = useState("")
+  const [qrCodeUrl, setQrCodeUrl] = useState("")
   const [accessCount, setAccessCount] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -52,6 +57,13 @@ export default function RegistrationSettingsPage() {
     loadSettings()
   }, [])
 
+  // Generate QR code when URL changes
+  useEffect(() => {
+    if (registrationUrl && isEnabled) {
+      generateQRCode(registrationUrl)
+    }
+  }, [registrationUrl, isEnabled])
+
   async function loadSettings() {
     try {
       setIsLoading(true)
@@ -64,7 +76,8 @@ export default function RegistrationSettingsPage() {
       ])
 
       setIsEnabled(settings.isEnabled)
-      setRegistrationUrl(settings.registrationUrl || `${window.location.origin}/registrasi`)
+      const url = settings.registrationUrl || `${window.location.origin}/registrasi`
+      setRegistrationUrl(url)
       setStats(statsData)
       setAccessCount(access)
 
@@ -75,7 +88,6 @@ export default function RegistrationSettingsPage() {
       }
     } catch (err) {
       console.warn("Error loading settings:", err)
-      // Don't show error to user, just use defaults
       setError(null)
     } finally {
       setIsLoading(false)
@@ -92,13 +104,33 @@ export default function RegistrationSettingsPage() {
       if (enabled) {
         // Reload to get the URL
         const settings = await getRegistrationSettings()
-        setRegistrationUrl(settings.registrationUrl || `${window.location.origin}/registrasi`)
+        const url = settings.registrationUrl || `${window.location.origin}/registrasi`
+        setRegistrationUrl(url)
       }
     } else {
       setError(result.error || "Gagal mengupdate pengaturan")
     }
 
     setIsSaving(false)
+  }
+
+  async function generateQRCode(url: string) {
+    try {
+      // Using QRCode.toDataURL from qrcode library
+      const QRCode = await import("qrcode")
+      const dataUrl = await QRCode.toDataURL(url, {
+        width: 300,
+        margin: 2,
+        color: {
+          dark: "#172033",
+          light: "#FFFFFF",
+        },
+        errorCorrectionLevel: "M",
+      })
+      setQrCodeUrl(dataUrl)
+    } catch (err) {
+      console.error("Error generating QR code:", err)
+    }
   }
 
   async function copyToClipboard() {
@@ -121,6 +153,88 @@ export default function RegistrationSettingsPage() {
 
   function openRegistrationPage() {
     window.open(registrationUrl, "_blank")
+  }
+
+  function downloadQRCode() {
+    if (!qrCodeUrl) return
+
+    const link = document.createElement("a")
+    link.download = "qr-registrasi-siswa.png"
+    link.href = qrCodeUrl
+    link.click()
+  }
+
+  function printQRCode() {
+    if (!qrCodeUrl) return
+
+    const printWindow = window.open("", "_blank")
+    if (!printWindow) return
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>QR Code Registrasi Siswa</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              min-height: 100vh;
+              margin: 0;
+              padding: 20px;
+              box-sizing: border-box;
+            }
+            .container {
+              text-align: center;
+              border: 2px solid #333;
+              padding: 30px;
+              border-radius: 12px;
+            }
+            h2 {
+              margin: 0 0 10px 0;
+              color: #333;
+            }
+            p {
+              margin: 10px 0 20px 0;
+              color: #666;
+            }
+            .url {
+              font-family: monospace;
+              background: #f5f5f5;
+              padding: 10px 15px;
+              border-radius: 6px;
+              word-break: break-all;
+            }
+            @media print {
+              body { padding: 0; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h2>📱 Registrasi Siswa</h2>
+            <p>Scan QR code di bawah ini dengan kamera HP</p>
+            <img src="${qrCodeUrl}" alt="QR Code" style="width: 250px; height: 250px;" />
+            <p>atau buka link:</p>
+            <div class="url">${registrationUrl}</div>
+          </div>
+        </body>
+      </html>
+    `)
+    printWindow.document.close()
+    printWindow.print()
+  }
+
+  function downloadPrintableQR() {
+    if (!qrCodeUrl) return
+
+    const link = document.createElement("a")
+    link.download = "template-qr-registrasi.png"
+    link.href = qrCodeUrl
+    link.click()
   }
 
   if (isLoading) {
@@ -200,44 +314,152 @@ export default function RegistrationSettingsPage() {
           )}
         </Card>
 
-        {/* Registration URL Card */}
+        {/* QR Code Card */}
         {isEnabled && (
-          <Card className="p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <Link2 className="w-5 h-5 text-[var(--text-secondary)]" />
-              <h3 className="font-medium text-[var(--text-primary)]">Link Registrasi</h3>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <div className="flex-1 px-4 py-3 bg-[var(--surface-secondary)] rounded-xl text-sm text-[var(--text-primary)] truncate font-mono">
-                {registrationUrl}
+          <>
+            {/* QR Code Display */}
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <QrCode className="w-5 h-5 text-[var(--text-secondary)]" />
+                  <h3 className="font-medium text-[var(--text-primary)]">QR Code Registrasi</h3>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    const settings = getRegistrationSettings()
+                    settings.then(s => {
+                      const url = s.registrationUrl || `${window.location.origin}/registrasi`
+                      generateQRCode(url)
+                    })
+                  }}
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Refresh
+                </Button>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={copyToClipboard}
-                className="flex-shrink-0"
-              >
-                {copied ? (
-                  <Check className="w-4 h-4 text-green-500" />
-                ) : (
-                  <Copy className="w-4 h-4" />
-                )}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={openRegistrationPage}
-                className="flex-shrink-0"
-              >
-                <ExternalLink className="w-4 h-4" />
-              </Button>
-            </div>
 
-            <p className="text-xs text-[var(--text-muted)] mt-3">
-              Bagikan link ini atau gunakan QR code untuk diakses siswa
-            </p>
-          </Card>
+              {/* QR Code */}
+              <div className="flex flex-col items-center">
+                <div
+                  ref={qrRef}
+                  className="bg-white p-6 rounded-2xl border border-[var(--border-light)] shadow-sm mb-4"
+                >
+                  {qrCodeUrl ? (
+                    <img
+                      src={qrCodeUrl}
+                      alt="QR Code Registrasi"
+                      className="w-48 h-48 md:w-64 md:h-64"
+                    />
+                  ) : (
+                    <div className="w-48 h-48 md:w-64 md:h-64 flex items-center justify-center bg-[var(--surface-secondary)] rounded-xl">
+                      <RefreshCw className="w-8 h-8 text-[var(--text-muted)] animate-spin" />
+                    </div>
+                  )}
+                </div>
+
+                <p className="text-sm text-[var(--text-muted)] text-center mb-4">
+                  Scan QR code ini dengan kamera HP untuk mengakses halaman registrasi
+                </p>
+
+                {/* Action Buttons */}
+                <div className="flex flex-wrap gap-2 justify-center">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={downloadQRCode}
+                    disabled={!qrCodeUrl}
+                  >
+                    <Download className="w-4 h-4" />
+                    Download QR
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={printQRCode}
+                    disabled={!qrCodeUrl}
+                  >
+                    <Printer className="w-4 h-4" />
+                    Print + Link
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      // Open fullscreen preview
+                      const preview = window.open("", "_blank")
+                      if (preview && qrCodeUrl) {
+                        preview.document.write(`
+                          <!DOCTYPE html>
+                          <html>
+                            <head>
+                              <title>QR Code - Registrasi Siswa</title>
+                              <style>
+                                body {
+                                  display: flex;
+                                  align-items: center;
+                                  justify-content: center;
+                                  min-height: 100vh;
+                                  margin: 0;
+                                  background: #f5f5f5;
+                                }
+                                img { max-width: 90vw; max-height: 90vh; }
+                              </style>
+                            </head>
+                            <body>
+                              <img src="${qrCodeUrl}" alt="QR Code" />
+                            </body>
+                          </html>
+                        `)
+                      }
+                    }}
+                  >
+                    <Maximize2 className="w-4 h-4" />
+                    Fullscreen
+                  </Button>
+                </div>
+              </div>
+            </Card>
+
+            {/* Registration URL Card */}
+            <Card className="p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Link2 className="w-5 h-5 text-[var(--text-secondary)]" />
+                <h3 className="font-medium text-[var(--text-primary)]">Link Registrasi</h3>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <div className="flex-1 px-4 py-3 bg-[var(--surface-secondary)] rounded-xl text-sm text-[var(--text-primary)] truncate font-mono">
+                  {registrationUrl}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={copyToClipboard}
+                  className="flex-shrink-0"
+                >
+                  {copied ? (
+                    <Check className="w-4 h-4 text-green-500" />
+                  ) : (
+                    <Copy className="w-4 h-4" />
+                  )}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={openRegistrationPage}
+                  className="flex-shrink-0"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </Button>
+              </div>
+
+              <p className="text-xs text-[var(--text-muted)] mt-3">
+                Bagikan link ini atau gunakan QR code untuk diakses siswa
+              </p>
+            </Card>
+          </>
         )}
 
         {/* Stats Card */}

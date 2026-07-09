@@ -11,6 +11,9 @@ interface QRScannerProps {
   className?: string
 }
 
+// Generate unique ID for this instance
+const generateId = () => `qr-reader-${Math.random().toString(36).substr(2, 9)}`
+
 /**
  * QR Scanner Component
  *
@@ -23,15 +26,9 @@ export function QRScanner({ onScan, onError, onClose, className }: QRScannerProp
   const [hasCamera, setHasCamera] = useState(true)
   const [manualInput, setManualInput] = useState("")
   const [showManualInput, setShowManualInput] = useState(false)
+  const [qrReaderId] = useState(generateId)
   const scannerRef = useRef<HTMLDivElement>(null)
   const html5QrCodeRef = useRef<unknown>(null)
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      stopScanning()
-    }
-  }, [])
 
   const stopScanning = useCallback(async () => {
     if (html5QrCodeRef.current) {
@@ -51,11 +48,22 @@ export function QRScanner({ onScan, onError, onClose, className }: QRScannerProp
   const startScanning = useCallback(async () => {
     setError(null)
 
+    // Wait for DOM to be ready
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    const element = document.getElementById(qrReaderId)
+    if (!element) {
+      console.warn("QR reader element not found yet, waiting...")
+      // Try again after a short delay
+      setTimeout(() => startScanning(), 200)
+      return
+    }
+
     try {
       // Dynamically import html5-qrcode
       const { Html5Qrcode } = await import("html5-qrcode")
 
-      const html5QrCode = new Html5Qrcode("qr-reader")
+      const html5QrCode = new Html5Qrcode(qrReaderId)
       html5QrCodeRef.current = html5QrCode
 
       const config = {
@@ -86,11 +94,13 @@ export function QRScanner({ onScan, onError, onClose, className }: QRScannerProp
       // Check if it's a camera permission issue
       if (
         errorMessage.includes("Permission") ||
-        errorMessage.includes("NotAllowed") ||
-        errorMessage.includes("NotFound")
+        errorMessage.includes("NotAllowed")
       ) {
         setError("Izin kamera diperlukan. Silakan aktifkan kamera di pengaturan browser.")
-      } else if (errorMessage.includes("NotFound") || errorMessage.includes("no cameras")) {
+      } else if (
+        errorMessage.includes("NotFound") ||
+        errorMessage.includes("no cameras")
+      ) {
         setHasCamera(false)
         setError("Kamera tidak ditemukan di perangkat ini.")
         setShowManualInput(true)
@@ -100,11 +110,23 @@ export function QRScanner({ onScan, onError, onClose, className }: QRScannerProp
 
       onError?.(errorMessage)
     }
-  }, [onScan, onError, stopScanning])
+  }, [qrReaderId, onScan, onError, stopScanning])
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopScanning()
+    }
+  }, [stopScanning])
 
   // Auto-start scanning when component mounts
   useEffect(() => {
-    startScanning()
+    // Small delay to ensure DOM is ready
+    const timer = setTimeout(() => {
+      startScanning()
+    }, 300)
+
+    return () => clearTimeout(timer)
   }, [startScanning])
 
   const handleManualSubmit = (e: React.FormEvent) => {
@@ -124,7 +146,12 @@ export function QRScanner({ onScan, onError, onClose, className }: QRScannerProp
         {/* Camera View */}
         {isScanning && (
           <>
-            <div id="qr-reader" className="w-full h-full" />
+            {/* QR Reader element - must have the specific ID */}
+            <div
+              id={qrReaderId}
+              className="w-full h-full"
+              style={{ minHeight: "200px" }}
+            />
 
             {/* Overlay with viewfinder */}
             <div className="absolute inset-0 pointer-events-none">
@@ -153,7 +180,7 @@ export function QRScanner({ onScan, onError, onClose, className }: QRScannerProp
                   stopScanning()
                   onClose()
                 }}
-                className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+                className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 transition-colors z-10"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -177,7 +204,7 @@ export function QRScanner({ onScan, onError, onClose, className }: QRScannerProp
             </div>
             <p className="text-sm text-[var(--text-primary)] text-center mb-4">{error}</p>
             <button
-              onClick={startScanning}
+              onClick={() => startScanning()}
               className="px-4 py-2 bg-[var(--primary)] text-white rounded-xl text-sm font-medium hover:bg-[var(--primary)]/90 transition-colors"
             >
               Coba Lagi
@@ -244,7 +271,7 @@ export function QRScanner({ onScan, onError, onClose, className }: QRScannerProp
               type="button"
               onClick={() => {
                 setShowManualInput(false)
-                startScanning()
+                setTimeout(() => startScanning(), 100)
               }}
               className="text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] mt-3"
             >
