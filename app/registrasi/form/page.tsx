@@ -26,6 +26,7 @@ import {
 } from "@/lib/registrasi"
 import { cn } from "@/lib/utils"
 import type { RegistrationFormData, RegistrationParentData, RegistrationStep } from "@/types/registrasi"
+import { RegistrationStep as RegistrationStepEnum } from "@/types/registrasi"
 import type { Student } from "@/types/database"
 
 // ============================================
@@ -86,11 +87,11 @@ const GUARDIAN_RELATION_OPTIONS = [
 ]
 
 const STEPS: Array<{ key: RegistrationStep; label: string; icon: React.ReactNode }> = [
-  { key: RegistrationStep.PERSONAL, label: "Data Diri", icon: <User className="w-4 h-4" /> },
-  { key: RegistrationStep.ACADEMIC, label: "Akademik", icon: <GraduationCap className="w-4 h-4" /> },
-  { key: RegistrationStep.PARENTS, label: "Orang Tua", icon: <Users className="w-4 h-4" /> },
-  { key: RegistrationStep.HEALTH, label: "Kesehatan", icon: <Heart className="w-4 h-4" /> },
-  { key: RegistrationStep.OTHER, label: "Lainnya", icon: <StickyNote className="w-4 h-4" /> },
+  { key: RegistrationStepEnum.PERSONAL, label: "Data Diri", icon: <User className="w-4 h-4" /> },
+  { key: RegistrationStepEnum.ACADEMIC, label: "Akademik", icon: <GraduationCap className="w-4 h-4" /> },
+  { key: RegistrationStepEnum.PARENTS, label: "Orang Tua", icon: <Users className="w-4 h-4" /> },
+  { key: RegistrationStepEnum.HEALTH, label: "Kesehatan", icon: <Heart className="w-4 h-4" /> },
+  { key: RegistrationStepEnum.OTHER, label: "Lainnya", icon: <StickyNote className="w-4 h-4" /> },
 ]
 
 // ============================================
@@ -144,7 +145,7 @@ function getDefaultFormData(): Partial<RegistrationFormData> {
 function validateStep(step: RegistrationStep, data: Partial<RegistrationFormData>): FormErrors {
   const errors: FormErrors = {}
 
-  if (step === "personal") {
+  if (step === RegistrationStepEnum.PERSONAL) {
     if (!data.full_name?.trim()) {
       errors.full_name = "Nama lengkap wajib diisi"
     } else if (data.full_name.trim().length < 2) {
@@ -168,7 +169,7 @@ function validateStep(step: RegistrationStep, data: Partial<RegistrationFormData
     }
   }
 
-  if (step === "parents") {
+  if (step === RegistrationStepEnum.PARENTS) {
     if (data.father_phone && !/^(\+62|62|0)[0-9]{9,12}$/.test(data.father_phone.replace(/\s/g, ""))) {
       errors.father_phone = "Format nomor tidak valid"
     }
@@ -202,7 +203,7 @@ export default function RegistrationFormPage({
 
   const [studentId, setStudentId] = useState<string | null>(null)
   const [student, setStudent] = useState<Student | null>(null)
-  const [currentStep, setCurrentStep] = useState<RegistrationStep>("personal")
+  const [currentStep, setCurrentStep] = useState<RegistrationStep>(RegistrationStepEnum.PERSONAL)
   const [formData, setFormData] = useState<Partial<RegistrationFormData>>(getDefaultFormData())
   const [errors, setErrors] = useState<FormErrors>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -305,16 +306,16 @@ export default function RegistrationFormPage({
       // Go to first step with errors
       const firstErrorKey = Object.keys(allErrors)[0]
       const stepMapping: Record<string, RegistrationStep> = {
-        full_name: "personal",
-        gender: "personal",
-        birth_date: "personal",
-        nisn: "personal",
-        phone: "personal",
-        father_phone: "parents",
-        mother_phone: "parents",
-        guardian_phone: "parents",
+        full_name: RegistrationStepEnum.PERSONAL,
+        gender: RegistrationStepEnum.PERSONAL,
+        birth_date: RegistrationStepEnum.PERSONAL,
+        nisn: RegistrationStepEnum.PERSONAL,
+        phone: RegistrationStepEnum.PERSONAL,
+        father_phone: RegistrationStepEnum.PARENTS,
+        mother_phone: RegistrationStepEnum.PARENTS,
+        guardian_phone: RegistrationStepEnum.PARENTS,
       }
-      const errorStep = stepMapping[firstErrorKey] || "personal"
+      const errorStep = stepMapping[firstErrorKey] || RegistrationStepEnum.PERSONAL
       setCurrentStep(errorStep)
       return
     }
@@ -499,7 +500,7 @@ export default function RegistrationFormPage({
         )}
 
         {/* Personal Data Step */}
-        {currentStep === "personal" && (
+        {currentStep === RegistrationStepEnum.PERSONAL && (
           <div className="space-y-4">
             <Input
               name="nisn"
@@ -611,7 +612,7 @@ export default function RegistrationFormPage({
         )}
 
         {/* Academic Step */}
-        {currentStep === "academic" && (
+        {currentStep === RegistrationStepEnum.ACADEMIC && (
           <div className="space-y-4">
             <div className="p-4 bg-[var(--surface-secondary)] rounded-xl">
               <p className="text-sm text-[var(--text-muted)]">
@@ -631,7 +632,7 @@ export default function RegistrationFormPage({
         )}
 
         {/* Parents Step */}
-        {currentStep === "parents" && (
+        {currentStep === RegistrationStepEnum.PARENTS && (
           <div className="space-y-4">
             <div className="p-4 bg-blue-50 rounded-xl">
               <p className="text-sm text-blue-700 font-medium mb-2">👨 Data Ayah</p>
@@ -701,7 +702,7 @@ export default function RegistrationFormPage({
         )}
 
         {/* Health Step */}
-        {currentStep === "health" && (
+        {currentStep === RegistrationStepEnum.HEALTH && (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <Input
@@ -820,7 +821,7 @@ export default function RegistrationFormPage({
         )}
 
         {/* Other Step */}
-        {currentStep === "other" && (
+        {currentStep === RegistrationStepEnum.OTHER && (
           <div className="space-y-4">
             <div>
               <label className="text-sm font-medium text-[var(--text-primary)] mb-1.5 block">
