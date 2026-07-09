@@ -267,7 +267,7 @@ export async function submitRegistration(
       studentUpdateData.weight_kg = formData.weight_kg ? parseFloat(formData.weight_kg) : null
     if (formData.vision !== undefined) studentUpdateData.vision = formData.vision || "normal"
     if (formData.hearing !== undefined) studentUpdateData.hearing = formData.hearing || "normal"
-    if (formData.teeth_condition !== undefined)
+    if (formData.teeth !== undefined)
       studentUpdateData.teeth_condition = formData.teeth || "normal"
     if (formData.physical_disability !== undefined)
       studentUpdateData.physical_disability = formData.physical_disability || "none"
