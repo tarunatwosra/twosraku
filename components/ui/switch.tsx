@@ -3,7 +3,7 @@
 import { forwardRef } from "react"
 import { cn } from "@/lib/utils"
 
-export interface SwitchProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface SwitchProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
   checked?: boolean
   onCheckedChange?: (checked: boolean) => void
   size?: "sm" | "md" | "lg"
