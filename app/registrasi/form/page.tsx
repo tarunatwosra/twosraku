@@ -86,11 +86,11 @@ const GUARDIAN_RELATION_OPTIONS = [
 ]
 
 const STEPS: Array<{ key: RegistrationStep; label: string; icon: React.ReactNode }> = [
-  { key: "personal", label: "Data Diri", icon: <User className="w-4 h-4" /> },
-  { key: "academic", label: "Akademik", icon: <GraduationCap className="w-4 h-4" /> },
-  { key: "parents", label: "Orang Tua", icon: <Users className="w-4 h-4" /> },
-  { key: "health", label: "Kesehatan", icon: <Heart className="w-4 h-4" /> },
-  { key: "other", label: "Lainnya", icon: <StickyNote className="w-4 h-4" /> },
+  { key: RegistrationStep.PERSONAL, label: "Data Diri", icon: <User className="w-4 h-4" /> },
+  { key: RegistrationStep.ACADEMIC, label: "Akademik", icon: <GraduationCap className="w-4 h-4" /> },
+  { key: RegistrationStep.PARENTS, label: "Orang Tua", icon: <Users className="w-4 h-4" /> },
+  { key: RegistrationStep.HEALTH, label: "Kesehatan", icon: <Heart className="w-4 h-4" /> },
+  { key: RegistrationStep.OTHER, label: "Lainnya", icon: <StickyNote className="w-4 h-4" /> },
 ]
 
 // ============================================
