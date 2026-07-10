@@ -52,14 +52,12 @@ const navigationSections: NavSection[] = [
     items: [
       { icon: Home, label: "Dashboard", href: "/" },
       { icon: BookUser, label: "Buku Induk", href: "/buku-induk" },
-      { icon: Users, label: "Data Siswa", href: "/siswa" },
     ],
   },
   {
     title: "PRESENSI",
     items: [
-      { icon: ClipboardCheck, label: "Presensi Harian", href: "/presensi" },
-      { icon: FileText, label: "Rekap Presensi", href: "/presensi/rekap" },
+      { icon: ClipboardCheck, label: "Presensi Siswa", href: "/presensi" },
     ],
   },
   {

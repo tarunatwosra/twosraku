@@ -90,7 +90,7 @@ export default function AttendancePage() {
   }
 
   return (
-    <AppShell title="Presensi" description="Kelola kehadiran siswa">
+    <AppShell title="Presensi Siswa" description="Kelola kehadiran siswa">
       <div className="space-y-6">
         {/* Header Card - Date & Class Selection */}
         <Card className="p-6">

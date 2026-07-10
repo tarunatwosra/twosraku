@@ -104,6 +104,140 @@ interface FormErrors {
 }
 
 // ============================================
+// ADDRESS HELPERS
+// ============================================
+
+interface ParsedAddress {
+  street: string
+  village: string
+  rt: string
+  rw: string
+  neighborhood: string
+  subdistrict: string
+  city: string
+  province: string
+}
+
+/**
+ * Parse address string dari database menjadi 8 field terpisah
+ * Format: "Jl. ..., Desa ..., RT .../RW ..., Kel. ..., Kec. ..., Kab. ..., Provinsi ..."
+ */
+function parseAddressFromDb(address: string | null): ParsedAddress {
+  const result: ParsedAddress = {
+    street: "",
+    village: "",
+    rt: "",
+    rw: "",
+    neighborhood: "",
+    subdistrict: "",
+    city: "",
+    province: "",
+  }
+
+  if (!address) return result
+
+  // Coba parse format dengan prefix
+  const patterns = [
+    // Pattern: RT/RW
+    { regex: /rt[:\s]*(\d{1,3})[\s/]*rw[:\s]*(\d{1,3})/i, handler: (m: RegExpMatchArray) => {
+      result.rt = m[1]
+      result.rw = m[2]
+    }},
+    // Pattern: RW/RT
+    { regex: /rw[:\s]*(\d{1,3})[\s/]*rt[:\s]*(\d{1,3})/i, handler: (m: RegExpMatchArray) => {
+      result.rw = m[1]
+      result.rt = m[2]
+    }},
+    // Pattern: Provinsi
+    { regex: /provinsi[:\s]*(.+?)(?=,\s*Kab|\s*$)/i, handler: (m: RegExpMatchArray) => {
+      result.province = m[1].trim()
+    }},
+    // Pattern: Kabupaten/Kota
+    { regex: /kab(?:upaten)?\.?\s*(.+?)(?=,\s*Kec|\s*$)/i, handler: (m: RegExpMatchArray) => {
+      result.city = m[1].trim()
+    }},
+    // Pattern: Kecamatan
+    { regex: /kec(?:amatan)?\.?\s*(.+?)(?=,\s*Kel|\s*$)/i, handler: (m: RegExpMatchArray) => {
+      result.subdistrict = m[1].trim()
+    }},
+    // Pattern: Kelurahan/Desa
+    { regex: /(?:kel(?:urahan)?\.?|desa)\s*(.+?)(?=,\s*RT|\s*$)/i, handler: (m: RegExpMatchArray) => {
+      result.neighborhood = m[1].trim()
+    }},
+    // Pattern: Desa/Dusun
+    { regex: /(?:desa|dusun)\s*(.+?)(?=,\s*RT|\s*$)/i, handler: (m: RegExpMatchArray) => {
+      result.village = m[1].trim()
+    }},
+  ]
+
+  // Apply pattern matching
+  for (const p of patterns) {
+    const match = address.match(p.regex)
+    if (match) {
+      p.handler(match)
+    }
+  }
+
+  // Sisanya sebagai jalan (street)
+  let remaining = address
+  remaining = remaining.replace(/rt[:\s]*\d{1,3}[\s/]*rw[:\s]*\d{1,3}/gi, "")
+  remaining = remaining.replace(/rw[:\s]*\d{1,3}[\s/]*rt[:\s]*\d{1,3}/gi, "")
+  remaining = remaining.replace(/provinsi[:\s]*[^,]+/gi, "")
+  remaining = remaining.replace(/kab(?:upaten)?\.?\s*[^,]+/gi, "")
+  remaining = remaining.replace(/kec(?:amatan)?\.?\s*[^,]+/gi, "")
+  remaining = remaining.replace(/(?:kel(?:urahan)?\.?|desa)\s*[^,]+/gi, "")
+  remaining = remaining.replace(/,/g, " ").replace(/\s+/g, " ").trim()
+  result.street = remaining || address
+
+  return result
+}
+
+/**
+ * Format 8 field address menjadi 1 string untuk disimpan ke database
+ */
+function formatAddressForDb(data: Partial<RegistrationFormData>): string {
+  const parts: string[] = []
+
+  if (data.address_street) {
+    parts.push(data.address_street)
+  }
+
+  if (data.address_village) {
+    parts.push(`Desa ${data.address_village}`)
+  }
+
+  if (data.address_rt || data.address_rw) {
+    const rt = data.address_rt ? `RT ${data.address_rt}` : ""
+    const rw = data.address_rw ? `RW ${data.address_rw}` : ""
+    if (rt && rw) {
+      parts.push(`${rt}/${rw}`)
+    } else if (rt) {
+      parts.push(rt)
+    } else if (rw) {
+      parts.push(rw)
+    }
+  }
+
+  if (data.address_neighborhood) {
+    parts.push(`Kel. ${data.address_neighborhood}`)
+  }
+
+  if (data.address_subdistrict) {
+    parts.push(`Kec. ${data.address_subdistrict}`)
+  }
+
+  if (data.address_city) {
+    parts.push(`Kab. ${data.address_city}`)
+  }
+
+  if (data.address_province) {
+    parts.push(`Provinsi ${data.address_province}`)
+  }
+
+  return parts.join(", ")
+}
+
+// ============================================
 // DEFAULT FORM DATA
 // ============================================
 
@@ -118,7 +252,16 @@ function getDefaultFormData(): Partial<RegistrationFormData> {
     birth_date: "",
     religion: "",
     phone: "",
-    address: "",
+    // Alamat - 8 field terpisah, disimpan sebagai 1 string di database
+    address_street: "",
+    address_village: "",
+    address_rt: "",
+    address_rw: "",
+    address_neighborhood: "",
+    address_subdistrict: "",
+    address_city: "",
+    address_province: "",
+    address: "", // Legacy - digabung saat save
     father_name: "",
     father_phone: "",
     mother_name: "",
@@ -250,6 +393,9 @@ export default function RegistrationFormPage({
       setStudent(fetchedStudent)
       setParents(fetchedParents)
 
+      // Parse address dari database (1 string) jadi 8 field terpisah
+      const parsedAddress = parseAddressFromDb(fetchedStudent.address)
+
       // Pre-fill form with existing student data from database
       // Only fill fields that have data in the database, leave empty fields empty
       const formDataFromDb: Partial<RegistrationFormData> = {
@@ -263,7 +409,17 @@ export default function RegistrationFormPage({
         birth_date: fetchedStudent.birth_date ? fetchedStudent.birth_date.split("T")[0] : "",
         religion: fetchedStudent.religion || "",
         phone: fetchedStudent.phone || "",
-        address: fetchedStudent.address || "",
+
+        // Alamat - 8 field terpisah
+        address_street: parsedAddress.street,
+        address_village: parsedAddress.village,
+        address_rt: parsedAddress.rt,
+        address_rw: parsedAddress.rw,
+        address_neighborhood: parsedAddress.neighborhood,
+        address_subdistrict: parsedAddress.subdistrict,
+        address_city: parsedAddress.city,
+        address_province: parsedAddress.province,
+        address: fetchedStudent.address || "", // Legacy
 
         // Health data - only fill if exists
         height_cm: fetchedStudent.height_cm?.toString() || "",
@@ -385,6 +541,13 @@ export default function RegistrationFormPage({
     setSubmitError(null)
 
     try {
+      // Format address dari 8 field jadi 1 string
+      const formattedAddress = formatAddressForDb(formData)
+      const formDataWithAddress = {
+        ...formData,
+        address: formattedAddress,
+      }
+
       // Prepare parents data
       const parentsData: RegistrationParentData[] = []
 
@@ -414,7 +577,7 @@ export default function RegistrationFormPage({
       }
 
       // Submit registration
-      const result = await submitRegistration(studentId, formData, parentsData)
+      const result = await submitRegistration(studentId, formDataWithAddress, parentsData)
 
       if (result.success) {
         setIsComplete(true)
@@ -643,25 +806,77 @@ export default function RegistrationFormPage({
               error={errors.phone}
             />
 
-            <div>
+            {/* Alamat - dipisah jadi 8 field, disimpan sebagai 1 string di database */}
+            <div className="space-y-3">
               <label className="text-sm font-medium text-[var(--text-primary)] mb-1.5 block">
-                Alamat
+                Alamat Lengkap
               </label>
-              <textarea
-                name="address"
-                placeholder="Masukkan alamat lengkap"
-                value={formData.address || ""}
+
+              <Input
+                name="address_street"
+                label="Nama Jalan/Perumahan"
+                placeholder="Contoh: Jl. Merdeka No. 10"
+                value={formData.address_street || ""}
                 onChange={handleChange}
-                rows={3}
-                className={cn(
-                  "w-full px-4 py-3",
-                  "bg-[var(--surface-primary)]",
-                  "border border-[var(--border-default)]",
-                  "rounded-xl",
-                  "text-[15px] text-[var(--text-primary)]",
-                  "focus:outline-none focus:border-[var(--border-focus)]",
-                  "resize-none"
-                )}
+              />
+
+              <Input
+                name="address_village"
+                label="Nama Desa/Dusun/Kampung"
+                placeholder="Contoh: Desa Sukamaju"
+                value={formData.address_village || ""}
+                onChange={handleChange}
+              />
+
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  name="address_rt"
+                  label="RT"
+                  placeholder="001"
+                  value={formData.address_rt || ""}
+                  onChange={handleChange}
+                  maxLength={3}
+                />
+                <Input
+                  name="address_rw"
+                  label="RW"
+                  placeholder="002"
+                  value={formData.address_rw || ""}
+                  onChange={handleChange}
+                  maxLength={3}
+                />
+              </div>
+
+              <Input
+                name="address_neighborhood"
+                label="Kelurahan/Desa"
+                placeholder="Contoh: Sukamaju"
+                value={formData.address_neighborhood || ""}
+                onChange={handleChange}
+              />
+
+              <Input
+                name="address_subdistrict"
+                label="Kecamatan"
+                placeholder="Contoh: Cicadas"
+                value={formData.address_subdistrict || ""}
+                onChange={handleChange}
+              />
+
+              <Input
+                name="address_city"
+                label="Kabupaten/Kota"
+                placeholder="Contoh: Bandung"
+                value={formData.address_city || ""}
+                onChange={handleChange}
+              />
+
+              <Input
+                name="address_province"
+                label="Provinsi"
+                placeholder="Contoh: Jawa Barat"
+                value={formData.address_province || ""}
+                onChange={handleChange}
               />
             </div>
           </div>

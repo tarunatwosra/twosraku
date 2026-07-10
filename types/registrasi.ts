@@ -44,7 +44,17 @@ export interface RegistrationFormData {
   birth_date: string
   religion: string
   phone: string
-  address: string
+
+  // Alamat - dipisah jadi 8 field, disimpan sebagai 1 string di database
+  address_street: string      // Nama Jalan/Perumahan
+  address_village: string     // Nama Desa/Dusun/Kampung
+  address_rt: string          // RT
+  address_rw: string          // RW
+  address_neighborhood: string // Kelurahan
+  address_subdistrict: string // Kecamatan
+  address_city: string        // Kabupaten/Kota
+  address_province: string    // Provinsi
+  address: string            // Legacy - digabung saat save
 
   // Data Akademik (read-only display)
   enrollment_year: number

@@ -75,6 +75,22 @@ export default function AttendanceRecapPage() {
     }
   }, [isAuthenticated, authLoading, router])
 
+  // Get current summary based on view mode (MUST be before any early returns)
+  const currentSummary = useMemo(() => {
+    if (viewMode === "daily" && recapData) return recapData.summary
+    if (viewMode === "weekly" && weeklyData) return weeklyData.summary
+    if (viewMode === "monthly" && monthlyData) return monthlyData.summary
+    return null
+  }, [viewMode, recapData, weeklyData, monthlyData])
+
+  // Get current data based on view mode (MUST be before any early returns)
+  const currentData = useMemo(() => {
+    if (viewMode === "daily") return recapData
+    if (viewMode === "weekly") return weeklyData
+    if (viewMode === "monthly") return monthlyData
+    return null
+  }, [viewMode, recapData, weeklyData, monthlyData])
+
   // Show loading while checking auth
   if (authLoading) {
     return (
@@ -120,22 +136,6 @@ export default function AttendanceRecapPage() {
       month: "short",
     })
   }
-
-  // Get current summary based on view mode
-  const currentSummary = useMemo(() => {
-    if (viewMode === "daily" && recapData) return recapData.summary
-    if (viewMode === "weekly" && weeklyData) return weeklyData.summary
-    if (viewMode === "monthly" && monthlyData) return monthlyData.summary
-    return null
-  }, [viewMode, recapData, weeklyData, monthlyData])
-
-  // Get current data based on view mode
-  const currentData = useMemo(() => {
-    if (viewMode === "daily") return recapData
-    if (viewMode === "weekly") return weeklyData
-    if (viewMode === "monthly") return monthlyData
-    return null
-  }, [viewMode, recapData, weeklyData, monthlyData])
 
   // Print function
   const handlePrint = () => {
