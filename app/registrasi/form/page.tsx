@@ -23,11 +23,12 @@ import {
   submitRegistration,
   getRegistrationSession,
   clearRegistrationSession,
+  getStudentById,
 } from "@/lib/registrasi"
 import { cn } from "@/lib/utils"
 import type { RegistrationFormData, RegistrationParentData, RegistrationStep } from "@/types/registrasi"
 import { RegistrationStep as RegistrationStepEnum } from "@/types/registrasi"
-import type { Student } from "@/types/database"
+import type { Student, Parent } from "@/types/database"
 
 // ============================================
 // CONSTANTS
@@ -203,6 +204,7 @@ export default function RegistrationFormPage({
 
   const [studentId, setStudentId] = useState<string | null>(null)
   const [student, setStudent] = useState<Student | null>(null)
+  const [parents, setParents] = useState<Parent[]>([])
   const [currentStep, setCurrentStep] = useState<RegistrationStep>(RegistrationStepEnum.PERSONAL)
   const [formData, setFormData] = useState<Partial<RegistrationFormData>>(getDefaultFormData())
   const [errors, setErrors] = useState<FormErrors>({})
@@ -236,14 +238,68 @@ export default function RegistrationFormPage({
 
       setStudentId(sid)
 
-      // Fetch student data
-      const result = await verifyStudent("", "") // Just to check session
-      const session = getRegistrationSession()
+      // Fetch student data with parents from database
+      const { student: fetchedStudent, parents: fetchedParents } = await getStudentById(sid)
 
-      if (session?.studentId === sid) {
-        // Pre-fill form with existing student data
-        setStudent(session.studentId ? { id: session.studentId, student_number: session.studentNumber, full_name: "", gender: "male", birth_date: null } as Student : null)
+      if (!fetchedStudent) {
+        // Student not found, redirect to verify
+        router.replace("/registrasi/verify")
+        return
       }
+
+      setStudent(fetchedStudent)
+      setParents(fetchedParents)
+
+      // Pre-fill form with existing student data from database
+      // Only fill fields that have data in the database, leave empty fields empty
+      const formDataFromDb: Partial<RegistrationFormData> = {
+        // Personal data - only fill if exists
+        nisn: fetchedStudent.nisn || "",
+        full_name: fetchedStudent.full_name || "",
+        nickname: fetchedStudent.nickname || "",
+        gender: fetchedStudent.gender || ("" as "male" | "female" | ""),
+        blood_type: fetchedStudent.blood_type || "",
+        birth_place: fetchedStudent.birth_place || "",
+        birth_date: fetchedStudent.birth_date ? fetchedStudent.birth_date.split("T")[0] : "",
+        religion: fetchedStudent.religion || "",
+        phone: fetchedStudent.phone || "",
+        address: fetchedStudent.address || "",
+
+        // Health data - only fill if exists
+        height_cm: fetchedStudent.height_cm?.toString() || "",
+        weight_kg: fetchedStudent.weight_kg?.toString() || "",
+        vision: fetchedStudent.vision || "normal",
+        hearing: fetchedStudent.hearing || "normal",
+        teeth: fetchedStudent.teeth_condition || "normal",
+        physical_disability: fetchedStudent.physical_disability || "none",
+        illness_history: fetchedStudent.illness_history || "",
+        allergies: fetchedStudent.allergies || "",
+        health_notes: fetchedStudent.health_notes || "",
+        notes: fetchedStudent.notes || "",
+      }
+
+      // Pre-fill parents data if exists
+      const father = fetchedParents.find((p) => p.type === "father")
+      const mother = fetchedParents.find((p) => p.type === "mother")
+      const guardian = fetchedParents.find((p) => p.type === "guardian")
+
+      if (father) {
+        formDataFromDb.father_name = father.full_name || ""
+        formDataFromDb.father_phone = father.phone || ""
+      }
+
+      if (mother) {
+        formDataFromDb.mother_name = mother.full_name || ""
+        formDataFromDb.mother_phone = mother.phone || ""
+      }
+
+      if (guardian) {
+        formDataFromDb.guardian_name = guardian.full_name || ""
+        formDataFromDb.guardian_relation = guardian.guardian_relation || ""
+        formDataFromDb.guardian_phone = guardian.phone || ""
+      }
+
+      setFormData(formDataFromDb)
     } catch (err) {
       console.error("Error loading student:", err)
     } finally {

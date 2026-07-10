@@ -12,7 +12,7 @@ import type {
   RegistrationSession,
   RegistrationStats,
 } from "@/types/registrasi"
-import type { Student } from "@/types/database"
+import type { Student, Parent } from "@/types/database"
 
 // ============================================
 // REGISTRATION SETTINGS
@@ -469,6 +469,45 @@ export function isSessionValid(): boolean {
   const diffMinutes = (now.getTime() - verifiedAt.getTime()) / (1000 * 60)
 
   return diffMinutes < 240
+}
+
+/**
+ * Get student by ID with parents data
+ * Used for pre-filling registration form
+ */
+export async function getStudentById(studentId: string): Promise<{
+  student: Student | null
+  parents: Parent[]
+}> {
+  try {
+    // Fetch student data
+    const { data: student, error: studentError } = await supabase
+      .from("students")
+      .select("*")
+      .eq("id", studentId)
+      .single()
+
+    if (studentError || !student) {
+      console.error("Error fetching student:", studentError)
+      return { student: null, parents: [] }
+    }
+
+    // Fetch parents data
+    const { data: parents, error: parentsError } = await supabase
+      .from("parents")
+      .select("*")
+      .eq("student_id", studentId)
+
+    if (parentsError) {
+      console.warn("Error fetching parents:", parentsError)
+      return { student, parents: [] }
+    }
+
+    return { student, parents: parents || [] }
+  } catch (err) {
+    console.error("Error in getStudentById:", err)
+    return { student: null, parents: [] }
+  }
 }
 
 // ============================================
