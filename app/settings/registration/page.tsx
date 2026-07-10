@@ -76,8 +76,8 @@ export default function RegistrationSettingsPage() {
       ])
 
       setIsEnabled(settings.isEnabled)
-      const url = settings.registrationUrl || `${window.location.origin}/registrasi`
-      setRegistrationUrl(url)
+      // Selalu gunakan URL production untuk QR code
+      setRegistrationUrl(settings.registrationUrl)
       setStats(statsData)
       setAccessCount(access)
 
@@ -102,10 +102,9 @@ export default function RegistrationSettingsPage() {
     if (result.success) {
       setIsEnabled(enabled)
       if (enabled) {
-        // Reload to get the URL
+        // Selalu gunakan URL production untuk QR code
         const settings = await getRegistrationSettings()
-        const url = settings.registrationUrl || `${window.location.origin}/registrasi`
-        setRegistrationUrl(url)
+        setRegistrationUrl(settings.registrationUrl)
       }
     } else {
       setError(result.error || "Gagal mengupdate pengaturan")
@@ -328,11 +327,8 @@ export default function RegistrationSettingsPage() {
                   variant="ghost"
                   size="sm"
                   onClick={() => {
-                    const settings = getRegistrationSettings()
-                    settings.then(s => {
-                      const url = s.registrationUrl || `${window.location.origin}/registrasi`
-                      generateQRCode(url)
-                    })
+                    // Selalu gunakan URL production
+                    generateQRCode(registrationUrl)
                   }}
                 >
                   <RefreshCw className="w-4 h-4" />

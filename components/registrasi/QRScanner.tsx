@@ -28,40 +28,61 @@ export function QRScanner({ onScan, onError, onClose, className }: QRScannerProp
   const [showManualInput, setShowManualInput] = useState(false)
   const [qrReaderId] = useState(generateId)
   const scannerRef = useRef<HTMLDivElement>(null)
-  const html5QrCodeRef = useRef<unknown>(null)
+  const html5QrCodeRef = useRef<{
+    stop: () => Promise<void>
+    clear: () => void
+  } | null>(null)
+  const isMountedRef = useRef(true)
+  const retryCountRef = useRef(0)
 
   const stopScanning = useCallback(async () => {
     if (html5QrCodeRef.current) {
       try {
-        const html5QrCode = html5QrCodeRef.current as {
-          stop: () => Promise<void>
-        }
-        await html5QrCode.stop()
+        await html5QrCodeRef.current.stop()
+        html5QrCodeRef.current.clear()
       } catch (err) {
         // Ignore stop errors
+        console.warn("Error stopping scanner:", err)
       }
       html5QrCodeRef.current = null
     }
-    setIsScanning(false)
+    if (isMountedRef.current) {
+      setIsScanning(false)
+    }
   }, [])
 
   const startScanning = useCallback(async () => {
-    setError(null)
-
-    // Wait for DOM to be ready
-    await new Promise(resolve => setTimeout(resolve, 100))
-
-    const element = document.getElementById(qrReaderId)
-    if (!element) {
-      console.warn("QR reader element not found yet, waiting...")
-      // Try again after a short delay
-      setTimeout(() => startScanning(), 200)
+    // Prevent multiple retries
+    if (retryCountRef.current > 3) {
+      setError("Tidak dapat mengakses kamera setelah beberapa percobaan. Gunakan input manual.")
+      setShowManualInput(true)
       return
     }
+
+    setError(null)
 
     try {
       // Dynamically import html5-qrcode
       const { Html5Qrcode } = await import("html5-qrcode")
+
+      // Check if element exists
+      const element = document.getElementById(qrReaderId)
+      if (!element) {
+        retryCountRef.current++
+        console.warn("QR reader element not found, retrying...")
+        setTimeout(() => startScanning(), 300)
+        return
+      }
+
+      // Stop existing scanner if any
+      if (html5QrCodeRef.current) {
+        try {
+          await html5QrCodeRef.current.stop()
+        } catch {
+          // Ignore
+        }
+        html5QrCodeRef.current = null
+      }
 
       const html5QrCode = new Html5Qrcode(qrReaderId)
       html5QrCodeRef.current = html5QrCode
@@ -77,15 +98,20 @@ export function QRScanner({ onScan, onError, onClose, className }: QRScannerProp
         config,
         (decodedText) => {
           // Success callback
+          if (!isMountedRef.current) return
           stopScanning()
           onScan(decodedText)
         },
         () => {
           // Error callback - ignore scan failures (they're normal)
+          // Do nothing, just keep scanning
         }
       )
 
-      setIsScanning(true)
+      if (isMountedRef.current) {
+        setIsScanning(true)
+        retryCountRef.current = 0
+      }
     } catch (err) {
       console.error("QR Scanner Error:", err)
       const errorMessage =
@@ -94,15 +120,17 @@ export function QRScanner({ onScan, onError, onClose, className }: QRScannerProp
       // Check if it's a camera permission issue
       if (
         errorMessage.includes("Permission") ||
-        errorMessage.includes("NotAllowed")
+        errorMessage.includes("NotAllowed") ||
+        errorMessage.includes("permission")
       ) {
         setError("Izin kamera diperlukan. Silakan aktifkan kamera di pengaturan browser.")
       } else if (
         errorMessage.includes("NotFound") ||
-        errorMessage.includes("no cameras")
+        errorMessage.includes("no cameras") ||
+        errorMessage.includes("Not allowed")
       ) {
         setHasCamera(false)
-        setError("Kamera tidak ditemukan di perangkat ini.")
+        setError("Kamera tidak ditemukan atau tidak diizinkan.")
         setShowManualInput(true)
       } else {
         setError(errorMessage)
@@ -114,7 +142,10 @@ export function QRScanner({ onScan, onError, onClose, className }: QRScannerProp
 
   // Cleanup on unmount
   useEffect(() => {
+    isMountedRef.current = true
+
     return () => {
+      isMountedRef.current = false
       stopScanning()
     }
   }, [stopScanning])
@@ -123,10 +154,14 @@ export function QRScanner({ onScan, onError, onClose, className }: QRScannerProp
   useEffect(() => {
     // Small delay to ensure DOM is ready
     const timer = setTimeout(() => {
-      startScanning()
-    }, 300)
+      if (isMountedRef.current) {
+        startScanning()
+      }
+    }, 500)
 
-    return () => clearTimeout(timer)
+    return () => {
+      clearTimeout(timer)
+    }
   }, [startScanning])
 
   const handleManualSubmit = (e: React.FormEvent) => {
@@ -134,6 +169,13 @@ export function QRScanner({ onScan, onError, onClose, className }: QRScannerProp
     if (manualInput.trim()) {
       onScan(manualInput.trim())
     }
+  }
+
+  const handleRetry = () => {
+    retryCountRef.current = 0
+    setShowManualInput(false)
+    setError(null)
+    setTimeout(() => startScanning(), 100)
   }
 
   return (
@@ -204,7 +246,7 @@ export function QRScanner({ onScan, onError, onClose, className }: QRScannerProp
             </div>
             <p className="text-sm text-[var(--text-primary)] text-center mb-4">{error}</p>
             <button
-              onClick={() => startScanning()}
+              onClick={handleRetry}
               className="px-4 py-2 bg-[var(--primary)] text-white rounded-xl text-sm font-medium hover:bg-[var(--primary)]/90 transition-colors"
             >
               Coba Lagi
@@ -269,10 +311,7 @@ export function QRScanner({ onScan, onError, onClose, className }: QRScannerProp
           {hasCamera && (
             <button
               type="button"
-              onClick={() => {
-                setShowManualInput(false)
-                setTimeout(() => startScanning(), 100)
-              }}
+              onClick={handleRetry}
               className="text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] mt-3"
             >
               ← Kembali ke scan QR

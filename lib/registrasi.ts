@@ -22,6 +22,10 @@ const REGISTRATION_SETTING_KEY = "student_registration_enabled"
 const REGISTRATION_URL_KEY = "student_registration_url"
 const REGISTRATION_ACCESS_COUNT_KEY = "student_registration_access_count"
 
+// Production URL untuk QR code dan link registrasi
+const PRODUCTION_REGISTRATION_URL = "https://twosraku.vercel.app/registrasi"
+const LOCALHOST_REGISTRATION_URL = "http://localhost:3000/registrasi"
+
 /**
  * Get base URL
  */
@@ -30,6 +34,21 @@ function getBaseUrl(): string {
     return window.location.origin
   }
   return ""
+}
+
+/**
+ * Get registration URL based on environment
+ * Production: https://twosraku.vercel.app/registrasi
+ * Development: http://localhost:3000/registrasi
+ */
+function getRegistrationUrl(): string {
+  const baseUrl = getBaseUrl()
+  const isProduction = baseUrl.includes("vercel.app") || baseUrl.includes("twosraku.com")
+
+  if (isProduction || baseUrl === "") {
+    return PRODUCTION_REGISTRATION_URL
+  }
+  return LOCALHOST_REGISTRATION_URL
 }
 
 /**
@@ -48,13 +67,15 @@ export async function getRegistrationSettings() {
 
     return {
       isEnabled: settingsMap.get(REGISTRATION_SETTING_KEY) === "true",
-      registrationUrl: settingsMap.get(REGISTRATION_URL_KEY) || `${getBaseUrl()}/registrasi`,
+      // Selalu gunakan URL production untuk QR code
+      registrationUrl: PRODUCTION_REGISTRATION_URL,
     }
   } catch (err) {
     console.error("Error getting registration settings:", err)
     return {
       isEnabled: false,
-      registrationUrl: `${getBaseUrl()}/registrasi`,
+      // Selalu gunakan URL production untuk QR code
+      registrationUrl: PRODUCTION_REGISTRATION_URL,
     }
   }
 }
@@ -80,18 +101,14 @@ export async function updateRegistrationSettings(
       throw updateError
     }
 
-    // Update URL if enabled
-    if (isEnabled) {
-      const baseUrl = getBaseUrl()
-
-      await supabase
-        .from("settings")
-        .update({
-          value: `${baseUrl}/registrasi`,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("setting_key", REGISTRATION_URL_KEY)
-    }
+    // Update URL with production URL
+    await supabase
+      .from("settings")
+      .update({
+        value: PRODUCTION_REGISTRATION_URL,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("setting_key", REGISTRATION_URL_KEY)
 
     return { success: true }
   } catch (err) {
@@ -446,12 +463,12 @@ export function isSessionValid(): boolean {
   const session = getRegistrationSession()
   if (!session) return false
 
-  // Session expires after 30 minutes
+  // Session expires after 240 minutes (4 hours)
   const verifiedAt = new Date(session.verifiedAt)
   const now = new Date()
   const diffMinutes = (now.getTime() - verifiedAt.getTime()) / (1000 * 60)
 
-  return diffMinutes < 30
+  return diffMinutes < 240
 }
 
 // ============================================
