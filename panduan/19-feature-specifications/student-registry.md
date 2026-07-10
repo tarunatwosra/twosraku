@@ -1,5 +1,5 @@
 # Student Registry Module (Buku Induk) — Compact
-Version: 2.2 | Updated: 2026-07-07
+Version: 2.3 | Updated: 2026-07-10
 
 **Purpose:** Student Registry adalah modul data master Twosraku — single source of truth untuk identitas siswa. Menyimpan & mengelola semua informasi siswa yang dibutuhkan seluruh sistem; setiap modul operasional bergantung pada data ini.
 
@@ -90,6 +90,51 @@ Version: 2.2 | Updated: 2026-07-07
 **5. Riwayat Siswa (`/buku-induk/[id]/history`)** — timeline aktivitas lengkap; kartu ringkasan; riwayat kelas; info audit.
 
 **6. Siswa Tidak Aktif (`/buku-induk/archived`)** — daftar siswa tidak aktif; pencarian; pilih massal; restore (aktifkan kembali); hapus permanen (dengan konfirmasi).
+
+**7. Import Siswa (`/buku-induk/import`)**
+- Multi-step wizard dengan step indicator visual
+- Upload file Excel/CSV dengan drag-and-drop
+- Step: Upload → Strategi → Pemetaan → Validasi → Preview → Import → Selesai
+- Download template dengan 25+ kolom
+
+---
+
+## Import Siswa
+
+### Overview
+Fitur import siswa memungkinkan import data dari file Excel/CSV dengan fitur validasi, preview, dan berbagai strategi import.
+
+### Import Strategy Options
+| Strategy | Label | Deskripsi |
+|----------|-------|-----------|
+| Insert | Tambah Baru | Hanya menambahkan siswa baru. NIS duplikat akan dilewati. |
+| Upsert | Tambah/Update | Menambahkan siswa baru atau mengupdate yang sudah ada. |
+| Update | Update Saja | Hanya mengupdate siswa yang sudah ada. Siswa baru akan dilewati. |
+| Skip | Lewati Duplikat | Mengabaikan semua NIS yang sudah ada di database. |
+
+### Field Mapping
+Mendukung mapping otomatis dan manual untuk kolom-kolom berikut:
+- **Data Diri:** NIS, Nama Lengkap, Nama Panggilan, Jenis Kelamin, Tempat Lahir, Tanggal Lahir, Agama, Kewarganegaraan, Golongan Darah
+- **Kontak:** Alamat, No. Telepon, Email, NIK, NISN
+- **Akademik:** Tahun Masuk
+- **Data Orang Tua:** Nama Ayah, No. HP Ayah, Nama Ibu, No. HP Ibu, Nama Wali, No. HP Wali, Hubungan Wali
+- **Kesehatan:** Tinggi Badan, Berat Badan, Penglihatan, Pendengaran, Kondisi Gigi, Cacat Tubuh, Riwayat Sakit, Alergi, Catatan Kesehatan
+
+### Dry Run Mode
+Validasi data tanpa mengubah database. Menampilkan:
+- Total baris valid/invalid
+- Estimasi insert/update/skip berdasarkan strategi
+- Daftar warning dan error
+- Estimasi waktu eksekusi
+
+### Conflict Resolution
+Mendeteksi NIS yang sudah ada di database. Menampilkan:
+- Daftar konflik dengan detail siswa yang sudah ada
+- Status aktif/nonaktif siswa existing
+- Row number di file import
+
+### Template Columns
+Template download mencakup 25+ kolom untuk import data lengkap.
 
 ---
 
@@ -231,5 +276,5 @@ Selesai jika: menyimpan semua data master siswa; mendukung lifecycle aktif/tidak
 Student Registry adalah fondasi Twosraku. Setiap modul operasional bergantung pada akurasi dan konsistensi data yang dikelola di sini. Melindungi integritas data siswa lebih penting daripada menambahkan fitur baru.
 
 ---
-Last Updated: 2026-07-07 | Version: 2.2
+Last Updated: 2026-07-10 | Version: 2.3
 # End of Student Registry Module (Compact)

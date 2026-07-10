@@ -20,6 +20,7 @@ import {
   BookOpen,
   ChevronDown,
   User,
+  FileUp,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { AppShell } from "@/components/layout"
@@ -441,6 +442,13 @@ export default function BukuIndukPage() {
           >
             <Archive className="w-4 h-4" />
             Diarsipkan
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => router.push("/buku-induk/import")}
+          >
+            <FileUp className="w-4 h-4" />
+            Import Siswa
           </Button>
         </div>
         <Button

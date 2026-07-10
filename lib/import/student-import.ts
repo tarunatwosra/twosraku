@@ -2,6 +2,7 @@
  * Student Import Utility
  *
  * Fungsi-fungsi untuk import data siswa dari Excel/CSV
+ * Enhanced with Dry Run, Field Mapping, and Import Strategies
  */
 
 import * as XLSX from "xlsx"
@@ -14,6 +15,7 @@ export interface ImportRow {
   rowNumber: number
   student_number: string
   national_id: string
+  nisn: string
   full_name: string
   nickname: string
   gender: string
@@ -27,6 +29,24 @@ export interface ImportRow {
   email: string
   enrollment_year: string
   status: string
+  // Parent data
+  father_name: string
+  father_phone: string
+  mother_name: string
+  mother_phone: string
+  guardian_name: string
+  guardian_phone: string
+  guardian_relation: string
+  // Health data
+  height_cm: string
+  weight_kg: string
+  vision: string
+  hearing: string
+  teeth_condition: string
+  physical_disability: string
+  illness_history: string
+  allergies: string
+  health_notes: string
 }
 
 export interface ImportError {
@@ -45,8 +65,97 @@ export interface ImportResult {
   errorRows: number
 }
 
-// Required columns mapping (Excel column name -> field name)
+// Import Strategy Types
+export type ImportStrategy = "insert" | "update" | "upsert" | "skip"
+
+export interface ImportStrategyInfo {
+  strategy: ImportStrategy
+  label: string
+  description: string
+  icon: string
+}
+
+export const IMPORT_STRATEGIES: ImportStrategyInfo[] = [
+  {
+    strategy: "insert",
+    label: "Tambah Baru",
+    description: "Hanya menambahkan siswa baru. Mengabaikan jika NIS sudah ada.",
+    icon: "plus",
+  },
+  {
+    strategy: "upsert",
+    label: "Tambah/Update",
+    description: "Menambahkan siswa baru atau mengupdate yang sudah ada.",
+    icon: "refresh",
+  },
+  {
+    strategy: "update",
+    label: "Update Saja",
+    description: "Hanya mengupdate siswa yang sudah ada. Mengabaikan yang baru.",
+    icon: "edit",
+  },
+  {
+    strategy: "skip",
+    label: "Lewati Duplikat",
+    description: "Mengabaikan semua siswa yang sudah ada di database.",
+    icon: "skip",
+  },
+]
+
+// Field Mapping Types
+export interface FieldMapping {
+  sourceColumn: string
+  targetField: keyof ImportRow | ""
+}
+
+export interface FieldDefinition {
+  key: keyof ImportRow
+  label: string
+  required: boolean
+  type: "text" | "date" | "select" | "number"
+  options?: string[]
+}
+
+// Available fields for mapping
+export const AVAILABLE_FIELDS: FieldDefinition[] = [
+  { key: "student_number", label: "NIS", required: true, type: "text" },
+  { key: "full_name", label: "Nama Lengkap", required: true, type: "text" },
+  { key: "nickname", label: "Nama Panggilan", required: false, type: "text" },
+  { key: "gender", label: "Jenis Kelamin", required: false, type: "select", options: ["male", "female", "laki-laki", "perempuan", "L", "P"] },
+  { key: "birth_place", label: "Tempat Lahir", required: false, type: "text" },
+  { key: "birth_date", label: "Tanggal Lahir", required: false, type: "date" },
+  { key: "religion", label: "Agama", required: false, type: "select", options: ["Islam", "Kristen", "Katolik", "Hindu", "Buddha", "Konghucu", "Lainnya"] },
+  { key: "nationality", label: "Kewarganegaraan", required: false, type: "text" },
+  { key: "blood_type", label: "Golongan Darah", required: false, type: "select", options: ["A", "B", "AB", "O", "Tidak Tahu"] },
+  { key: "address", label: "Alamat", required: false, type: "text" },
+  { key: "phone", label: "No. Telepon", required: false, type: "text" },
+  { key: "email", label: "Email", required: false, type: "text" },
+  { key: "national_id", label: "NIK", required: false, type: "text" },
+  { key: "nisn", label: "NISN", required: false, type: "text" },
+  { key: "enrollment_year", label: "Tahun Masuk", required: false, type: "number" },
+  // Parent fields
+  { key: "father_name", label: "Nama Ayah", required: false, type: "text" },
+  { key: "father_phone", label: "No. HP Ayah", required: false, type: "text" },
+  { key: "mother_name", label: "Nama Ibu", required: false, type: "text" },
+  { key: "mother_phone", label: "No. HP Ibu", required: false, type: "text" },
+  { key: "guardian_name", label: "Nama Wali", required: false, type: "text" },
+  { key: "guardian_phone", label: "No. HP Wali", required: false, type: "text" },
+  { key: "guardian_relation", label: "Hubungan Wali", required: false, type: "text" },
+  // Health fields
+  { key: "height_cm", label: "Tinggi Badan (cm)", required: false, type: "number" },
+  { key: "weight_kg", label: "Berat Badan (kg)", required: false, type: "number" },
+  { key: "vision", label: "Penglihatan", required: false, type: "select", options: ["Normal", "Tidak Normal"] },
+  { key: "hearing", label: "Pendengaran", required: false, type: "select", options: ["Normal", "Tidak Normal"] },
+  { key: "teeth_condition", label: "Kondisi Gigi", required: false, type: "select", options: ["Normal", "Tidak Normal"] },
+  { key: "physical_disability", label: "Cacat Tubuh", required: false, type: "select", options: ["Tidak Ada", "Ada"] },
+  { key: "illness_history", label: "Riwayat Sakit", required: false, type: "text" },
+  { key: "allergies", label: "Alergi", required: false, type: "text" },
+  { key: "health_notes", label: "Catatan Kesehatan", required: false, type: "text" },
+]
+
+// Default column mapping (Excel column name -> field name)
 export const COLUMN_MAPPING: Record<string, keyof ImportRow> = {
+  // Basic fields
   NIS: "student_number",
   "Nomor Induk": "student_number",
   "Student Number": "student_number",
@@ -81,7 +190,103 @@ export const COLUMN_MAPPING: Record<string, keyof ImportRow> = {
   "Tahun Daftar": "enrollment_year",
   NIK: "national_id",
   "National ID": "national_id",
+  NISN: "nisn",
   Status: "status",
+  // Parent fields
+  "Nama Ayah": "father_name",
+  "Nama Ibu": "mother_name",
+  "Nama Wali": "guardian_name",
+  "No. HP Ayah": "father_phone",
+  "No. HP Ibu": "mother_phone",
+  "No. HP Wali": "guardian_phone",
+  "Hubungan Wali": "guardian_relation",
+  // Health fields
+  "Tinggi Badan": "height_cm",
+  "Berat Badan": "weight_kg",
+  "Tinggi (cm)": "height_cm",
+  "Berat (kg)": "weight_kg",
+  Penglihatan: "vision",
+  Pendengaran: "hearing",
+  "Kondisi Gigi": "teeth_condition",
+  "Cacat Tubuh": "physical_disability",
+  "Riwayat Sakit": "illness_history",
+  Alergi: "allergies",
+  "Catatan Kesehatan": "health_notes",
+}
+
+// ============================================
+// DATE CONVERSION
+// ============================================
+
+/**
+ * Convert Excel serial number to YYYY-MM-DD format (for database)
+ * Excel serial date: 1 = Jan 1, 1900 (with leap year bug)
+ */
+function excelSerialToDate(serial: number): string {
+  // Excel serial date epoch: Dec 30, 1899 is day 0
+  // Excel incorrectly treats 1900 as a leap year, so we subtract 1 for dates after Feb 28, 1900
+  const msPerDay = 24 * 60 * 60 * 1000
+  const excelEpoch = new Date(1899, 11, 30).getTime()
+  const date = new Date(excelEpoch + serial * msPerDay)
+
+  const day = date.getDate()
+  const month = date.getMonth() + 1
+  const year = date.getFullYear()
+
+  // Return as YYYY-MM-DD for database compatibility
+  return `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`
+}
+
+/**
+ * Convert date to DD/MM/YYYY format (for display)
+ */
+function excelSerialToDisplayDate(serial: number): string {
+  const msPerDay = 24 * 60 * 60 * 1000
+  const excelEpoch = new Date(1899, 11, 30).getTime()
+  const date = new Date(excelEpoch + serial * msPerDay)
+
+  const day = date.getDate()
+  const month = date.getMonth() + 1
+  const year = date.getFullYear()
+
+  // Return as DD/MM/YYYY for display
+  return `${day.toString().padStart(2, "0")}/${month.toString().padStart(2, "0")}/${year}`
+}
+
+/**
+ * Check if a value is an Excel serial date
+ * Excel serial dates are typically numbers > 25569 (Jan 1, 1970) and < 60000
+ */
+function isExcelSerialDate(value: unknown): boolean {
+  if (typeof value !== "number") return false
+  // Excel serial dates for reasonable date ranges (1970-2100)
+  // Jan 1, 1970 = 25569, Jan 1, 2100 = 73049
+  return value > 25569 && value < 73050 && Number.isInteger(value)
+}
+
+/**
+ * Parse and format date from various formats
+ * Handles: DD/MM/YYYY, YYYY-MM-DD, Excel serial numbers
+ * Returns YYYY-MM-DD for database compatibility
+ */
+function parseAndFormatDate(value: string | number | unknown): string | null {
+  if (value === null || value === undefined || value === "") return null
+
+  // If it's an Excel serial number
+  if (typeof value === "number" && isExcelSerialDate(value)) {
+    return excelSerialToDate(value)
+  }
+
+  // If it's a string that looks like an Excel serial
+  const strValue = String(value).trim()
+  const numValue = parseInt(strValue)
+  if (!isNaN(numValue) && isExcelSerialDate(numValue)) {
+    return excelSerialToDate(numValue)
+  }
+
+  // Try parsing as DD/MM/YYYY or YYYY-MM-DD
+  const parsed = parseDate(strValue)
+  return parsed
 }
 
 // ============================================
@@ -90,6 +295,7 @@ export const COLUMN_MAPPING: Record<string, keyof ImportRow> = {
 
 /**
  * Parse file Excel/CSV
+ * Returns dates in YYYY-MM-DD format for database compatibility
  */
 export function parseFile(
   file: File
@@ -100,26 +306,112 @@ export function parseFile(
     reader.onload = (e) => {
       try {
         const data = e.target?.result
-        const workbook = XLSX.read(data, { type: "array" })
+
+        // Read with cellDates: true to get dates as Date objects
+        const workbook = XLSX.read(data, {
+          type: "array",
+          cellDates: true,
+          cellNF: true,
+        })
 
         // Ambil sheet pertama
         const sheetName = workbook.SheetNames[0]
         const worksheet = workbook.Sheets[sheetName]
 
-        // Convert to JSON
-        const jsonData = XLSX.utils.sheet_to_json<Record<string, string>>(worksheet, {
-          defval: "",
-        })
+        // Get raw cell data for better date detection
+        const range = XLSX.utils.decode_range(worksheet["!ref"] || "A1")
+        const headers: string[] = []
 
-        if (jsonData.length === 0) {
+        // Get headers from first row
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+          const cellRef = XLSX.utils.encode_cell({ r: 0, c: C })
+          const cell = worksheet[cellRef]
+          headers.push(cell ? String(cell.v || "").trim() : "")
+        }
+
+        // Check if a column header suggests it's a date field
+        const dateHeaderPatterns = /tanggal|tgl|birth|date|lahir/i
+        const isDateColumn = (header: string): boolean => {
+          return dateHeaderPatterns.test(header)
+        }
+
+        // Helper to convert Date to YYYY-MM-DD
+        const dateToYYYYMMDD = (date: Date): string => {
+          const year = date.getFullYear()
+          const month = date.getMonth() + 1
+          const day = date.getDate()
+          return `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`
+        }
+
+        // Helper to check if a number could be an Excel serial date
+        const isLikelySerialDate = (val: number, header: string): boolean => {
+          // Excel serial dates for reasonable date ranges (1970-2100)
+          // Jan 1, 1970 = 25569, Jan 1, 2100 = 73049
+          const isInRange = val > 25569 && val < 73050 && Number.isInteger(val)
+          // Also check if it's a date column
+          return isInRange && isDateColumn(header)
+        }
+
+        // Convert each row, handling dates
+        const rows: Record<string, string>[] = []
+        for (let R = range.s.r + 1; R <= range.e.r; ++R) {
+          const row: Record<string, string> = {}
+          for (let C = range.s.c; C <= range.e.c; ++C) {
+            const cellRef = XLSX.utils.encode_cell({ r: R, c: C })
+            const cell = worksheet[cellRef]
+            const header = headers[C] || `Column${C}`
+
+            if (!cell) {
+              row[header] = ""
+              continue
+            }
+
+            // Handle different cell types
+            if (cell.t === "d") {
+              // It's a Date object
+              const date = cell.v as Date
+              if (date instanceof Date && !isNaN(date.getTime())) {
+                row[header] = dateToYYYYMMDD(date)
+              } else {
+                row[header] = String(cell.v || "").trim()
+              }
+            } else if (cell.t === "n") {
+              // It's a number - check if it could be a date
+              const numVal = cell.v as number
+              if (isLikelySerialDate(numVal, header)) {
+                // Convert Excel serial to date
+                const msPerDay = 24 * 60 * 60 * 1000
+                const excelEpoch = new Date(1899, 11, 30).getTime()
+                const date = new Date(excelEpoch + numVal * msPerDay)
+                if (!isNaN(date.getTime())) {
+                  row[header] = dateToYYYYMMDD(date)
+                } else {
+                  row[header] = String(cell.v || "").trim()
+                }
+              } else {
+                // Regular number
+                row[header] = String(cell.v || "").trim()
+              }
+            } else if (cell.t === "s") {
+              // It's a string
+              row[header] = String(cell.v || "").trim()
+            } else if (cell.t === "b") {
+              // It's a boolean
+              row[header] = String(cell.v || "").trim()
+            } else {
+              // Fallback - try to parse as string
+              row[header] = String(cell.v || "").trim()
+            }
+          }
+          rows.push(row)
+        }
+
+        if (rows.length === 0) {
           reject(new Error("File kosong atau tidak memiliki data"))
           return
         }
 
-        // Ambil headers dari baris pertama
-        const headers = Object.keys(jsonData[0])
-
-        resolve({ headers, rows: jsonData })
+        resolve({ headers, rows })
       } catch (error) {
         reject(new Error("Gagal membaca file: " + (error as Error).message))
       }
@@ -218,7 +510,7 @@ export function validateRow(row: ImportRow): ImportError[] {
       errors.push({
         row: row.rowNumber,
         field: "birth_date",
-        message: "Format tanggal tidak valid (gunakan: YYYY-MM-DD, DD/MM/YYYY, MM/DD/YYYY)",
+        message: "Format tanggal tidak valid (gunakan: DD/MM/YYYY, YYYY-MM-DD)",
         severity: "warning",
       })
     }
@@ -272,38 +564,50 @@ export function validateRow(row: ImportRow): ImportError[] {
 
 /**
  * Parse various date formats
+ * Prioritas: DD/MM/YYYY (Indonesia), YYYY-MM-DD, DD-MM-YYYY
  */
 function parseDate(dateStr: string): string | null {
   if (!dateStr) return null
 
-  // Try YYYY-MM-DD
-  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-    const date = new Date(dateStr)
-    if (!isNaN(date.getTime())) return dateStr
-  }
+  const trimmed = dateStr.trim()
 
-  // Try DD/MM/YYYY or DD-MM-YYYY
-  const ddmmyyyyMatch = dateStr.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/)
+  // Try DD/MM/YYYY or DD-MM-YYYY (Indonesia format - PRIORITY)
+  const ddmmyyyyMatch = trimmed.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/)
   if (ddmmyyyyMatch) {
     const [, day, month, year] = ddmmyyyyMatch
-    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
-    if (!isNaN(date.getTime())) {
-      return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
+    const dayNum = parseInt(day)
+    const monthNum = parseInt(month)
+    const yearNum = parseInt(year)
+
+    // Validasi range
+    if (dayNum >= 1 && dayNum <= 31 && monthNum >= 1 && monthNum <= 12 && yearNum >= 1900 && yearNum <= 2100) {
+      // Buat tanggal untuk validasi
+      const date = new Date(yearNum, monthNum - 1, dayNum)
+      if (!isNaN(date.getTime())) {
+        return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
+      }
     }
   }
 
-  // Try MM/DD/YYYY (US format)
-  const mmddyyyyMatch = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)
-  if (mmddyyyyMatch) {
-    const [, month, day, year] = mmddyyyyMatch
-    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
-    if (!isNaN(date.getTime())) {
-      return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
+  // Try YYYY-MM-DD (ISO format)
+  const isoMatch = trimmed.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/)
+  if (isoMatch) {
+    const [, year, month, day] = isoMatch
+    const yearNum = parseInt(year)
+    const monthNum = parseInt(month)
+    const dayNum = parseInt(day)
+
+    // Validasi range
+    if (monthNum >= 1 && monthNum <= 12 && dayNum >= 1 && dayNum <= 31) {
+      const date = new Date(yearNum, monthNum - 1, dayNum)
+      if (!isNaN(date.getTime())) {
+        return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
+      }
     }
   }
 
   // Try Excel serial date
-  const excelDate = parseInt(dateStr)
+  const excelDate = parseInt(trimmed)
   if (!isNaN(excelDate) && excelDate > 25569 && excelDate < 50000) {
     const date = new Date((excelDate - 25569) * 86400 * 1000)
     if (!isNaN(date.getTime())) {
@@ -459,4 +763,357 @@ export function normalizeStatus(value: string): "prospective" | "active" {
   const normalized = value?.toLowerCase().trim()
   if (["active", "aktif"].includes(normalized)) return "active"
   return "prospective" // Default
+}
+
+// ============================================
+// DRY RUN FUNCTION
+// ============================================
+
+export interface DryRunResult {
+  totalRows: number
+  validRows: number
+  invalidRows: number
+  duplicateInFile: number
+  duplicateInDb: number
+  estimatedInserts: number
+  estimatedUpdates: number
+  estimatedSkips: number
+  warnings: ImportError[]
+  errors: ImportError[]
+  executionTime: number
+}
+
+/**
+ * Perform dry run - validate without importing
+ */
+export async function performDryRun(
+  rows: ImportRow[],
+  existingNisNumbers: Set<string>,
+  strategy: ImportStrategy
+): Promise<DryRunResult> {
+  const startTime = Date.now()
+
+  const result: Omit<DryRunResult, 'executionTime'> = {
+    totalRows: rows.length,
+    validRows: 0,
+    invalidRows: 0,
+    duplicateInFile: 0,
+    duplicateInDb: 0,
+    estimatedInserts: 0,
+    estimatedUpdates: 0,
+    estimatedSkips: 0,
+    warnings: [],
+    errors: [],
+  }
+
+  const nisInFile = new Set<string>()
+
+  // First pass: validate and check duplicates
+  for (const row of rows) {
+    const rowErrors = validateRow(row)
+    const criticalErrors = rowErrors.filter(
+      (e) => e.severity === "error" && ["student_number", "full_name"].includes(e.field)
+    )
+    const rowWarnings = rowErrors.filter((e) => e.severity === "warning")
+
+    if (criticalErrors.length > 0) {
+      result.invalidRows++
+      result.errors.push(...criticalErrors)
+    } else {
+      result.validRows++
+
+      // Check for duplicate in file
+      if (row.student_number) {
+        if (nisInFile.has(row.student_number)) {
+          result.duplicateInFile++
+          result.errors.push({
+            row: row.rowNumber,
+            field: "student_number",
+            message: `NIS "${row.student_number}" duplikat dalam file`,
+            severity: "error",
+          })
+        } else {
+          nisInFile.add(row.student_number)
+        }
+
+        // Check for duplicate in database
+        if (existingNisNumbers.has(row.student_number)) {
+          result.duplicateInDb++
+
+          switch (strategy) {
+            case "skip":
+              result.estimatedSkips++
+              break
+            case "update":
+            case "upsert":
+              result.estimatedUpdates++
+              break
+            case "insert":
+              result.estimatedSkips++
+              result.warnings.push({
+                row: row.rowNumber,
+                field: "student_number",
+                message: `NIS "${row.student_number}" sudah ada, akan dilewati (strategy: insert)`,
+                severity: "warning",
+              })
+              break
+          }
+        } else {
+          result.estimatedInserts++
+        }
+      }
+    }
+
+    // Add warnings
+    if (rowWarnings.length > 0) {
+      result.warnings.push(...rowWarnings)
+    }
+  }
+
+  const executionTime = Date.now() - startTime
+  return {
+    ...result,
+    executionTime,
+  }
+}
+
+// ============================================
+// FIELD MAPPING FUNCTIONS
+// ============================================
+
+/**
+ * Detect columns from file headers and auto-map
+ */
+export function detectAndAutoMap(headers: string[]): FieldMapping[] {
+  const mappings: FieldMapping[] = []
+
+  for (const header of headers) {
+    const trimmedHeader = header.trim()
+    const targetField = COLUMN_MAPPING[trimmedHeader]
+
+    if (targetField) {
+      mappings.push({
+        sourceColumn: header,
+        targetField,
+      })
+    } else {
+      // Try case-insensitive matching
+      const lowerHeader = trimmedHeader.toLowerCase()
+      for (const [columnName, fieldKey] of Object.entries(COLUMN_MAPPING)) {
+        if (columnName.toLowerCase() === lowerHeader) {
+          mappings.push({
+            sourceColumn: header,
+            targetField: fieldKey,
+          })
+          break
+        }
+      }
+    }
+  }
+
+  return mappings
+}
+
+/**
+ * Get unmapped target fields
+ */
+export function getUnmappedFields(
+  mappedFields: FieldMapping[],
+  requiredOnly: boolean = false
+): FieldDefinition[] {
+  const mappedTargets = new Set(
+    mappedFields.filter((m) => m.targetField).map((m) => m.targetField)
+  )
+
+  return AVAILABLE_FIELDS.filter((field) => {
+    if (mappedTargets.has(field.key)) return false
+    if (requiredOnly && !field.required) return false
+    return true
+  })
+}
+
+/**
+ * Convert raw row using field mapping
+ */
+export function convertRowWithMapping(
+  rawRow: Record<string, string>,
+  fieldMapping: FieldMapping[],
+  rowNumber: number
+): ImportRow {
+  const row: Partial<ImportRow> = { rowNumber }
+
+  for (const mapping of fieldMapping) {
+    if (mapping.targetField && rawRow[mapping.sourceColumn] !== undefined) {
+      const value = String(rawRow[mapping.sourceColumn] || "").trim()
+      ;(row as Record<string, string>)[mapping.targetField] = value
+    }
+  }
+
+  return row as ImportRow
+}
+
+// ============================================
+// UPDATE STUDENT FUNCTION
+// ============================================
+
+/**
+ * Update student by student_number (NIS)
+ */
+export async function updateStudentByNis(
+  nis: string,
+  updates: Partial<ImportRow>
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { supabase } = await import("@/lib/supabase")
+
+    // Map import fields to database fields
+    const dbUpdates: Record<string, unknown> = {
+      updated_at: new Date().toISOString(),
+    }
+
+    if (updates.full_name) dbUpdates.full_name = updates.full_name
+    if (updates.nickname) dbUpdates.nickname = updates.nickname
+    if (updates.gender) dbUpdates.gender = normalizeGender(updates.gender)
+    if (updates.birth_place) dbUpdates.birth_place = updates.birth_place
+    if (updates.birth_date) {
+      const parsedDate = parseDate(updates.birth_date)
+      if (parsedDate) dbUpdates.birth_date = parsedDate
+    }
+    if (updates.religion) dbUpdates.religion = updates.religion
+    if (updates.nationality) dbUpdates.nationality = updates.nationality
+    if (updates.blood_type) dbUpdates.blood_type = updates.blood_type
+    if (updates.address) dbUpdates.address = updates.address
+    if (updates.phone) dbUpdates.phone = updates.phone
+    if (updates.email) dbUpdates.email = updates.email
+    if (updates.national_id) dbUpdates.national_id = updates.national_id
+    if (updates.nisn) dbUpdates.nisn = updates.nisn
+    if (updates.enrollment_year) {
+      const year = parseInt(updates.enrollment_year)
+      if (!isNaN(year)) dbUpdates.enrollment_year = year
+    }
+    // Health fields
+    if (updates.height_cm) dbUpdates.height_cm = parseFloat(updates.height_cm) || null
+    if (updates.weight_kg) dbUpdates.weight_kg = parseFloat(updates.weight_kg) || null
+    if (updates.vision) dbUpdates.vision = updates.vision
+    if (updates.hearing) dbUpdates.hearing = updates.hearing
+    if (updates.teeth_condition) dbUpdates.teeth_condition = updates.teeth_condition
+    if (updates.physical_disability) dbUpdates.physical_disability = updates.physical_disability
+    if (updates.illness_history) dbUpdates.illness_history = updates.illness_history
+    if (updates.allergies) dbUpdates.allergies = updates.allergies
+    if (updates.health_notes) dbUpdates.health_notes = updates.health_notes
+
+    const { error } = await supabase
+      .from("students")
+      .update(dbUpdates)
+      .eq("student_number", nis)
+
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    return { success: true }
+  } catch (err) {
+    console.error("Error updating student by NIS:", err)
+    return { success: false, error: "Terjadi kesalahan saat mengupdate siswa" }
+  }
+}
+
+/**
+ * Get existing NIS numbers for duplicate checking
+ */
+export async function getExistingNisNumbers(nisNumbers: string[]): Promise<Set<string>> {
+  try {
+    const { supabase } = await import("@/lib/supabase")
+
+    const { data, error } = await supabase
+      .from("students")
+      .select("student_number")
+      .in("student_number", nisNumbers)
+
+    if (error) {
+      console.error("Error fetching existing NIS:", error)
+      return new Set()
+    }
+
+    return new Set(data?.map((s) => s.student_number) || [])
+  } catch (err) {
+    console.error("Error fetching existing NIS:", err)
+    return new Set()
+  }
+}
+
+// ============================================
+// CONFLICT DETECTION
+// ============================================
+
+export interface ConflictInfo {
+  nis: string
+  rowNumber: number
+  existingStudent: {
+    id: string
+    full_name: string
+    is_active: boolean
+  } | null
+}
+
+export interface ConflictDetectionResult {
+  conflicts: ConflictInfo[]
+  hasConflicts: boolean
+}
+
+/**
+ * Detect conflicts between import data and existing database
+ */
+export async function detectConflicts(
+  rows: ImportRow[]
+): Promise<ConflictDetectionResult> {
+  const conflicts: ConflictInfo[] = []
+  const nisNumbers = rows
+    .filter((r) => r.student_number)
+    .map((r) => r.student_number)
+
+  if (nisNumbers.length === 0) {
+    return { conflicts: [], hasConflicts: false }
+  }
+
+  try {
+    const { supabase } = await import("@/lib/supabase")
+
+    const { data, error } = await supabase
+      .from("students")
+      .select("id, student_number, full_name, is_active")
+      .in("student_number", nisNumbers)
+
+    if (error) {
+      console.error("Error detecting conflicts:", error)
+      return { conflicts: [], hasConflicts: false }
+    }
+
+    const existingMap = new Map(
+      data?.map((s) => [s.student_number, s]) || []
+    )
+
+    for (const row of rows) {
+      if (row.student_number && existingMap.has(row.student_number)) {
+        const existing = existingMap.get(row.student_number)!
+        conflicts.push({
+          nis: row.student_number,
+          rowNumber: row.rowNumber,
+          existingStudent: {
+            id: existing.id,
+            full_name: existing.full_name,
+            is_active: existing.is_active,
+          },
+        })
+      }
+    }
+
+    return {
+      conflicts,
+      hasConflicts: conflicts.length > 0,
+    }
+  } catch (err) {
+    console.error("Error detecting conflicts:", err)
+    return { conflicts: [], hasConflicts: false }
+  }
 }

@@ -28,6 +28,16 @@ Berisi catatan semua perubahan yang dilakukan pada file-file panduan. Setiap kal
 
 <!-- Changelog entries will be added below this line -->
 
+## 2026-07-10 (Import Enhancement)
+
+### student-registry.md (19-feature-specifications/)
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-07-10 |
+| Perubahan | ENHANCED IMPORT FEATURE v2.0: (1) Tambahkan tombol "Import Siswa" di halaman utama buku induk. (2) Dry Run Mode - validasi data tanpa mengubah database. (3) Import Strategy Options - Insert, Update, Upsert, Skip. (4) Field Mapping Editor - auto-detect kolom dengan manual mapping. (5) Conflict Resolution UI - deteksi & tampilkan NIS duplikat. (6) Template download dengan 25+ kolom (termasuk data orang tua & kesehatan). |
+| Backup | student-registry-001.md |
+| Catatan | Files: app/buku-induk/page.tsx, app/buku-induk/import/page.tsx, lib/import/student-import.ts |
+
 ## 2026-07-08 (Afternoon - Penggabungan Formula)
 
 ### assessment.md (19-feature-specifications/)

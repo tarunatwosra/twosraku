@@ -1,5 +1,5 @@
 # Import & Export Module — Compact
-Version: 1.0
+Version: 1.1 | Updated: 2026-07-10
 
 **Purpose:** Import & Export is Twosraku's centralized data exchange engine. Instead of each module implementing its own import/export, all data exchange goes through one unified engine providing consistent validation, mapping, preview, conflict resolution, export formatting, and history tracking. Operations should be reliable, secure, reproducible, and auditable.
 
@@ -17,6 +17,37 @@ Version: 1.0
 - **Purpose:** overview of recent data exchange activities.
 - **Widgets:** Recent Imports/Exports, Failed Imports, Pending/Processing Jobs, Storage Usage, Quick Actions.
 - **Quick Actions:** Import Data, Export Data, Download Template, View History, Retry Failed Import.
+
+### Student Registry Import (Implemented)
+**Location:** `/buku-induk/import`
+
+**Workflow:**
+1. **Upload** → Drag & drop atau pilih file Excel/CSV
+2. **Strategy** → Pilih strategi import (Insert/Update/Upsert/Skip)
+3. **Mapping** → Auto-detect kolom + edit manual jika perlu
+4. **Dry Run** → Validasi tanpa ubah database
+5. **Preview** → Review data sebelum import
+6. **Import** → Eksekusi import dengan progress
+7. **Complete** → Summary hasil import
+
+**Supported Fields (25+):**
+- Data Diri: NIS, Nama Lengkap, Nama Panggilan, Jenis Kelamin, Tempat Lahir, Tanggal Lahir, Agama, Kewarganegaraan, Golongan Darah
+- Kontak: Alamat, No. Telepon, Email, NIK, NISN
+- Akademik: Tahun Masuk
+- Orang Tua: Nama Ayah, No. HP Ayah, Nama Ibu, No. HP Ibu, Nama Wali, No. HP Wali, Hubungan Wali
+- Kesehatan: Tinggi Badan, Berat Badan, Penglihatan, Pendengaran, Kondisi Gigi, Cacat Tubuh, Riwayat Sakit, Alergi, Catatan Kesehatan
+
+**Import Strategies:**
+- **Insert** → Hanya tambah baru, NIS duplikat dilewati
+- **Upsert** → Tambah baru atau update yang ada (default)
+- **Update** → Hanya update yang ada, baru dilewati
+- **Skip** → Semua NIS yang ada dilewati
+
+**Dry Run Results:**
+- Total valid/invalid rows
+- Estimated inserts/updates/skips
+- Warnings dan errors
+- Execution time
 
 ### Supported Formats
 - **Import:** Excel (.xlsx), CSV. Future: JSON, XML, API.
@@ -132,7 +163,7 @@ Complete when: every module uses the centralized engine; validation prevents inv
 
 | Module | Supported Strategies |
 |---|---|
-| Student Registry | Insert, Update, Upsert, Merge |
+| Student Registry | Insert, Update, Upsert, Skip ✅ (Implemented) |
 | Attendance | Insert, Replace, Skip |
 | Assessment | Insert, Update, Upsert |
 | Character Points | Insert, Skip |

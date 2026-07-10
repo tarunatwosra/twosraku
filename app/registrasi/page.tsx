@@ -2,10 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { QRScanner } from "@/components/registrasi/QRScanner"
 import { Button } from "@/components/ui"
 import {
-  QrCode,
   Smartphone,
   Shield,
   Clock,
@@ -24,9 +22,7 @@ import {
 export default function RegistrationPage() {
   const router = useRouter()
   const [isEnabled, setIsEnabled] = useState<boolean | null>(null)
-  const [showScanner, setShowScanner] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
-  const [scanSuccess, setScanSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   // Check if registration is enabled and handle existing session
@@ -41,7 +37,6 @@ export default function RegistrationPage() {
 
       // Check settings
       const settings = await getRegistrationSettings()
-      console.log("Registration settings:", settings)
       setIsEnabled(settings.isEnabled)
 
       // Check for existing valid session
@@ -59,31 +54,6 @@ export default function RegistrationPage() {
       setError("Terjadi kesalahan saat memuat halaman")
     } finally {
       setIsLoading(false)
-    }
-  }
-
-  function handleQRScan(data: string) {
-    // Check if scanned data is valid registration URL
-    if (data.includes("/registrasi")) {
-      setScanSuccess(true)
-      // Navigate to verification
-      setTimeout(() => {
-        router.push("/registrasi/verify")
-      }, 500)
-    } else {
-      // Assume it's a direct link to verify page
-      if (data.includes("/verify")) {
-        setScanSuccess(true)
-        setTimeout(() => {
-          router.push(data)
-        }, 500)
-      } else {
-        // Just go to verify page
-        setScanSuccess(true)
-        setTimeout(() => {
-          router.push("/registrasi/verify")
-        }, 500)
-      }
     }
   }
 
@@ -155,50 +125,6 @@ export default function RegistrationPage() {
     )
   }
 
-  // Show QR Scanner
-  if (showScanner) {
-    return (
-      <div className="max-w-lg mx-auto px-4 py-6">
-        <button
-          onClick={() => setShowScanner(false)}
-          className="mb-6 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex items-center gap-1"
-        >
-          ← Kembali
-        </button>
-
-        <div className="bg-white rounded-3xl p-6 shadow-lg">
-          <div className="text-center mb-6">
-            <div className="w-14 h-14 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center mx-auto mb-4">
-              <QrCode className="w-7 h-7 text-[var(--primary)]" />
-            </div>
-            <h2 className="text-xl font-bold text-[var(--text-primary)] mb-2">
-              Scan QR Code
-            </h2>
-            <p className="text-sm text-[var(--text-muted)]">
-              Arahkan kamera ke QR code yang diberikan sekolah
-            </p>
-          </div>
-
-          <QRScanner
-            onScan={handleQRScan}
-            onClose={() => setShowScanner(false)}
-          />
-
-          {scanSuccess && (
-            <div className="mt-4 p-4 bg-green-50 rounded-2xl flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                <Shield className="w-4 h-4 text-green-600" />
-              </div>
-              <p className="text-sm text-green-700 font-medium">
-                Berhasil! Mengalihkan...
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-    )
-  }
-
   // Default: Welcome page
   return (
     <div className="max-w-lg mx-auto px-4 py-8">
@@ -224,9 +150,9 @@ export default function RegistrationPage() {
               1
             </div>
             <div>
-              <h3 className="font-medium text-[var(--text-primary)] mb-1">Scan QR Code</h3>
+              <h3 className="font-medium text-[var(--text-primary)] mb-1">Masukkan Kode Registrasi</h3>
               <p className="text-sm text-[var(--text-muted)]">
-                Scan QR code yang diberikan sekolah dengan kamera HP kamu
+                Masukkan kode yang diberikan sekolah
               </p>
             </div>
           </div>
@@ -262,21 +188,11 @@ export default function RegistrationPage() {
             variant="primary"
             size="lg"
             className="w-full h-14 text-base"
-            onClick={() => setShowScanner(true)}
-          >
-            <QrCode className="w-5 h-5" />
-            Scan QR Code
-            <ChevronRight className="w-5 h-5" />
-          </Button>
-
-          <Button
-            variant="outline"
-            size="lg"
-            className="w-full h-14 text-base"
             onClick={handleManualEntry}
           >
             <Shield className="w-5 h-5" />
-            Masukkan Kode Manual
+            Masukkan Kode Registrasi
+            <ChevronRight className="w-5 h-5" />
           </Button>
         </div>
       </div>
