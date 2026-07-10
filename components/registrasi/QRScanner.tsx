@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useRef, useEffect, useCallback } from "react"
-import { Camera, X, AlertCircle, Loader2 } from "lucide-react"
+import { useState, useRef, useEffect } from "react"
+import { X, AlertCircle, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface QRScannerProps {
@@ -11,8 +11,25 @@ interface QRScannerProps {
   className?: string
 }
 
-// Generate unique ID for this instance
-const generateId = () => `qr-reader-${Math.random().toString(36).substr(2, 9)}`
+// Static ID untuk avoid multiple instances
+const QR_READER_ID = "qr-reader-main"
+
+interface Html5Qrcode {
+  start: (
+    cameraId: { facingMode: string },
+    config: { fps: number; qrbox: { width: number; height: number } },
+    onScanSuccess: (decodedText: string) => void,
+    onScanFailure: () => void
+  ) => Promise<void>
+  stop: () => Promise<void>
+  clear: () => void
+}
+
+declare global {
+  interface Window {
+    Html5Qrcode: new (elementId: string) => Html5Qrcode
+  }
+}
 
 /**
  * QR Scanner Component
@@ -26,143 +43,168 @@ export function QRScanner({ onScan, onError, onClose, className }: QRScannerProp
   const [hasCamera, setHasCamera] = useState(true)
   const [manualInput, setManualInput] = useState("")
   const [showManualInput, setShowManualInput] = useState(false)
-  const [qrReaderId] = useState(generateId)
-  const scannerRef = useRef<HTMLDivElement>(null)
-  const html5QrCodeRef = useRef<{
-    stop: () => Promise<void>
-    clear: () => void
-  } | null>(null)
-  const isMountedRef = useRef(true)
-  const retryCountRef = useRef(0)
+  const [isLoading, setIsLoading] = useState(true)
 
-  const stopScanning = useCallback(async () => {
-    if (html5QrCodeRef.current) {
+  const scannerRef = useRef<Html5Qrcode | null>(null)
+  const isActiveRef = useRef(false)
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Cleanup function
+  const cleanup = async () => {
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current)
+      retryTimeoutRef.current = null
+    }
+
+    if (scannerRef.current && isActiveRef.current) {
       try {
-        await html5QrCodeRef.current.stop()
-        html5QrCodeRef.current.clear()
-      } catch (err) {
+        isActiveRef.current = false
+        await scannerRef.current.stop()
+      } catch {
         // Ignore stop errors
-        console.warn("Error stopping scanner:", err)
       }
-      html5QrCodeRef.current = null
+      try {
+        scannerRef.current.clear()
+      } catch {
+        // Ignore clear errors
+      }
+      scannerRef.current = null
     }
-    if (isMountedRef.current) {
-      setIsScanning(false)
-    }
-  }, [])
+    setIsScanning(false)
+  }
 
-  const startScanning = useCallback(async () => {
-    // Prevent multiple retries
-    if (retryCountRef.current > 3) {
-      setError("Tidak dapat mengakses kamera setelah beberapa percobaan. Gunakan input manual.")
-      setShowManualInput(true)
-      return
-    }
-
+  // Initialize scanner
+  const initScanner = async () => {
+    // Clean up any existing scanner
+    await cleanup()
+    setIsLoading(true)
     setError(null)
 
     try {
-      // Dynamically import html5-qrcode
-      const { Html5Qrcode } = await import("html5-qrcode")
+      // Load html5-qrcode script dynamically
+      if (!window.Html5Qrcode) {
+        await loadHtml5Qrcode()
+      }
+
+      // Wait a bit for DOM to be ready
+      await new Promise(resolve => setTimeout(resolve, 200))
 
       // Check if element exists
-      const element = document.getElementById(qrReaderId)
+      const element = document.getElementById(QR_READER_ID)
       if (!element) {
-        retryCountRef.current++
-        console.warn("QR reader element not found, retrying...")
-        setTimeout(() => startScanning(), 300)
+        console.error("QR reader element not found")
+        setError("Elemen scanner tidak ditemukan")
+        setHasCamera(false)
+        setShowManualInput(true)
+        setIsLoading(false)
         return
       }
 
-      // Stop existing scanner if any
-      if (html5QrCodeRef.current) {
-        try {
-          await html5QrCodeRef.current.stop()
-        } catch {
-          // Ignore
-        }
-        html5QrCodeRef.current = null
-      }
-
-      const html5QrCode = new Html5Qrcode(qrReaderId)
-      html5QrCodeRef.current = html5QrCode
+      // Create scanner instance
+      const html5QrCode = new window.Html5Qrcode(QR_READER_ID)
+      scannerRef.current = html5QrCode
 
       const config = {
         fps: 10,
         qrbox: { width: 250, height: 250 },
-        aspectRatio: 1,
       }
 
+      // Start scanner
       await html5QrCode.start(
         { facingMode: "environment" },
         config,
-        (decodedText) => {
-          // Success callback
-          if (!isMountedRef.current) return
-          stopScanning()
+        (decodedText: string) => {
+          if (!isActiveRef.current) return
+          cleanup()
           onScan(decodedText)
         },
         () => {
-          // Error callback - ignore scan failures (they're normal)
-          // Do nothing, just keep scanning
+          // Scan failure - ignore, keep scanning
         }
       )
 
-      if (isMountedRef.current) {
-        setIsScanning(true)
-        retryCountRef.current = 0
-      }
+      isActiveRef.current = true
+      setIsScanning(true)
+      setIsLoading(false)
+      setHasCamera(true)
     } catch (err) {
-      console.error("QR Scanner Error:", err)
-      const errorMessage =
-        err instanceof Error ? err.message : "Tidak dapat mengakses kamera"
+      console.error("QR Scanner initialization error:", err)
+      setIsLoading(false)
 
-      // Check if it's a camera permission issue
+      const errorMsg = err instanceof Error ? err.message : "Tidak dapat mengakses kamera"
+
+      // Check error type
       if (
-        errorMessage.includes("Permission") ||
-        errorMessage.includes("NotAllowed") ||
-        errorMessage.includes("permission")
+        errorMsg.includes("Permission") ||
+        errorMsg.includes("NotAllowed") ||
+        errorMsg.includes("permission") ||
+        errorMsg.includes("Not permitted")
       ) {
-        setError("Izin kamera diperlukan. Silakan aktifkan kamera di pengaturan browser.")
+        setError("Izin kamera ditolak. Silakan izinkan akses kamera di pengaturan browser.")
       } else if (
-        errorMessage.includes("NotFound") ||
-        errorMessage.includes("no cameras") ||
-        errorMessage.includes("Not allowed")
+        errorMsg.includes("NotFound") ||
+        errorMsg.includes("no cameras") ||
+        errorMsg.includes("camera")
       ) {
         setHasCamera(false)
-        setError("Kamera tidak ditemukan atau tidak diizinkan.")
+        setError("Kamera tidak ditemukan di perangkat ini.")
         setShowManualInput(true)
+      } else if (
+        errorMsg.includes("element") ||
+        errorMsg.includes("undefined")
+      ) {
+        // Element not ready, retry after delay
+        retryTimeoutRef.current = setTimeout(() => {
+          initScanner()
+        }, 500)
+        return
       } else {
-        setError(errorMessage)
+        setError(errorMsg)
+        setHasCamera(false)
+        setShowManualInput(true)
       }
 
-      onError?.(errorMessage)
+      onError?.(errorMsg)
     }
-  }, [qrReaderId, onScan, onError, stopScanning])
+  }
+
+  // Load html5-qrcode script
+  const loadHtml5Qrcode = (): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      // Check if already loaded
+      if (window.Html5Qrcode) {
+        resolve()
+        return
+      }
+
+      const script = document.createElement("script")
+      script.src = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"
+      script.async = true
+      script.onload = () => resolve()
+      script.onerror = () => reject(new Error("Gagal memuat library QR scanner"))
+      document.body.appendChild(script)
+    })
+  }
+
+  // Start scanner on mount
+  useEffect(() => {
+    // Small delay to ensure component is fully mounted
+    const startTimeout = setTimeout(() => {
+      initScanner()
+    }, 300)
+
+    return () => {
+      clearTimeout(startTimeout)
+      cleanup()
+    }
+  }, [])
 
   // Cleanup on unmount
   useEffect(() => {
-    isMountedRef.current = true
-
     return () => {
-      isMountedRef.current = false
-      stopScanning()
+      cleanup()
     }
-  }, [stopScanning])
-
-  // Auto-start scanning when component mounts
-  useEffect(() => {
-    // Small delay to ensure DOM is ready
-    const timer = setTimeout(() => {
-      if (isMountedRef.current) {
-        startScanning()
-      }
-    }, 500)
-
-    return () => {
-      clearTimeout(timer)
-    }
-  }, [startScanning])
+  }, [])
 
   const handleManualSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -171,67 +213,68 @@ export function QRScanner({ onScan, onError, onClose, className }: QRScannerProp
     }
   }
 
-  const handleRetry = () => {
-    retryCountRef.current = 0
+  const handleRetry = async () => {
     setShowManualInput(false)
     setError(null)
-    setTimeout(() => startScanning(), 100)
+    setHasCamera(true)
+    await cleanup()
+    setTimeout(() => initScanner(), 100)
+  }
+
+  const handleClose = async () => {
+    await cleanup()
+    onClose?.()
   }
 
   return (
     <div className={cn("flex flex-col", className)}>
       {/* Scanner Container */}
-      <div
-        ref={scannerRef}
-        className="relative w-full aspect-square bg-black rounded-2xl overflow-hidden mb-4"
-      >
-        {/* Camera View */}
+      <div className="relative w-full aspect-square bg-black rounded-2xl overflow-hidden mb-4">
+        {/* QR Reader element - always rendered, hidden when not scanning */}
+        <div
+          id={QR_READER_ID}
+          className={cn(
+            "w-full h-full",
+            !isScanning && "hidden"
+          )}
+          style={{ minHeight: "200px" }}
+        />
+
+        {/* Camera View Overlay */}
         {isScanning && (
-          <>
-            {/* QR Reader element - must have the specific ID */}
-            <div
-              id={qrReaderId}
-              className="w-full h-full"
-              style={{ minHeight: "200px" }}
-            />
+          <div className="absolute inset-0 pointer-events-none">
+            {/* Dark overlay with clear center */}
+            <div className="absolute inset-0 bg-black/30" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-64 h-64 relative">
+                {/* Clear area in center */}
+                <div className="absolute inset-4 bg-transparent" />
 
-            {/* Overlay with viewfinder */}
-            <div className="absolute inset-0 pointer-events-none">
-              {/* Dark overlay */}
-              <div className="absolute inset-0 bg-black/40" />
+                {/* Corner markers */}
+                <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-[var(--primary)] rounded-tl-lg" />
+                <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-[var(--primary)] rounded-tr-lg" />
+                <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-[var(--primary)] rounded-bl-lg" />
+                <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-[var(--primary)] rounded-br-lg" />
 
-              {/* Clear viewfinder area */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-64 h-64 relative">
-                  {/* Corner markers */}
-                  <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-[var(--primary)] rounded-tl-lg" />
-                  <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-[var(--primary)] rounded-tr-lg" />
-                  <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-[var(--primary)] rounded-bl-lg" />
-                  <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-[var(--primary)] rounded-br-lg" />
-
-                  {/* Scanning line animation */}
-                  <div className="absolute left-4 right-4 h-0.5 bg-gradient-to-r from-transparent via-[var(--primary)] to-transparent animate-scan" />
-                </div>
+                {/* Scanning line animation */}
+                <div className="absolute left-4 right-4 h-0.5 bg-gradient-to-r from-transparent via-[var(--primary)] to-transparent animate-scan" />
               </div>
             </div>
 
             {/* Close button */}
             {onClose && (
               <button
-                onClick={() => {
-                  stopScanning()
-                  onClose()
-                }}
+                onClick={handleClose}
                 className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 transition-colors z-10"
               >
                 <X className="w-5 h-5" />
               </button>
             )}
-          </>
+          </div>
         )}
 
         {/* Loading State */}
-        {!isScanning && !error && !showManualInput && (
+        {isLoading && !error && !showManualInput && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--surface-secondary)]">
             <Loader2 className="w-10 h-10 animate-spin text-[var(--primary)] mb-3" />
             <p className="text-sm text-[var(--text-muted)]">Memulai kamera...</p>
@@ -256,17 +299,17 @@ export function QRScanner({ onScan, onError, onClose, className }: QRScannerProp
       </div>
 
       {/* Instruction Text */}
-      {!error && isScanning && (
+      {isScanning && !error && (
         <p className="text-sm text-[var(--text-muted)] text-center mb-4">
           Arahkan QR code ke kotak pandang
         </p>
       )}
 
       {/* Manual Input Toggle */}
-      {!showManualInput && hasCamera && (
+      {!showManualInput && hasCamera && !isLoading && (
         <button
           onClick={() => {
-            stopScanning()
+            cleanup()
             setShowManualInput(true)
           }}
           className="text-sm text-[var(--primary)] hover:underline"
