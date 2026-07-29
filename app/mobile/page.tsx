@@ -14,20 +14,15 @@ import {
   Wallet,
   GraduationCap,
   Shield,
-  RefreshCw,
-  AlertCircle,
 } from "lucide-react";
-import { useSettings } from "@/hooks/useSettings";
 import { cn } from "@/lib/utils";
 
 export default function MobileDashboardPage() {
-  const { settings } = useSettings();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Sample data - replace with actual data from hooks
+  // Sample data
   const stats = {
     totalStudents: 1248,
-    totalTeachers: 87,
     attendanceToday: {
       present: 1180,
       total: 1248,
@@ -36,12 +31,10 @@ export default function MobileDashboardPage() {
     assessmentCompletion: 78,
     specialUnits: 300,
     savingsTotal: 125,
-    characterBalance: 8540,
   };
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    // Simulate refresh - replace with actual refetch
     await new Promise((resolve) => setTimeout(resolve, 1000));
     setIsRefreshing(false);
   };
@@ -61,9 +54,7 @@ export default function MobileDashboardPage() {
             isRefreshing && "opacity-50 cursor-not-allowed"
           )}
         >
-          <RefreshCw
-            className={cn("w-3.5 h-3.5", isRefreshing && "animate-spin")}
-          />
+          <span className={cn("w-3 h-3 rounded-full bg-current", isRefreshing && "animate-pulse")} />
           Refresh
         </button>
       </div>
@@ -74,39 +65,27 @@ export default function MobileDashboardPage() {
           title="Total Siswa"
           value={stats.totalStudents.toLocaleString("id-ID")}
           subtitle="siswa"
-          trend="dari bulan lalu"
-          trendValue="+2.4%"
-          isPositive={true}
           icon={<Users className="w-5 h-5" />}
           color="primary"
         />
         <MobileKPICard
           title="Presensi"
-          value={`${stats.attendanceToday.percentage.toFixed(1)}%`}
-          subtitle={`${stats.attendanceToday.present} dari ${stats.attendanceToday.total}`}
-          trend="dari kemarin"
-          trendValue="+1.2%"
-          isPositive={true}
+          value={`${stats.attendanceToday.percentage.toFixed(0)}%`}
+          subtitle={`${stats.attendanceToday.present} hadir`}
           icon={<CalendarCheck className="w-5 h-5" />}
           color="success"
         />
         <MobileKPICard
           title="Tabungan"
           value={`Rp${stats.savingsTotal}jt`}
-          subtitle="total saldo"
-          trend="dari bulan lalu"
-          trendValue="+12%"
-          isPositive={true}
+          subtitle="saldo"
           icon={<Wallet className="w-5 h-5" />}
           color="warning"
         />
         <MobileKPICard
           title="Penilaian"
           value={`${stats.assessmentCompletion}%`}
-          subtitle="rapor terisi"
-          trend="dari target"
-          trendValue="-5%"
-          isPositive={false}
+          subtitle="rapor"
           icon={<GraduationCap className="w-5 h-5" />}
           color="info"
         />
@@ -142,12 +121,12 @@ export default function MobileDashboardPage() {
                 Unit Khusus
               </p>
               <p className="text-[12px] text-[var(--text-muted)]">
-                {stats.specialUnits} anggota aktif
+                {stats.specialUnits} anggota
               </p>
             </div>
           </div>
           <span className="text-[14px] font-semibold text-purple-500">
-            +5.8%
+            {stats.specialUnits}
           </span>
         </div>
       </Card>

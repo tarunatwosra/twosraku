@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { MobileHeader } from "./mobile-header";
 import { MobileBottomNav } from "./mobile-bottom-nav";
-import { MobileSidebar } from "./mobile-sidebar";
 
 interface MobileShellProps {
   children: React.ReactNode;
@@ -18,7 +17,6 @@ export function MobileShell({
 }: MobileShellProps) {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -47,12 +45,12 @@ export function MobileShell({
   return (
     <div className="min-h-screen-mobile bg-[var(--background-primary)]">
       {/* Mobile Header */}
-      <MobileHeader onMenuClick={() => setIsSidebarOpen(true)} />
+      <MobileHeader />
 
       {/* Main Content */}
       <main
         className={`pb-[calc(72px+env(safe-area-inset-bottom,16px))] ${
-          showBottomNav ? "pt-16" : ""
+          showBottomNav ? "pt-[72px]" : ""
         }`}
       >
         <div className="px-4 py-4">
@@ -64,12 +62,6 @@ export function MobileShell({
       {showBottomNav && (
         <MobileBottomNav />
       )}
-
-      {/* Mobile Sidebar Drawer */}
-      <MobileSidebar
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-      />
     </div>
   );
 }
