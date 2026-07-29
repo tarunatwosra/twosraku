@@ -19,15 +19,17 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
+type StatColor = "success" | "warning" | "info" | "danger"
+
 // Status Configuration
-const STATUS_CONFIG = [
+const STATUS_CONFIG: { key: string; label: string; value: number; icon: any; color: StatColor }[] = [
   { key: "hadir", label: "Hadir", value: 28, icon: CheckCircle2, color: "success" },
   { key: "sakit", label: "Sakit", value: 1, icon: ThermometerSun, color: "warning" },
   { key: "izin", label: "Izin", value: 0, icon: FileText, color: "info" },
   { key: "alpa", label: "Alpa", value: 2, icon: AlertCircle, color: "danger" },
 ]
 
-function StatCard({ label, value, icon: Icon, color }: { label: string; value: number; icon: any; color: "success" | "warning" | "info" | "danger" }) {
+function StatCard({ label, value, icon: Icon, color }: { label: string; value: number; icon: any; color: StatColor }) {
   const colors = {
     success: "bg-[var(--success-soft)] text-[var(--success)]",
     warning: "bg-[var(--warning-soft)] text-[var(--warning)]",
