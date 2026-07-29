@@ -4,7 +4,11 @@ import { useSettings } from "@/hooks/useSettings";
 import { GraduationCap, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export function MobileHeader() {
+interface MobileHeaderProps {
+  showGreeting?: boolean;
+}
+
+export function MobileHeader({ showGreeting = false }: MobileHeaderProps) {
   const { settings } = useSettings();
 
   // Get current greeting based on time
@@ -52,21 +56,23 @@ export function MobileHeader() {
         </button>
       </div>
 
-      {/* Greeting Section */}
-      <div className="px-4 pb-3">
-        <p className="text-[14px] text-[var(--text-secondary)]">
-          {getGreeting()}, <span className="font-semibold text-[var(--text-primary)]">Administrator</span>
-        </p>
-        <div className="flex items-center gap-2 mt-0.5">
-          <span className="text-[12px] text-[var(--text-muted)]">
-            {getShortDate()}
-          </span>
-          <span className="text-[12px] text-[var(--text-muted)]">•</span>
-          <span className="text-[12px] text-[var(--primary)] font-medium">
-            {academicYear?.name || "2025/2026"}
-          </span>
+      {/* Greeting Section - Only show if showGreeting is true */}
+      {showGreeting && (
+        <div className="px-4 pb-3">
+          <p className="text-[14px] text-[var(--text-secondary)]">
+            {getGreeting()}, <span className="font-semibold text-[var(--text-primary)]">Administrator</span>
+          </p>
+          <div className="flex items-center gap-2 mt-0.5">
+            <span className="text-[12px] text-[var(--text-muted)]">
+              {getShortDate()}
+            </span>
+            <span className="text-[12px] text-[var(--text-muted)]">•</span>
+            <span className="text-[12px] text-[var(--primary)] font-medium">
+              {academicYear?.name || "2025/2026"}
+            </span>
+          </div>
         </div>
-      </div>
+      )}
     </header>
   );
 }

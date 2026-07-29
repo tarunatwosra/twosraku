@@ -9,11 +9,13 @@ import { MobileBottomNav } from "./mobile-bottom-nav";
 interface MobileShellProps {
   children: React.ReactNode;
   showBottomNav?: boolean;
+  showHeaderGreeting?: boolean;
 }
 
 export function MobileShell({
   children,
-  showBottomNav = true
+  showBottomNav = true,
+  showHeaderGreeting = false,
 }: MobileShellProps) {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
@@ -42,16 +44,17 @@ export function MobileShell({
     return null;
   }
 
+  // Calculate padding top based on whether greeting is shown
+  const headerPadding = showHeaderGreeting ? "pt-[88px]" : "pt-[56px]";
+
   return (
     <div className="min-h-screen-mobile bg-[var(--background-primary)]">
       {/* Mobile Header */}
-      <MobileHeader />
+      <MobileHeader showGreeting={showHeaderGreeting} />
 
       {/* Main Content */}
       <main
-        className={`pb-[calc(72px+env(safe-area-inset-bottom,16px))] ${
-          showBottomNav ? "pt-[72px]" : ""
-        }`}
+        className={`pb-[calc(72px+env(safe-area-inset-bottom,16px))] ${headerPadding}`}
       >
         <div className="px-4 py-4">
           {children}

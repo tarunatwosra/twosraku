@@ -40,7 +40,7 @@ export default function MobileDashboardPage() {
   };
 
   return (
-    <MobileShell>
+    <MobileShell showHeaderGreeting={true}>
       {/* Refresh Button */}
       <div className="flex justify-end mb-3">
         <button
