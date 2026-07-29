@@ -15,19 +15,19 @@ import {
   AlertCircle,
   ThermometerSun,
   FileText,
+  ArrowRight,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-type AttendanceStatus = "present" | "sick" | "permission" | "absent"
+// Status Configuration
+const STATUS_CONFIG = [
+  { key: "hadir", label: "Hadir", value: 28, icon: CheckCircle2, color: "success" },
+  { key: "sakit", label: "Sakit", value: 1, icon: ThermometerSun, color: "warning" },
+  { key: "izin", label: "Izin", value: 0, icon: FileText, color: "info" },
+  { key: "alpa", label: "Alpa", value: 2, icon: AlertCircle, color: "danger" },
+]
 
-interface StatCardProps {
-  label: string
-  value: number
-  icon: React.ReactNode
-  color: "success" | "warning" | "info" | "danger"
-}
-
-function StatCard({ label, value, icon, color }: StatCardProps) {
+function StatCard({ label, value, icon: Icon, color }: { label: string; value: number; icon: any; color: "success" | "warning" | "info" | "danger" }) {
   const colors = {
     success: "bg-[var(--success-soft)] text-[var(--success)]",
     warning: "bg-[var(--warning-soft)] text-[var(--warning)]",
@@ -36,12 +36,12 @@ function StatCard({ label, value, icon, color }: StatCardProps) {
   }
 
   return (
-    <div className={cn("flex-1 min-w-[100px] p-4 rounded-2xl flex flex-col items-center gap-2", colors[color])}>
-      <div className="w-10 h-10 rounded-xl bg-white/50 flex items-center justify-center">
-        {icon}
+    <div className={cn("p-5 rounded-2xl flex flex-col items-center gap-3", colors[color])}>
+      <div className="w-12 h-12 rounded-2xl bg-white/60 flex items-center justify-center shadow-sm">
+        <Icon className="w-6 h-6" />
       </div>
-      <span className="text-2xl font-bold">{value}</span>
-      <span className="text-xs font-medium opacity-80">{label}</span>
+      <span className="text-3xl font-bold">{value}</span>
+      <span className="text-sm font-medium opacity-80">{label}</span>
     </div>
   )
 }
@@ -130,7 +130,7 @@ export default function AbsensiMobilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--background-primary)] pb-safe">
+    <div className="min-h-screen bg-[var(--background-primary)] pb-24">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white border-b border-[var(--border-light)]">
         <div className="flex items-center gap-3 px-4 h-14">
@@ -140,108 +140,120 @@ export default function AbsensiMobilePage() {
           >
             <ChevronLeft className="w-5 h-5 text-[var(--text-secondary)]" />
           </button>
-          <h1 className="text-lg font-semibold text-[var(--text-primary)]">Absensi</h1>
+          <div>
+            <h1 className="text-lg font-semibold text-[var(--text-primary)]">Absensi</h1>
+            <p className="text-xs text-[var(--text-muted)]">Catat kehadiran siswa</p>
+          </div>
         </div>
       </header>
 
-      <main className="px-4 py-6 space-y-6">
-        {/* Date Navigator */}
-        <Card className="p-4">
+      <main className="px-4 py-6 space-y-5">
+        {/* Date Navigator Card */}
+        <Card className="p-5">
           <div className="flex items-center justify-between gap-4">
             <button
               onClick={() => navigateDate("prev")}
-              className="w-11 h-11 rounded-xl bg-[var(--surface-secondary)] flex items-center justify-center hover:bg-[var(--surface-hover)] transition-colors"
+              className="w-12 h-12 rounded-2xl bg-[var(--surface-secondary)] flex items-center justify-center hover:bg-[var(--surface-hover)] transition-colors shadow-sm"
             >
               <ChevronLeft className="w-5 h-5 text-[var(--text-secondary)]" />
             </button>
 
-            <div className="flex-1 flex flex-col items-center">
+            <button
+              onClick={() => {
+                const input = document.createElement("input")
+                input.type = "date"
+                input.value = selectedDate
+                input.onchange = (e) => {
+                  setSelectedDate((e.target as HTMLInputElement).value)
+                  setDate((e.target as HTMLInputElement).value)
+                }
+                input.click()
+              }}
+              className="flex-1 flex flex-col items-center py-2 bg-[var(--primary-soft)] rounded-2xl hover:bg-[var(--primary)]/10 transition-colors"
+            >
               <div className="flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-[var(--primary)]" />
                 <span className="text-sm font-semibold text-[var(--text-primary)]">
                   {formatDate(selectedDate)}
                 </span>
               </div>
-              <span className="text-xs text-[var(--text-muted)] mt-0.5">
+              <span className="text-xs text-[var(--text-muted)] mt-1">
                 {formatDayName(selectedDate)}
               </span>
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => {
-                  setSelectedDate(e.target.value)
-                  setDate(e.target.value)
-                }}
-                className="absolute opacity-0 pointer-events-none"
-              />
-            </div>
+            </button>
 
             <button
               onClick={() => navigateDate("next")}
-              className="w-11 h-11 rounded-xl bg-[var(--surface-secondary)] flex items-center justify-center hover:bg-[var(--surface-hover)] transition-colors"
+              className="w-12 h-12 rounded-2xl bg-[var(--surface-secondary)] flex items-center justify-center hover:bg-[var(--surface-hover)] transition-colors shadow-sm"
             >
               <ChevronRight className="w-5 h-5 text-[var(--text-secondary)]" />
             </button>
           </div>
         </Card>
 
-        {/* Class Selector */}
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-[var(--primary-soft)] flex items-center justify-center">
-              <Users className="w-5 h-5 text-[var(--primary)]" />
+        {/* Class Selector Card */}
+        <Card className="p-5">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-[var(--primary-soft)] flex items-center justify-center shadow-sm">
+              <Users className="w-7 h-7 text-[var(--primary)]" />
             </div>
-            <select
-              value={selectedClassId}
-              onChange={handleClassChange}
-              className="flex-1 h-12 px-4 bg-[var(--surface-secondary)] rounded-xl text-[15px] font-medium text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] appearance-none cursor-pointer"
-              style={{
-                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
-                backgroundRepeat: "no-repeat",
-                backgroundPosition: "right 12px center",
-                backgroundSize: "20px",
-              }}
-            >
-              {classes.map((cls) => (
-                <option key={cls.id} value={cls.id}>
-                  {cls.name}
-                </option>
-              ))}
-            </select>
+            <div className="flex-1">
+              <label className="text-xs text-[var(--text-muted)] font-medium mb-1 block">
+                Pilih Kelas
+              </label>
+              <select
+                value={selectedClassId}
+                onChange={handleClassChange}
+                className="w-full h-12 px-4 bg-[var(--surface-secondary)] rounded-xl text-[15px] font-semibold text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] appearance-none cursor-pointer"
+                style={{
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+                  backgroundRepeat: "no-repeat",
+                  backgroundPosition: "right 12px center",
+                  backgroundSize: "20px",
+                }}
+              >
+                {classes.map((cls) => (
+                  <option key={cls.id} value={cls.id}>
+                    {cls.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </Card>
 
-        {/* Quick Stats - Show demo data for preview */}
-        <div className="grid grid-cols-2 gap-3">
-          <StatCard
-            label="Hadir"
-            value={28}
-            icon={<CheckCircle2 className="w-5 h-5" />}
-            color="success"
-          />
-          <StatCard
-            label="Alpa"
-            value={2}
-            icon={<AlertCircle className="w-5 h-5" />}
-            color="danger"
-          />
+        {/* Stats Section */}
+        <div>
+          <h2 className="text-sm font-medium text-[var(--text-secondary)] mb-3 px-1">
+            Statistik Kehadiran
+          </h2>
+          <div className="grid grid-cols-2 gap-3">
+            {STATUS_CONFIG.map((stat) => (
+              <StatCard
+                key={stat.key}
+                label={stat.label}
+                value={stat.value}
+                icon={stat.icon}
+                color={stat.color}
+              />
+            ))}
+          </div>
         </div>
 
-        {/* Additional Stats */}
-        <div className="grid grid-cols-2 gap-3">
-          <StatCard
-            label="Sakit"
-            value={1}
-            icon={<ThermometerSun className="w-5 h-5" />}
-            color="warning"
-          />
-          <StatCard
-            label="Izin"
-            value={0}
-            icon={<FileText className="w-5 h-5" />}
-            color="info"
-          />
-        </div>
+        {/* Percentage Card */}
+        <Card className="p-5 bg-gradient-to-r from-[var(--success-soft)] to-[var(--success)]/10">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center shadow-sm">
+                <CheckCircle2 className="w-8 h-8 text-[var(--success)]" />
+              </div>
+              <div>
+                <p className="text-sm text-[var(--success)] font-medium">Kehadiran</p>
+                <p className="text-3xl font-bold text-[var(--success)]">96%</p>
+              </div>
+            </div>
+          </div>
+        </Card>
 
         {/* Weekend Warning */}
         {isWeekend && (
@@ -254,16 +266,30 @@ export default function AbsensiMobilePage() {
             </div>
           </Card>
         )}
+      </main>
 
-        {/* CTA Button */}
+      {/* Fixed Bottom CTA */}
+      <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-[var(--background-primary)] via-[var(--background-primary)] to-transparent pt-8 px-4 pb-4">
         <Button
           onClick={handleTakeAttendance}
           disabled={isWeekend}
-          className="w-full h-14 text-base font-semibold shadow-md"
+          className={cn(
+            "w-full h-14 text-[15px] font-semibold shadow-xl transition-all active:scale-[0.98]",
+            isWeekend
+              ? "bg-[var(--surface-secondary)] text-[var(--text-muted)]"
+              : "bg-[var(--primary)] hover:bg-[var(--primary-hover)]"
+          )}
         >
-          {isWeekend ? "Weekend - Tidak Ada Sekolah" : "Ambil Absensi"}
+          {isWeekend ? (
+            "Weekend - Tidak Ada Sekolah"
+          ) : (
+            <>
+              Ambil Absensi
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </>
+          )}
         </Button>
-      </main>
+      </div>
     </div>
   )
 }

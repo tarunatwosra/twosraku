@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Card } from "@/components/ui"
 import { Button } from "@/components/ui/button"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useAuth } from "@/hooks/useAuth"
 import { useAttendance } from "@/hooks/useAttendance"
 import { ATTENDANCE_STATUS_CONFIG, type AttendanceStatus } from "@/types/attendance"
@@ -14,6 +15,7 @@ import {
   CheckCircle2,
   Save,
   Loader2,
+  Users,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -31,23 +33,57 @@ function LoadingFallback() {
   )
 }
 
+// Status Colors Configuration
+const STATUS_COLORS = {
+  present: {
+    active: "bg-[var(--success)] text-white shadow-sm",
+    inactive: "bg-[var(--success-soft)] text-[var(--success)]",
+    bg: "bg-[var(--success-soft)]/30",
+    border: "border-[var(--success)]/20",
+  },
+  sick: {
+    active: "bg-[var(--warning)] text-white shadow-sm",
+    inactive: "bg-[var(--warning-soft)] text-[var(--warning)]",
+    bg: "bg-[var(--warning-soft)]/30",
+    border: "border-[var(--warning)]/20",
+  },
+  permission: {
+    active: "bg-[var(--info)] text-white shadow-sm",
+    inactive: "bg-[var(--info-soft)] text-[var(--info)]",
+    bg: "bg-[var(--info-soft)]/30",
+    border: "border-[var(--info)]/20",
+  },
+  absent: {
+    active: "bg-[var(--danger)] text-white shadow-sm",
+    inactive: "bg-[var(--danger-soft)] text-[var(--danger)]",
+    bg: "bg-[var(--danger-soft)]/30",
+    border: "border-[var(--danger)]/20",
+  },
+}
+
 // Summary Bar Component
-function SummaryBar({ summary }: { summary: { present: number; sick: number; permission: number; absent: number; percentage: number } }) {
+function SummaryBar({
+  summary,
+  className: cls
+}: {
+  summary: { present: number; sick: number; permission: number; absent: number; percentage: number }
+  className?: string
+}) {
   return (
-    <div className="bg-white border-b border-[var(--border-light)] px-4 py-3">
-      <div className="flex items-center justify-between gap-2">
+    <div className={cn("bg-white border-b border-[var(--border-light)] px-4 py-3", cls)}>
+      <div className="flex items-center justify-between gap-3">
         {/* Status Pills */}
         <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-          <StatusPill label="H" value={summary.present} color="success" />
-          <StatusPill label="S" value={summary.sick} color="warning" />
-          <StatusPill label="I" value={summary.permission} color="info" />
-          <StatusPill label="A" value={summary.absent} color="danger" />
+          <StatusMiniPill label="H" value={summary.present} color="present" />
+          <StatusMiniPill label="S" value={summary.sick} color="sick" />
+          <StatusMiniPill label="I" value={summary.permission} color="permission" />
+          <StatusMiniPill label="A" value={summary.absent} color="absent" />
         </div>
 
         {/* Percentage */}
         <div className="flex items-center gap-1.5 flex-shrink-0">
-          <CheckCircle2 className="w-4 h-4 text-[var(--success)]" />
-          <span className="text-base font-bold text-[var(--success)]">
+          <CheckCircle2 className="w-5 h-5 text-[var(--success)]" />
+          <span className="text-lg font-bold text-[var(--success)]">
             {summary.percentage.toFixed(0)}%
           </span>
         </div>
@@ -56,25 +92,46 @@ function SummaryBar({ summary }: { summary: { present: number; sick: number; per
   )
 }
 
-// Status Pill Component
-function StatusPill({ label, value, color }: { label: string; value: number; color: "success" | "warning" | "info" | "danger" }) {
-  const colors = {
-    success: "bg-[var(--success-soft)] text-[var(--success)]",
-    warning: "bg-[var(--warning-soft)] text-[var(--warning)]",
-    info: "bg-[var(--info-soft)] text-[var(--info)]",
-    danger: "bg-[var(--danger-soft)] text-[var(--danger)]",
-  }
+// Status Mini Pill Component
+function StatusMiniPill({ label, value, color }: { label: string; value: number; color: AttendanceStatus }) {
+  const colors = STATUS_COLORS[color]
 
   return (
-    <div className={cn("flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold", colors[color])}>
-      <span>{label}</span>
+    <div className={cn(
+      "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all",
+      colors.inactive
+    )}>
+      <span className="font-bold">{label}</span>
       <span className="opacity-70">{value}</span>
     </div>
   )
 }
 
-// Student Card Component
-function StudentCard({
+// Avatar Fallback Component
+function StudentAvatar({ name, gender }: { name: string; gender: "L" | "P" }) {
+  const initials = name
+    .split(" ")
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase()
+
+  const bgColor = gender === "L"
+    ? "bg-[var(--primary-soft)] text-[var(--primary)]"
+    : "bg-pink-100 text-pink-600"
+
+  return (
+    <div className={cn(
+      "w-12 h-12 rounded-2xl flex items-center justify-center text-sm font-bold",
+      bgColor
+    )}>
+      {initials}
+    </div>
+  )
+}
+
+// Student List Item Component - Elegant Card Design
+function StudentListItem({
   student,
   status,
   onStatusChange,
@@ -86,73 +143,72 @@ function StudentCard({
   index: number
 }) {
   const statuses: AttendanceStatus[] = ["present", "sick", "permission", "absent"]
-
-  const statusColors = {
-    present: {
-      active: "bg-[var(--success)] text-white shadow-sm",
-      inactive: "bg-[var(--success-soft)] text-[var(--success)] hover:bg-[var(--success)] hover:text-white",
-    },
-    sick: {
-      active: "bg-[var(--warning)] text-white shadow-sm",
-      inactive: "bg-[var(--warning-soft)] text-[var(--warning)] hover:bg-[var(--warning)] hover:text-white",
-    },
-    permission: {
-      active: "bg-[var(--info)] text-white shadow-sm",
-      inactive: "bg-[var(--info-soft)] text-[var(--info)] hover:bg-[var(--info)] hover:text-white",
-    },
-    absent: {
-      active: "bg-[var(--danger)] text-white shadow-sm",
-      inactive: "bg-[var(--danger-soft)] text-[var(--danger)] hover:bg-[var(--danger)] hover:text-white",
-    },
-  }
+  const currentColors = STATUS_COLORS[status]
 
   return (
-    <Card className={cn(
-      "p-4 transition-all",
-      status === "sick" && "bg-[var(--warning-soft)]/20 border-[var(--warning)]/30",
-      status === "permission" && "bg-[var(--info-soft)]/20 border-[var(--info)]/30",
-      status === "absent" && "bg-[var(--danger-soft)]/20 border-[var(--danger)]/30",
-    )}>
-      <div className="flex items-start justify-between gap-3">
-        {/* Student Info */}
+    <div
+      className={cn(
+        "bg-white rounded-2xl p-4 transition-all border",
+        currentColors.bg,
+        currentColors.border
+      )}
+    >
+      {/* Student Info Row */}
+      <div className="flex items-center gap-3 mb-4">
+        {/* Avatar */}
+        <StudentAvatar name={student.name} gender={student.gender} />
+
+        {/* Info */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-[var(--text-muted)] font-mono">{index + 1}.</span>
-            <h3 className="text-[15px] font-semibold text-[var(--text-primary)] truncate">
-              {student.name}
-            </h3>
-          </div>
-          <div className="flex items-center gap-3 mt-1">
+          <h3 className="text-[15px] font-semibold text-[var(--text-primary)] leading-tight">
+            {student.name}
+          </h3>
+          <div className="flex items-center gap-2 mt-1">
             <span className="text-xs text-[var(--text-muted)] font-mono">
               {student.studentNumber}
             </span>
-            <span className={cn(
-              "text-xs font-medium px-1.5 py-0.5 rounded",
-              student.gender === "L" ? "bg-[var(--primary-soft)] text-[var(--primary)]" : "bg-pink-100 text-pink-600"
-            )}>
-              {student.gender === "L" ? "L" : "P"}
+            <span className="w-1 h-1 rounded-full bg-[var(--border-default)]" />
+            <span className="text-xs text-[var(--text-muted)]">
+              {student.gender === "L" ? "Laki-laki" : "Perempuan"}
             </span>
           </div>
         </div>
 
-        {/* Status Buttons */}
-        <div className="flex items-center gap-1">
-          {statuses.map((s) => (
+        {/* Current Status Badge */}
+        <div className={cn(
+          "px-3 py-1.5 rounded-xl text-xs font-bold",
+          currentColors.active
+        )}>
+          {ATTENDANCE_STATUS_CONFIG[status].shortLabel}
+        </div>
+      </div>
+
+      {/* Status Toggle Buttons */}
+      <div className="flex items-center gap-2">
+        {statuses.map((s) => {
+          const isActive = status === s
+          const sColors = STATUS_COLORS[s]
+
+          return (
             <button
               key={s}
               onClick={() => onStatusChange(s)}
               className={cn(
-                "w-9 h-9 rounded-lg text-xs font-bold transition-all flex items-center justify-center",
-                status === s ? statusColors[s].active : statusColors[s].inactive
+                "flex-1 h-11 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-1.5",
+                isActive
+                  ? sColors.active + " shadow-md scale-[1.02]"
+                  : sColors.inactive + " hover:scale-[1.02] hover:shadow-sm"
               )}
-              title={ATTENDANCE_STATUS_CONFIG[s].label}
             >
-              {ATTENDANCE_STATUS_CONFIG[s].shortLabel}
+              <span>{ATTENDANCE_STATUS_CONFIG[s].shortLabel}</span>
+              <span className="text-[10px] opacity-80 font-medium">
+                {ATTENDANCE_STATUS_CONFIG[s].label}
+              </span>
             </button>
-          ))}
-        </div>
+          )
+        })}
       </div>
-    </Card>
+    </div>
   )
 }
 
@@ -166,38 +222,130 @@ function FilterTabs({
   onFilterChange: (filter: FilterTab) => void
   counts: { all: number; sick: number; permission: number; absent: number }
 }) {
-  const tabs: { key: FilterTab; label: string; color?: "warning" | "info" | "danger" }[] = [
+  const tabs: { key: FilterTab; label: string; color?: AttendanceStatus }[] = [
     { key: "all", label: "Semua" },
-    { key: "sick", label: "Sakit", color: "warning" },
-    { key: "permission", label: "Izin", color: "info" },
-    { key: "absent", label: "Alpa", color: "danger" },
+    { key: "sick", label: "Sakit", color: "sick" },
+    { key: "permission", label: "Izin", color: "permission" },
+    { key: "absent", label: "Alpa", color: "absent" },
   ]
 
   return (
-    <div className="flex items-center gap-2 px-4 py-3 overflow-x-auto scrollbar-hide">
-      {tabs.map((tab) => {
-        const isActive = activeFilter === tab.key
-        const isColored = isActive && tab.color
+    <div className="bg-white border-b border-[var(--border-light)] px-4 py-3">
+      <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+        {tabs.map((tab) => {
+          const isActive = activeFilter === tab.key
+          const isColored = isActive && tab.color
 
-        return (
-          <button
-            key={tab.key}
-            onClick={() => onFilterChange(tab.key)}
-            className={cn(
-              "flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-all",
-              isColored && tab.color === "warning" && "bg-[var(--warning)] text-white",
-              isColored && tab.color === "info" && "bg-[var(--info)] text-white",
-              isColored && tab.color === "danger" && "bg-[var(--danger)] text-white",
-              !isColored && isActive && "bg-[var(--primary)] text-white",
-              !isColored && !isActive && "bg-[var(--surface-secondary)] text-[var(--text-muted)] hover:bg-[var(--surface-hover)]"
-            )}
-          >
-            {tab.label}
-            <span className="opacity-70">({counts[tab.key]})</span>
-          </button>
-        )
-      })}
+          return (
+            <button
+              key={tab.key}
+              onClick={() => onFilterChange(tab.key)}
+              className={cn(
+                "flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all",
+                isColored && tab.color === "sick" && "bg-[var(--warning)] text-white shadow-md",
+                isColored && tab.color === "permission" && "bg-[var(--info)] text-white shadow-md",
+                isColored && tab.color === "absent" && "bg-[var(--danger)] text-white shadow-md",
+                !isColored && isActive && "bg-[var(--primary)] text-white shadow-md",
+                !isColored && !isActive && "bg-[var(--surface-secondary)] text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]"
+              )}
+            >
+              {tab.label}
+              <span className={cn(
+                "text-xs px-1.5 py-0.5 rounded-md",
+                isActive ? "bg-white/20" : "bg-[var(--border-light)]"
+              )}>
+                {counts[tab.key]}
+              </span>
+            </button>
+          )
+        })}
+      </div>
     </div>
+  )
+}
+
+// Header Component
+function PageHeader({
+  className: cls,
+  date,
+  onPrev,
+  onNext,
+  onDateChange,
+}: {
+  className?: string
+  date: string
+  onPrev: () => void
+  onNext: () => void
+  onDateChange: (date: string) => void
+}) {
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    })
+  }
+
+  const formatDayName = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString("id-ID", { weekday: "long" })
+  }
+
+  return (
+    <header className={cn("bg-white border-b border-[var(--border-light)]", cls)}>
+      <div className="flex items-center justify-between px-4 h-14">
+        {/* Back Button */}
+        <button
+          onClick={() => window.history.back()}
+          className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-[var(--surface-hover)] transition-colors -ml-2"
+        >
+          <ChevronLeft className="w-5 h-5 text-[var(--text-secondary)]" />
+        </button>
+
+        {/* Date Display */}
+        <div className="flex flex-col items-center">
+          <span className="text-xs text-[var(--text-muted)]">
+            {formatDayName(date)}
+          </span>
+          <span className="text-sm font-semibold text-[var(--text-primary)]">
+            {formatDate(date)}
+          </span>
+        </div>
+
+        {/* Placeholder for balance */}
+        <div className="w-10" />
+      </div>
+
+      {/* Date Navigation */}
+      <div className="flex items-center justify-center gap-4 px-4 py-2 border-t border-[var(--border-light)]">
+        <button
+          onClick={onPrev}
+          className="w-9 h-9 rounded-xl bg-[var(--surface-secondary)] flex items-center justify-center hover:bg-[var(--surface-hover)] transition-colors"
+        >
+          <ChevronLeft className="w-4 h-4 text-[var(--text-secondary)]" />
+        </button>
+
+        <button
+          onClick={() => {
+            const input = document.createElement("input")
+            input.type = "date"
+            input.value = date
+            input.onchange = (e) => onDateChange((e.target as HTMLInputElement).value)
+            input.click()
+          }}
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--primary-soft)] rounded-xl hover:bg-[var(--primary)]/10 transition-colors"
+        >
+          <Calendar className="w-4 h-4 text-[var(--primary)]" />
+          <span className="text-sm font-medium text-[var(--primary)]">Pilih Tanggal</span>
+        </button>
+
+        <button
+          onClick={onNext}
+          className="w-9 h-9 rounded-xl bg-[var(--surface-secondary)] flex items-center justify-center hover:bg-[var(--surface-hover)] transition-colors"
+        >
+          <ChevronRight className="w-4 h-4 text-[var(--text-secondary)]" />
+        </button>
+      </div>
+    </header>
   )
 }
 
@@ -261,15 +409,6 @@ function AbsensiInputContent() {
     setDate(d.toISOString().split("T")[0])
   }, [date, setDate])
 
-  // Format date
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    })
-  }
-
   // Handle submit
   const handleSubmit = async () => {
     setIsSaving(true)
@@ -292,36 +431,30 @@ function AbsensiInputContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--background-primary)] pb-24">
+    <div className="min-h-screen bg-[var(--background-primary)] pb-28">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white border-b border-[var(--border-light)]">
-        <div className="flex items-center justify-between px-4 h-14">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => router.push("/presensi/absensi")}
-              className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-[var(--surface-hover)] transition-colors -ml-2"
-            >
-              <ChevronLeft className="w-5 h-5 text-[var(--text-secondary)]" />
-            </button>
-            <div>
-              <h1 className="text-base font-semibold text-[var(--text-primary)]">{className}</h1>
-              <div className="flex items-center gap-1 -mt-0.5">
-                <Calendar className="w-3 h-3 text-[var(--text-muted)]" />
-                <span className="text-xs text-[var(--text-muted)]">{formatDate(date)}</span>
-              </div>
-            </div>
-          </div>
+      <PageHeader
+        date={date}
+        onPrev={() => navigateDate("prev")}
+        onNext={() => navigateDate("next")}
+        onDateChange={setDate}
+      />
 
-          {/* Class Selector */}
+      {/* Class Selector Bar */}
+      <div className="bg-white border-b border-[var(--border-light)] px-4 py-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-[var(--primary-soft)] flex items-center justify-center">
+            <Users className="w-5 h-5 text-[var(--primary)]" />
+          </div>
           <select
             value={classId}
             onChange={handleClassChange}
-            className="h-9 px-3 pr-8 bg-[var(--surface-secondary)] rounded-xl text-xs font-medium text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] appearance-none cursor-pointer"
+            className="flex-1 h-11 px-4 bg-[var(--surface-secondary)] rounded-xl text-[15px] font-semibold text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] appearance-none cursor-pointer"
             style={{
               backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
               backgroundRepeat: "no-repeat",
-              backgroundPosition: "right 8px center",
-              backgroundSize: "16px",
+              backgroundPosition: "right 12px center",
+              backgroundSize: "20px",
             }}
           >
             {classes.map((cls) => (
@@ -331,29 +464,7 @@ function AbsensiInputContent() {
             ))}
           </select>
         </div>
-
-        {/* Date Navigation */}
-        <div className="flex items-center justify-center gap-4 px-4 py-2 border-t border-[var(--border-light)]">
-          <button
-            onClick={() => navigateDate("prev")}
-            className="w-8 h-8 rounded-lg bg-[var(--surface-secondary)] flex items-center justify-center hover:bg-[var(--surface-hover)] transition-colors"
-          >
-            <ChevronLeft className="w-4 h-4 text-[var(--text-secondary)]" />
-          </button>
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="hidden"
-          />
-          <button
-            onClick={() => navigateDate("next")}
-            className="w-8 h-8 rounded-lg bg-[var(--surface-secondary)] flex items-center justify-center hover:bg-[var(--surface-hover)] transition-colors"
-          >
-            <ChevronRight className="w-4 h-4 text-[var(--text-secondary)]" />
-          </button>
-        </div>
-      </header>
+      </div>
 
       {/* Summary Bar */}
       <SummaryBar summary={summary} />
@@ -368,44 +479,55 @@ function AbsensiInputContent() {
       {/* Student List */}
       <main className="px-4 py-4 space-y-3">
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-[var(--primary)]" />
+          <div className="flex flex-col items-center justify-center py-16">
+            <Loader2 className="w-10 h-10 animate-spin text-[var(--primary)] mb-4" />
+            <p className="text-[var(--text-secondary)]">Memuat daftar siswa...</p>
           </div>
         ) : filteredRecords.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12">
-            <div className="w-16 h-16 rounded-full bg-[var(--surface-secondary)] flex items-center justify-center mb-4">
-              <CheckCircle2 className="w-8 h-8 text-[var(--text-muted)]" />
+          <div className="flex flex-col items-center justify-center py-16">
+            <div className="w-20 h-20 rounded-full bg-[var(--surface-secondary)] flex items-center justify-center mb-4">
+              <CheckCircle2 className="w-10 h-10 text-[var(--text-muted)]" />
             </div>
-            <p className="text-base font-medium text-[var(--text-primary)]">
-              {activeFilter === "all" ? "Belum ada siswa" : `Tidak ada siswa ${activeFilter === "sick" ? "sakit" : activeFilter === "permission" ? "izin" : "alpa"}`}
+            <p className="text-lg font-semibold text-[var(--text-primary)] mb-2">
+              {activeFilter === "all" ? "Belum ada data siswa" : `Tidak ada siswa ${activeFilter === "sick" ? "sakit" : activeFilter === "permission" ? "izin" : "alpa"}`}
             </p>
-            <p className="text-sm text-[var(--text-muted)] mt-1">
-              {activeFilter === "all" ? "Pilih kelas untuk melihat siswa" : "Semua siswa hadir"}
+            <p className="text-sm text-[var(--text-muted)] text-center">
+              {activeFilter === "all" ? "Pilih kelas untuk melihat siswa" : "Semua siswa hadir ✨"}
             </p>
           </div>
         ) : (
-          filteredRecords.map((record, index) => (
-            <StudentCard
-              key={record.id}
-              student={record.student}
-              status={record.status}
-              onStatusChange={(status) => updateRecordStatus(record.student.id, status)}
-              index={records.indexOf(record)}
-            />
-          ))
+          <>
+            <div className="flex items-center justify-between px-1 mb-2">
+              <span className="text-sm text-[var(--text-muted)]">
+                {filteredRecords.length} siswa
+              </span>
+              <span className="text-sm text-[var(--text-muted)]">
+                Tap status untuk mengubah
+              </span>
+            </div>
+            {filteredRecords.map((record, index) => (
+              <StudentListItem
+                key={record.id}
+                student={record.student}
+                status={record.status}
+                onStatusChange={(status) => updateRecordStatus(record.student.id, status)}
+                index={records.indexOf(record)}
+              />
+            ))}
+          </>
         )}
       </main>
 
       {/* Fixed Bottom Button */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-[var(--border-light)]">
+      <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white to-transparent pt-6 px-4 pb-4">
         <Button
           onClick={handleSubmit}
           disabled={isSaving || isSubmitted}
           isLoading={isSaving}
-          className="w-full h-14 text-base font-semibold shadow-lg"
+          className="w-full h-14 text-[15px] font-semibold shadow-xl bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-all active:scale-[0.98]"
         >
           <Save className="w-5 h-5" />
-          {isSubmitted ? "Tersimpan" : "Simpan Absensi"}
+          {isSubmitted ? "✓ Tersimpan" : "Simpan Absensi"}
         </Button>
       </div>
     </div>
