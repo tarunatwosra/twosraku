@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Card } from "@/components/ui"
 import { Button } from "@/components/ui/button"
@@ -18,6 +18,18 @@ import {
 import { cn } from "@/lib/utils"
 
 type FilterTab = "all" | "sick" | "permission" | "absent"
+
+// Loading Fallback
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[var(--background-primary)]">
+      <div className="flex flex-col items-center gap-4">
+        <Loader2 className="w-10 h-10 animate-spin text-[var(--primary)]" />
+        <p className="text-[var(--text-secondary)]">Memuat...</p>
+      </div>
+    </div>
+  )
+}
 
 // Summary Bar Component
 function SummaryBar({ summary }: { summary: { present: number; sick: number; permission: number; absent: number; percentage: number } }) {
@@ -161,10 +173,6 @@ function FilterTabs({
     { key: "absent", label: "Alpa", color: "danger" },
   ]
 
-  const getCount = (key: FilterTab) => {
-    return counts[key]
-  }
-
   return (
     <div className="flex items-center gap-2 px-4 py-3 overflow-x-auto scrollbar-hide">
       {tabs.map((tab) => {
@@ -185,7 +193,7 @@ function FilterTabs({
             )}
           >
             {tab.label}
-            <span className="opacity-70">({getCount(tab.key)})</span>
+            <span className="opacity-70">({counts[tab.key]})</span>
           </button>
         )
       })}
@@ -193,7 +201,8 @@ function FilterTabs({
   )
 }
 
-export default function AbsensiInputMobilePage() {
+// Inner component that uses useSearchParams
+function AbsensiInputContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -279,14 +288,7 @@ export default function AbsensiInputMobilePage() {
 
   // Show loading
   if (authLoading || !isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[var(--background-primary)]">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-10 h-10 animate-spin text-[var(--primary)]" />
-          <p className="text-[var(--text-secondary)]">Memuat...</p>
-        </div>
-      </div>
-    )
+    return <LoadingFallback />
   }
 
   return (
@@ -407,5 +409,14 @@ export default function AbsensiInputMobilePage() {
         </Button>
       </div>
     </div>
+  )
+}
+
+// Main page component with Suspense wrapper
+export default function AbsensiInputMobilePage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <AbsensiInputContent />
+    </Suspense>
   )
 }
