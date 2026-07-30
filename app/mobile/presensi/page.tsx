@@ -38,12 +38,14 @@ function StatCard({ label, value, icon: Icon, color }: { label: string; value: n
   }
 
   return (
-    <div className={cn("p-5 rounded-2xl flex flex-col items-center gap-3", colors[color])}>
-      <div className="w-12 h-12 rounded-2xl bg-white/60 flex items-center justify-center shadow-sm">
-        <Icon className="w-6 h-6" />
+    <div className={cn("p-3 rounded-2xl flex flex-col", colors[color])}>
+      <div className="flex items-center justify-center gap-2 mb-1.5">
+        <div className="w-8 h-8 rounded-lg bg-white/60 flex items-center justify-center shadow-sm">
+          <Icon className="w-4 h-4" />
+        </div>
+        <span className="text-2xl font-bold">{value}</span>
       </div>
-      <span className="text-3xl font-bold">{value}</span>
-      <span className="text-sm font-medium opacity-80">{label}</span>
+      <span className="text-xs font-medium opacity-80 text-center">{label}</span>
     </div>
   )
 }

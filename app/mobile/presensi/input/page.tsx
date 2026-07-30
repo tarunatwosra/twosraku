@@ -151,27 +151,20 @@ function StudentListItem({
       )}
     >
       {/* Student Info Row */}
-      <div className="flex items-center gap-3 mb-4">
+      <div className="flex items-center gap-3 mb-3">
         <StudentAvatar name={student.name} gender={student.gender} />
         <div className="flex-1 min-w-0">
-          <h3 className="text-[15px] font-semibold text-[var(--text-primary)] leading-tight">
+          <h3 className="text-xs font-semibold text-[var(--text-primary)] leading-tight truncate">
             {student.name}
           </h3>
-          <div className="flex items-center gap-2 mt-1">
-            <span className="text-xs text-[var(--text-muted)] font-mono">
-              {student.studentNumber}
+          <div className="flex items-center justify-between mt-0.5">
+            <span className="text-[10px] text-[var(--text-muted)]">
+              {student.entryYear} - {student.class.replace(/^X |^XI |^XII /, "")} - {student.attendanceNumber}
             </span>
-            <span className="w-1 h-1 rounded-full bg-[var(--border-default)]" />
-            <span className="text-xs text-[var(--text-muted)]">
+            <span className="text-[10px] text-[var(--text-muted)]">
               {student.gender === "L" ? "Laki-laki" : "Perempuan"}
             </span>
           </div>
-        </div>
-        <div className={cn(
-          "px-3 py-1.5 rounded-xl text-xs font-bold",
-          currentColors.active
-        )}>
-          {ATTENDANCE_STATUS_CONFIG[status].shortLabel}
         </div>
       </div>
 
@@ -258,86 +251,57 @@ function FilterTabs({
 
 // Header Component
 function PageHeader({
-  className: cls,
   date,
   onPrev,
   onNext,
   onDateChange,
 }: {
-  className?: string
   date: string
   onPrev: () => void
   onNext: () => void
   onDateChange: (date: string) => void
 }) {
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString("id-ID", {
+    const d = new Date(dateStr)
+    const dayName = d.toLocaleDateString("id-ID", { weekday: "long" })
+    const dateOnly = d.toLocaleDateString("id-ID", {
       day: "numeric",
-      month: "short",
+      month: "long",
       year: "numeric",
     })
-  }
-
-  const formatDayName = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString("id-ID", { weekday: "long" })
+    return `${dayName}, ${dateOnly}`
   }
 
   return (
-    <header className={cn("bg-white border-b border-[var(--border-light)]", cls)}>
-      <div className="flex items-center justify-between px-4 h-14">
-        {/* Back Button */}
-        <button
-          onClick={() => window.history.back()}
-          className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-[var(--surface-hover)] transition-colors -ml-2"
-        >
-          <ChevronLeft className="w-5 h-5 text-[var(--text-secondary)]" />
-        </button>
+    <div className="flex items-center justify-center gap-4 px-4 py-3 bg-white border-b border-[var(--border-light)]">
+      <button
+        onClick={onPrev}
+        className="w-9 h-9 rounded-xl bg-[var(--surface-secondary)] flex items-center justify-center hover:bg-[var(--surface-hover)] transition-colors"
+      >
+        <ChevronLeft className="w-4 h-4 text-[var(--text-secondary)]" />
+      </button>
 
-        {/* Date Display */}
-        <div className="flex flex-col items-center">
-          <span className="text-xs text-[var(--text-muted)]">
-            {formatDayName(date)}
-          </span>
-          <span className="text-sm font-semibold text-[var(--text-primary)]">
-            {formatDate(date)}
-          </span>
-        </div>
+      <button
+        onClick={() => {
+          const input = document.createElement("input")
+          input.type = "date"
+          input.value = date
+          input.onchange = (e) => onDateChange((e.target as HTMLInputElement).value)
+          input.click()
+        }}
+        className="flex items-center gap-2 px-4 py-2 bg-[var(--primary-soft)] rounded-xl hover:bg-[var(--primary)]/10 transition-colors"
+      >
+        <Calendar className="w-4 h-4 text-[var(--primary)]" />
+        <span className="text-sm font-medium text-[var(--primary)]">{formatDate(date)}</span>
+      </button>
 
-        {/* Placeholder for balance */}
-        <div className="w-10" />
-      </div>
-
-      {/* Date Navigation */}
-      <div className="flex items-center justify-center gap-4 px-4 py-2 border-t border-[var(--border-light)]">
-        <button
-          onClick={onPrev}
-          className="w-9 h-9 rounded-xl bg-[var(--surface-secondary)] flex items-center justify-center hover:bg-[var(--surface-hover)] transition-colors"
-        >
-          <ChevronLeft className="w-4 h-4 text-[var(--text-secondary)]" />
-        </button>
-
-        <button
-          onClick={() => {
-            const input = document.createElement("input")
-            input.type = "date"
-            input.value = date
-            input.onchange = (e) => onDateChange((e.target as HTMLInputElement).value)
-            input.click()
-          }}
-          className="flex items-center gap-2 px-4 py-2 bg-[var(--primary-soft)] rounded-xl hover:bg-[var(--primary)]/10 transition-colors"
-        >
-          <Calendar className="w-4 h-4 text-[var(--primary)]" />
-          <span className="text-sm font-medium text-[var(--primary)]">Pilih Tanggal</span>
-        </button>
-
-        <button
-          onClick={onNext}
-          className="w-9 h-9 rounded-xl bg-[var(--surface-secondary)] flex items-center justify-center hover:bg-[var(--surface-hover)] transition-colors"
-        >
-          <ChevronRight className="w-4 h-4 text-[var(--text-secondary)]" />
-        </button>
-      </div>
-    </header>
+      <button
+        onClick={onNext}
+        className="w-9 h-9 rounded-xl bg-[var(--surface-secondary)] flex items-center justify-center hover:bg-[var(--surface-hover)] transition-colors"
+      >
+        <ChevronRight className="w-4 h-4 text-[var(--text-secondary)]" />
+      </button>
+    </div>
   )
 }
 

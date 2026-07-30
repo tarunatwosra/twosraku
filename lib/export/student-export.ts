@@ -26,12 +26,9 @@ export type ExportColumn =
   | "birth_place"
   | "birth_date"
   | "religion"
-  | "nationality"
   | "blood_type"
   | "address"
   | "phone"
-  | "email"
-  | "national_id"
   | "status"
   | "enrollment_year"
   | "class"
@@ -49,12 +46,9 @@ export const COLUMN_LABELS: Record<ExportColumn, string> = {
   birth_place: "Tempat Lahir",
   birth_date: "Tanggal Lahir",
   religion: "Agama",
-  nationality: "Kewarganegaraan",
   blood_type: "Golongan Darah",
   address: "Alamat",
   phone: "No. Telepon",
-  email: "Email",
-  national_id: "NIK",
   status: "Status",
   enrollment_year: "Tahun Masuk",
   class: "Kelas",
@@ -74,7 +68,6 @@ export const DEFAULT_COLUMNS: ExportColumn[] = [
   "religion",
   "address",
   "phone",
-  "email",
   "status",
   "enrollment_year",
   "class",
@@ -171,9 +164,6 @@ function transformStudentData(
       case "religion":
         row[COLUMN_LABELS[col]] = student.religion || ""
         break
-      case "nationality":
-        row[COLUMN_LABELS[col]] = student.nationality || ""
-        break
       case "blood_type":
         row[COLUMN_LABELS[col]] = student.blood_type || ""
         break
@@ -182,12 +172,6 @@ function transformStudentData(
         break
       case "phone":
         row[COLUMN_LABELS[col]] = student.phone || ""
-        break
-      case "email":
-        row[COLUMN_LABELS[col]] = student.email || ""
-        break
-      case "national_id":
-        row[COLUMN_LABELS[col]] = student.national_id || ""
         break
       case "status":
         row[COLUMN_LABELS[col]] = student.is_active ? "Aktif" : "Tidak Aktif"

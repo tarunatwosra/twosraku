@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { MobileShell } from "@/components/layout/mobile-shell";
 import { MobileKPICard } from "@/components/dashboard/mobile-kpi-card";
 import { MobileQuickActions } from "@/components/dashboard/mobile-quick-actions";
@@ -13,13 +12,11 @@ import {
   CalendarCheck,
   Wallet,
   GraduationCap,
-  Shield,
+  AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function MobileDashboardPage() {
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
   // Sample data
   const stats = {
     totalStudents: 1248,
@@ -29,38 +26,16 @@ export default function MobileDashboardPage() {
       percentage: 94.5,
     },
     assessmentCompletion: 78,
-    specialUnits: 300,
     savingsTotal: 125,
   };
 
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsRefreshing(false);
-  };
+  // Sample pending attendance
+  const pendingAttendance = 3;
 
   return (
     <MobileShell showHeaderGreeting={true}>
-      {/* Refresh Button */}
-      <div className="flex justify-end mb-3">
-        <button
-          onClick={handleRefresh}
-          disabled={isRefreshing}
-          className={cn(
-            "flex items-center gap-1.5 px-3 py-1.5 text-[12px] text-[var(--text-secondary)]",
-            "bg-[var(--surface-primary)] rounded-[12px]",
-            "border border-[var(--border-light)]/60",
-            "hover:bg-[var(--surface-hover)] transition-colors",
-            isRefreshing && "opacity-50 cursor-not-allowed"
-          )}
-        >
-          <span className={cn("w-3 h-3 rounded-full bg-current", isRefreshing && "animate-pulse")} />
-          Refresh
-        </button>
-      </div>
-
       {/* KPI Cards - 2 Column Grid */}
-      <div className="grid grid-cols-2 gap-3 mb-4">
+      <div className="grid grid-cols-2 gap-3 mb-4 mt-3">
         <MobileKPICard
           title="Total Siswa"
           value={stats.totalStudents.toLocaleString("id-ID")}
@@ -91,6 +66,28 @@ export default function MobileDashboardPage() {
         />
       </div>
 
+      {/* Pending Attendance Alert - Bold */}
+      {pendingAttendance > 0 && (
+        <Card className="mb-4 bg-[var(--danger)] border-2 border-[var(--danger)] shadow-[var(--shadow-md)]" padding="md">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-[14px] bg-white/20 flex items-center justify-center flex-shrink-0">
+              <AlertCircle className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <p className="text-[14px] font-bold text-white">
+                {pendingAttendance} Absensi Belum Diinput
+              </p>
+              <p className="text-[12px] text-white/80">
+                Segera lengkapi untuk hari ini
+              </p>
+            </div>
+            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+              <span className="text-white font-bold text-[14px]">{pendingAttendance}</span>
+            </div>
+          </div>
+        </Card>
+      )}
+
       {/* Quick Actions */}
       <MobileQuickActions className="mb-4" />
 
@@ -109,29 +106,7 @@ export default function MobileDashboardPage() {
         <MobileActivityCard />
       </div>
 
-      {/* Quick Stats Card */}
-      <Card className="mb-4" padding="md">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-[12px] bg-purple-50 flex items-center justify-center">
-              <Shield className="w-4 h-4 text-purple-500" />
-            </div>
-            <div>
-              <p className="text-[13px] font-medium text-[var(--text-primary)]">
-                Unit Khusus
-              </p>
-              <p className="text-[12px] text-[var(--text-muted)]">
-                {stats.specialUnits} anggota
-              </p>
-            </div>
-          </div>
-          <span className="text-[14px] font-semibold text-purple-500">
-            {stats.specialUnits}
-          </span>
-        </div>
-      </Card>
-
-      {/* Bottom Spacing */}
+      {/* Bottom Spacing for Safe Area */}
       <div className="h-4" />
     </MobileShell>
   );

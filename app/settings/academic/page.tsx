@@ -31,7 +31,13 @@ import {
   updateMajor,
   deleteMajor,
 } from "@/lib/classes"
-import type { Class, Major } from "@/types/database"
+import {
+  fetchAcademicYears,
+  createAcademicYear,
+  setActiveAcademicYear,
+  deleteAcademicYear,
+} from "@/lib/academic-years"
+import type { Class, Major, AcademicYear } from "@/types/database"
 
 // ============================================
 // TYPES
@@ -42,8 +48,6 @@ type TabType = "year" | "grading" | "major" | "class"
 interface ClassFormData {
   name: string
   major_id: string
-  room_number: string
-  academic_year_id: string
 }
 
 interface MajorFormData {
@@ -62,22 +66,16 @@ function ClassFormModal({
   onSuccess,
   classToEdit,
   majors,
-  academicYearId,
-  academicYears,
 }: {
   isOpen: boolean
   onClose: () => void
   onSuccess: () => void
   classToEdit?: Class | null
   majors: Major[]
-  academicYearId?: string
-  academicYears?: { id: string; name: string }[]
 }) {
   const [formData, setFormData] = useState<ClassFormData>({
     name: "",
     major_id: "",
-    room_number: "",
-    academic_year_id: academicYearId || "",
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -87,19 +85,15 @@ function ClassFormModal({
       setFormData({
         name: classToEdit.name,
         major_id: classToEdit.major_id,
-        room_number: classToEdit.room_number || "",
-        academic_year_id: classToEdit.academic_year_id || "",
       })
     } else {
       setFormData({
         name: "",
         major_id: "",
-        room_number: "",
-        academic_year_id: academicYearId || "",
       })
     }
     setError(null)
-  }, [classToEdit, isOpen, academicYearId])
+  }, [classToEdit, isOpen])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -118,8 +112,6 @@ function ClassFormModal({
         result = await createClass({
           name: formData.name,
           major_id: formData.major_id,
-          academic_year_id: formData.academic_year_id,
-          room_number: formData.room_number || undefined,
         })
       }
 
@@ -171,24 +163,6 @@ function ClassFormModal({
             onChange={(e) => setFormData({ ...formData, major_id: e.target.value })}
             options={majorOptions}
             required
-          />
-
-          {!classToEdit && academicYears && (
-            <Select
-              label="Tahun Ajaran"
-              placeholder="Pilih Tahun Ajaran"
-              value={formData.academic_year_id}
-              onChange={(e) => setFormData({ ...formData, academic_year_id: e.target.value })}
-              options={academicYears.map((y) => ({ value: y.id, label: y.name }))}
-              required
-            />
-          )}
-
-          <Input
-            label="Nomor Ruang (Opsional)"
-            placeholder="Contoh: R-101"
-            value={formData.room_number}
-            onChange={(e) => setFormData({ ...formData, room_number: e.target.value })}
           />
         </div>
 
@@ -436,8 +410,10 @@ export default function AcademicSettingsPage() {
   // Data state
   const [majors, setMajors] = useState<Major[]>([])
   const [classes, setClasses] = useState<Class[]>([])
+  const [academicYears, setAcademicYears] = useState<AcademicYear[]>([])
   const [loadingMajors, setLoadingMajors] = useState(false)
   const [loadingClasses, setLoadingClasses] = useState(false)
+  const [loadingYears, setLoadingYears] = useState(false)
 
   // Modal state
   const [showClassModal, setShowClassModal] = useState(false)
@@ -455,20 +431,75 @@ export default function AcademicSettingsPage() {
   const [editingMajor, setEditingMajor] = useState<Major | null>(null)
 
   // Filter state
-  const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>(
-    academic.activeAcademicYear || ""
-  )
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>("")
 
-  const activeYear = academic.academicYears.find((y) => y.id === academic.activeAcademicYear)
+  // Find active academic year from database
+  const activeYear = academicYears.find((y) => y.is_active)
+
+  // Set selected year when academic years are loaded
+  useEffect(() => {
+    if (academicYears.length > 0 && !selectedAcademicYear) {
+      const active = academicYears.find((y) => y.is_active)
+      if (active) {
+        setSelectedAcademicYear(active.id)
+      } else {
+        setSelectedAcademicYear(academicYears[0].id)
+      }
+    }
+  }, [academicYears, selectedAcademicYear])
 
   // Fetch data when tab changes
   useEffect(() => {
-    if (activeTab === "major") {
+    if (activeTab === "year") {
+      fetchAcademicYearsData()
+    } else if (activeTab === "major") {
       fetchMajorsData()
     } else if (activeTab === "class") {
       fetchClassesData()
     }
-  }, [activeTab, selectedAcademicYear])
+  }, [activeTab])
+
+  const fetchAcademicYearsData = async () => {
+    setLoadingYears(true)
+    try {
+      const { data } = await fetchAcademicYears()
+      setAcademicYears(data)
+    } finally {
+      setLoadingYears(false)
+    }
+  }
+
+  const handleSetActiveYear = async (id: string) => {
+    const result = await setActiveAcademicYear(id)
+    if (result.success) {
+      fetchAcademicYearsData()
+    } else {
+      alert(result.error || "Gagal mengaktifkan tahun ajaran")
+    }
+  }
+
+  const handleCreateAcademicYear = async (data: {
+    name: string
+    start_date: string
+    end_date: string
+  }) => {
+    const result = await createAcademicYear(data)
+    if (result.success) {
+      fetchAcademicYearsData()
+    } else {
+      return result.error
+    }
+    return null
+  }
+
+  const handleDeleteAcademicYear = async (id: string) => {
+    const result = await deleteAcademicYear(id)
+    if (result.success) {
+      fetchAcademicYearsData()
+    } else {
+      alert(result.error || "Gagal menghapus tahun ajaran")
+    }
+  }
 
   const fetchMajorsData = async () => {
     setLoadingMajors(true)
@@ -483,9 +514,7 @@ export default function AcademicSettingsPage() {
   const fetchClassesData = async () => {
     setLoadingClasses(true)
     try {
-      const { data } = await fetchClasses({
-        academicYearId: selectedAcademicYear || undefined,
-      })
+      const { data } = await fetchClasses()
       setClasses(data)
     } finally {
       setLoadingClasses(false)
@@ -601,63 +630,94 @@ export default function AcademicSettingsPage() {
                   Aktif: {activeYear?.name || "Tidak ada"}
                 </p>
               </div>
-              <Button variant="outline" className="gap-2" disabled>
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={() => {
+                  const name = prompt("Nama Tahun Ajaran (contoh: 2025/2026):")
+                  if (name) {
+                    const startDate = prompt("Tanggal Mulai (YYYY-MM-DD):", "2025-07-15")
+                    const endDate = prompt("Tanggal Selesai (YYYY-MM-DD):", "2026-06-30")
+                    if (startDate && endDate) {
+                      handleCreateAcademicYear({ name, start_date: startDate, end_date: endDate })
+                    }
+                  }
+                }}
+              >
                 <Plus className="w-4 h-4" />
                 Tambah Tahun Ajaran
               </Button>
             </div>
 
-            <div className="space-y-3">
-              {academic.academicYears.map((year) => (
-                <div
-                  key={year.id}
-                  className={cn(
-                    "flex items-center justify-between p-4 rounded-lg border transition-colors",
-                    year.id === academic.activeAcademicYear
-                      ? "border-[var(--primary)] bg-[var(--primary-soft)]"
-                      : "border-[var(--border)] hover:border-[var(--primary)]"
-                  )}
-                >
-                  <div className="flex items-center gap-4">
-                    <div
-                      className={cn(
-                        "w-10 h-10 rounded-lg flex items-center justify-center",
-                        year.id === academic.activeAcademicYear
-                          ? "bg-[var(--primary)] text-white"
-                          : "bg-[var(--surface-secondary)] text-[var(--text-secondary)]"
+            {loadingYears ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-8 h-8 animate-spin text-[var(--text-muted)]" />
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {academicYears.map((year) => (
+                  <div
+                    key={year.id}
+                    className={cn(
+                      "flex items-center justify-between p-4 rounded-lg border transition-colors",
+                      year.is_active
+                        ? "border-[var(--primary)] bg-[var(--primary-soft)]"
+                        : "border-[var(--border)] hover:border-[var(--primary)]"
+                    )}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div
+                        className={cn(
+                          "w-10 h-10 rounded-lg flex items-center justify-center",
+                          year.is_active
+                            ? "bg-[var(--primary)] text-white"
+                            : "bg-[var(--surface-secondary)] text-[var(--text-secondary)]"
+                        )}
+                      >
+                        <GraduationCap className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-[var(--text-primary)]">{year.name}</p>
+                        <p className="text-sm text-[var(--text-muted)]">
+                          {year.start_date} - {year.end_date}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {year.is_active ? (
+                        <Badge className="bg-[var(--primary)]">Aktif</Badge>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleSetActiveYear(year.id)}
+                        >
+                          Jadikan Aktif
+                        </Button>
                       )}
-                    >
-                      <GraduationCap className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-[var(--text-primary)]">{year.name}</p>
-                      <p className="text-sm text-[var(--text-muted)]">
-                        {year.startDate} - {year.endDate}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {year.id === academic.activeAcademicYear ? (
-                      <Badge className="bg-[var(--primary)]">Aktif</Badge>
-                    ) : (
                       <Button
                         variant="ghost"
-                        size="sm"
-                        onClick={() => updateAcademicSettings({ activeAcademicYear: year.id })}
+                        size="icon"
+                        onClick={() => {
+                          if (confirm(`Hapus tahun ajaran "${year.name}"?`)) {
+                            handleDeleteAcademicYear(year.id)
+                          }
+                        }}
                       >
-                        Jadikan Aktif
+                        <Trash2 className="w-4 h-4 text-[var(--danger)]" />
                       </Button>
-                    )}
+                    </div>
                   </div>
-                </div>
-              ))}
-              {academic.academicYears.length === 0 && (
-                <div className="text-center py-8 text-[var(--text-muted)]">
-                  <GraduationCap className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>Belum ada tahun ajaran</p>
-                </div>
-              )}
-            </div>
+                ))}
+                {academicYears.length === 0 && (
+                  <div className="text-center py-8 text-[var(--text-muted)]">
+                    <GraduationCap className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                    <p>Belum ada tahun ajaran</p>
+                    <p className="text-sm">Tambahkan tahun ajaran baru</p>
+                  </div>
+                )}
+              </div>
+            )}
           </Card>
         )}
 
@@ -837,21 +897,6 @@ export default function AcademicSettingsPage() {
         {/* Classes Tab */}
         {activeTab === "class" && (
           <div className="space-y-6">
-            {/* Filter */}
-            <Card className="p-4">
-              <div className="flex items-center gap-4">
-                <Select
-                  label="Tahun Ajaran"
-                  value={selectedAcademicYear}
-                  onChange={(e) => setSelectedAcademicYear(e.target.value)}
-                  options={academic.academicYears.map((y) => ({
-                    value: y.id,
-                    label: y.name,
-                  }))}
-                />
-              </div>
-            </Card>
-
             {/* Classes List */}
             <Card className="p-6">
               <div className="flex items-center justify-between mb-6">
@@ -860,7 +905,7 @@ export default function AcademicSettingsPage() {
                     Daftar Kelas
                   </h2>
                   <p className="text-sm text-[var(--text-muted)]">
-                    {classes.length} kelas untuk tahun ajaran aktif
+                    {classes.length} kelas
                   </p>
                 </div>
                 <Button
@@ -870,7 +915,7 @@ export default function AcademicSettingsPage() {
                     setEditingClass(null)
                     setShowClassModal(true)
                   }}
-                  disabled={!selectedAcademicYear || majors.length === 0}
+                  disabled={majors.length === 0}
                 >
                   <Plus className="w-4 h-4" />
                   Tambah Kelas
@@ -896,7 +941,6 @@ export default function AcademicSettingsPage() {
                           <p className="font-medium text-[var(--text-primary)]">{cls.name}</p>
                           <p className="text-sm text-[var(--text-muted)]">
                             {cls.majors?.code || cls.majors?.name}
-                            {cls.room_number && ` • Ruang ${cls.room_number}`}
                           </p>
                         </div>
                       </div>
@@ -951,10 +995,8 @@ export default function AcademicSettingsPage() {
           setEditingClass(null)
         }}
         onSuccess={fetchClassesData}
-        academicYearId={selectedAcademicYear}
         classToEdit={editingClass}
         majors={majors}
-        academicYears={academic.academicYears}
       />
 
       <MajorFormModal

@@ -12,6 +12,7 @@ import {
   CheckCircle,
   AlertCircle,
   User,
+  MapPin,
   GraduationCap,
   Users,
   Heart,
@@ -89,6 +90,7 @@ const GUARDIAN_RELATION_OPTIONS = [
 
 const STEPS: Array<{ key: RegistrationStep; label: string; icon: React.ReactNode }> = [
   { key: RegistrationStepEnum.PERSONAL, label: "Data Diri", icon: <User className="w-4 h-4" /> },
+  { key: RegistrationStepEnum.ADDRESS, label: "Alamat", icon: <MapPin className="w-4 h-4" /> },
   { key: RegistrationStepEnum.ACADEMIC, label: "Akademik", icon: <GraduationCap className="w-4 h-4" /> },
   { key: RegistrationStepEnum.PARENTS, label: "Orang Tua", icon: <Users className="w-4 h-4" /> },
   { key: RegistrationStepEnum.HEALTH, label: "Kesehatan", icon: <Heart className="w-4 h-4" /> },
@@ -665,8 +667,8 @@ export default function RegistrationFormPage({
         </div>
       </div>
 
-      {/* Step Indicators */}
-      <div className="flex gap-2 mb-6 overflow-x-auto pb-2 -mx-4 px-4">
+      {/* Step Indicators - Full Width */}
+      <div className="flex gap-1 mb-6">
         {STEPS.map((step, index) => (
           <button
             key={step.key}
@@ -675,7 +677,7 @@ export default function RegistrationFormPage({
               setErrors({})
             }}
             className={cn(
-              "flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all",
+              "flex-1 flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-xs font-medium transition-all min-w-0",
               step.key === currentStep
                 ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary)]/20"
                 : index < currentStepIndex
@@ -683,12 +685,14 @@ export default function RegistrationFormPage({
                 : "bg-[var(--surface-secondary)] text-[var(--text-muted)]"
             )}
           >
-            {index < currentStepIndex ? (
-              <CheckCircle className="w-4 h-4" />
-            ) : (
-              step.icon
-            )}
-            <span className="hidden sm:inline">{step.label}</span>
+            <div className="flex items-center justify-center">
+              {index < currentStepIndex ? (
+                <CheckCircle className="w-4 h-4" />
+              ) : (
+                step.icon
+              )}
+            </div>
+            <span className="truncate text-[10px] leading-tight">{step.label}</span>
           </button>
         ))}
       </div>
@@ -721,15 +725,11 @@ export default function RegistrationFormPage({
         {/* Personal Data Step */}
         {currentStep === RegistrationStepEnum.PERSONAL && (
           <div className="space-y-4">
-            <Input
-              name="nisn"
-              label="NISN"
-              placeholder="10 digit angka"
-              value={formData.nisn || ""}
-              onChange={handleChange}
-              error={errors.nisn}
-              maxLength={10}
-            />
+            <div className="p-4 bg-[var(--surface-secondary)] rounded-xl mb-4">
+              <p className="text-sm text-[var(--text-muted)]">
+                💡 Isi data sesuai KTP atau akta kelahiran
+              </p>
+            </div>
 
             <Input
               name="full_name"
@@ -805,91 +805,123 @@ export default function RegistrationFormPage({
               onChange={handleChange}
               error={errors.phone}
             />
+          </div>
+        )}
 
-            {/* Alamat - dipisah jadi 8 field, disimpan sebagai 1 string di database */}
-            <div className="space-y-3">
-              <label className="text-sm font-medium text-[var(--text-primary)] mb-1.5 block">
-                Alamat Lengkap
-              </label>
+        {/* Address Step */}
+        {currentStep === RegistrationStepEnum.ADDRESS && (
+          <div className="space-y-4">
+            <div className="p-4 bg-blue-50 rounded-xl mb-4">
+              <p className="text-sm text-blue-700 font-medium">
+                📍 Lengkapi alamat lengkap sesuai KTP atau domisili saat ini
+              </p>
+            </div>
 
+            <Input
+              name="address_street"
+              label="Nama Jalan/Perumahan"
+              placeholder="Contoh: Jl. Merdeka No. 10"
+              value={formData.address_street || ""}
+              onChange={handleChange}
+            />
+
+            <Input
+              name="address_village"
+              label="Dusun/Kampung"
+              placeholder="Contoh: Sukamaju"
+              value={formData.address_village || ""}
+              onChange={handleChange}
+            />
+
+            <div className="grid grid-cols-2 gap-3">
               <Input
-                name="address_street"
-                label="Nama Jalan/Perumahan"
-                placeholder="Contoh: Jl. Merdeka No. 10"
-                value={formData.address_street || ""}
+                name="address_rt"
+                label="RT"
+                placeholder="001"
+                value={formData.address_rt || ""}
                 onChange={handleChange}
+                maxLength={3}
               />
-
               <Input
-                name="address_village"
-                label="Nama Desa/Dusun/Kampung"
-                placeholder="Contoh: Desa Sukamaju"
-                value={formData.address_village || ""}
+                name="address_rw"
+                label="RW"
+                placeholder="002"
+                value={formData.address_rw || ""}
                 onChange={handleChange}
-              />
-
-              <div className="grid grid-cols-2 gap-3">
-                <Input
-                  name="address_rt"
-                  label="RT"
-                  placeholder="001"
-                  value={formData.address_rt || ""}
-                  onChange={handleChange}
-                  maxLength={3}
-                />
-                <Input
-                  name="address_rw"
-                  label="RW"
-                  placeholder="002"
-                  value={formData.address_rw || ""}
-                  onChange={handleChange}
-                  maxLength={3}
-                />
-              </div>
-
-              <Input
-                name="address_neighborhood"
-                label="Kelurahan/Desa"
-                placeholder="Contoh: Sukamaju"
-                value={formData.address_neighborhood || ""}
-                onChange={handleChange}
-              />
-
-              <Input
-                name="address_subdistrict"
-                label="Kecamatan"
-                placeholder="Contoh: Cicadas"
-                value={formData.address_subdistrict || ""}
-                onChange={handleChange}
-              />
-
-              <Input
-                name="address_city"
-                label="Kabupaten/Kota"
-                placeholder="Contoh: Bandung"
-                value={formData.address_city || ""}
-                onChange={handleChange}
-              />
-
-              <Input
-                name="address_province"
-                label="Provinsi"
-                placeholder="Contoh: Jawa Barat"
-                value={formData.address_province || ""}
-                onChange={handleChange}
+                maxLength={3}
               />
             </div>
+
+            <Input
+              name="address_neighborhood"
+              label="Kelurahan/Desa"
+              placeholder="Contoh: Sukamaju"
+              value={formData.address_neighborhood || ""}
+              onChange={handleChange}
+            />
+
+            <Input
+              name="address_subdistrict"
+              label="Kecamatan"
+              placeholder="Contoh: Cicadas"
+              value={formData.address_subdistrict || ""}
+              onChange={handleChange}
+            />
+
+            <Input
+              name="address_city"
+              label="Kabupaten/Kota"
+              placeholder="Contoh: Bandung"
+              value={formData.address_city || ""}
+              onChange={handleChange}
+            />
+
+            <Input
+              name="address_province"
+              label="Provinsi"
+              placeholder="Contoh: Jawa Barat"
+              value={formData.address_province || ""}
+              onChange={handleChange}
+            />
           </div>
         )}
 
         {/* Academic Step */}
         {currentStep === RegistrationStepEnum.ACADEMIC && (
           <div className="space-y-4">
-            <div className="p-4 bg-[var(--surface-secondary)] rounded-xl">
+            <div className="p-4 bg-[var(--surface-secondary)] rounded-xl mb-4">
               <p className="text-sm text-[var(--text-muted)]">
-                Data akademik seperti kelas dan tahun ajaran akan diisi oleh admin sekolah.
+                Data akademik akan diisi oleh admin sekolah.
               </p>
             </div>
+
+            <Input
+              name="nisn"
+              label="NISN"
+              placeholder="10 digit angka"
+              value={formData.nisn || ""}
+              onChange={handleChange}
+              error={errors.nisn}
+              maxLength={10}
+            />
+
+            <Input
+              name="student_number"
+              label="NIS"
+              placeholder="Nomor Induk Siswa"
+              value={formData.student_number || ""}
+              onChange={handleChange}
+            />
+
+            <Input
+              name="class_name"
+              label="Kelas"
+              placeholder="Akan diisi oleh admin"
+              value={formData.class_name || ""}
+              onChange={handleChange}
+              disabled
+            />
+
             <Input
               name="enrollment_year"
               label="Angkatan"
@@ -1126,17 +1158,17 @@ export default function RegistrationFormPage({
         )}
 
         {/* Navigation Buttons */}
-        <div className="flex gap-3 mt-6 pt-4 border-t border-[var(--border-light)]">
+        <div className="flex gap-2 mt-6 pt-4 border-t border-[var(--border-light)]">
           {currentStepIndex > 0 ? (
             <Button
               variant="outline"
-              size="lg"
-              className="flex-1"
+              size="md"
+              className="flex-1 min-w-0"
               onClick={handlePrev}
               disabled={isSubmitting}
             >
-              <ChevronLeft className="w-5 h-5" />
-              Sebelumnya
+              <ChevronLeft className="w-4 h-4 flex-shrink-0" />
+              <span className="truncate">Sebelumnya</span>
             </Button>
           ) : (
             <div className="flex-1" />
@@ -1145,32 +1177,32 @@ export default function RegistrationFormPage({
           {isLastStep ? (
             <Button
               variant="primary"
-              size="lg"
-              className="flex-1"
+              size="md"
+              className="flex-1 min-w-0"
               onClick={handleSubmit}
               disabled={isSubmitting}
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Menyimpan...
+                  <Loader2 className="w-4 h-4 animate-spin flex-shrink-0" />
+                  <span className="truncate">Menyimpan...</span>
                 </>
               ) : (
                 <>
-                  <Save className="w-5 h-5" />
-                  Submit
+                  <Save className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate">Simpan</span>
                 </>
               )}
             </Button>
           ) : (
             <Button
               variant="primary"
-              size="lg"
-              className="flex-1"
+              size="md"
+              className="flex-1 min-w-0"
               onClick={handleNext}
             >
-              Selanjutnya
-              <ChevronRight className="w-5 h-5" />
+              <span className="truncate">Selanjutnya</span>
+              <ChevronRight className="w-4 h-4 flex-shrink-0" />
             </Button>
           )}
         </div>

@@ -155,12 +155,6 @@ function StudentHeader({ student }: { student: StudentWithClass }) {
                   <BookOpen className="w-4 h-4 text-[var(--text-muted)]" />
                   <span className="font-mono font-medium">NIS: {student.student_number}</span>
                 </div>
-                {student.national_id && (
-                  <div className="flex items-center gap-2 bg-[var(--surface-secondary)] px-3 py-1.5 rounded-lg">
-                    <User className="w-4 h-4 text-[var(--text-muted)]" />
-                    <span className="font-mono font-medium">NIK: {student.national_id}</span>
-                  </div>
-                )}
               </div>
 
               {/* Personal Info */}
@@ -290,18 +284,15 @@ function PersonalInfoSection({ student }: { student: StudentWithClass }) {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <InfoItem label="NIS" value={student.student_number} />
       {student.nisn && <InfoItem label="NISN" value={student.nisn} />}
-      {student.national_id && <InfoItem label="NIK" value={student.national_id} />}
       <InfoItem label="Nama Lengkap" value={student.full_name} />
       {student.nickname && <InfoItem label="Nama Panggilan" value={student.nickname} />}
       <InfoItem label="Jenis Kelamin" value={GENDER_LABELS[student.gender]} />
       {student.birth_place && <InfoItem label="Tempat Lahir" value={student.birth_place} />}
       <InfoItem label="Tanggal Lahir" value={`${formatDate(student.birth_date)} (${formatAge(student.birth_date)})`} />
       {student.religion && <InfoItem label="Agama" value={student.religion} />}
-      {student.nationality && <InfoItem label="Kewarganegaraan" value={student.nationality} />}
       {student.blood_type && <InfoItem label="Golongan Darah" value={student.blood_type} />}
       <InfoItem label="Alamat" value={student.address} fullWidth icon={<MapPin className="w-3 h-3" />} />
       <InfoItem label="No. Telepon" value={student.phone} icon={<Phone className="w-3 h-3" />} />
-      <InfoItem label="Email" value={student.email} icon={<Mail className="w-3 h-3" />} />
     </div>
   )
 }
@@ -345,9 +336,6 @@ function AcademicInfoSection({ student }: { student: StudentWithClass }) {
             </Badge>
           }
         />
-        {student.graduation_year && (
-          <InfoItem label="Tahun Lulus" value={student.graduation_year.toString()} />
-        )}
         {activeClass && (
           <>
             <InfoItem

@@ -44,7 +44,6 @@ export function useMajors() {
  * Hook untuk mengambil kelas berdasarkan filter
  */
 export function useClasses(filters?: {
-  academicYearId?: string
   majorId?: string
 }) {
   const [classes, setClasses] = useState<any[]>([])
@@ -64,9 +63,6 @@ export function useClasses(filters?: {
         `)
         .eq("status", "active")
 
-      if (filters?.academicYearId) {
-        query = query.eq("academic_year_id", filters.academicYearId)
-      }
       if (filters?.majorId) {
         query = query.eq("major_id", filters.majorId)
       }
@@ -81,7 +77,7 @@ export function useClasses(filters?: {
     } finally {
       setLoading(false)
     }
-  }, [filters?.academicYearId, filters?.majorId])
+  }, [filters?.majorId])
 
   useEffect(() => {
     fetchClasses()

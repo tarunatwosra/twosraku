@@ -12,7 +12,6 @@ import type { Class, Major } from "@/types/database"
 // ============================================
 
 interface FetchClassesOptions {
-  academicYearId?: string
   majorId?: string
   includeInactive?: boolean
 }
@@ -34,10 +33,6 @@ export async function fetchClasses(
     // Only filter by status if includeInactive is not explicitly true
     if (options.includeInactive !== true) {
       query = query.eq("status", "active")
-    }
-
-    if (options.academicYearId) {
-      query = query.eq("academic_year_id", options.academicYearId)
     }
 
     if (options.majorId) {
@@ -99,8 +94,6 @@ export async function fetchClass(
 interface CreateClassData {
   name: string
   major_id: string
-  academic_year_id: string
-  room_number?: string
 }
 
 /**
@@ -115,8 +108,6 @@ export async function createClass(
       .insert({
         name: data.name,
         major_id: data.major_id,
-        academic_year_id: data.academic_year_id,
-        room_number: data.room_number || null,
         status: "active",
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -146,8 +137,6 @@ export async function createClass(
 interface UpdateClassData {
   name?: string
   major_id?: string
-  academic_year_id?: string
-  room_number?: string | null
   status?: string
 }
 

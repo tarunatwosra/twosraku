@@ -6,7 +6,7 @@ import {
   Home,
   CalendarCheck,
   ClipboardCheck,
-  Wallet,
+  BookUser,
   MoreHorizontal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -31,10 +31,10 @@ const navItems = [
     activeIcon: ClipboardCheck,
   },
   {
-    label: "Tabungan",
-    href: "/mobile/tabungan",
-    icon: Wallet,
-    activeIcon: Wallet,
+    label: "Buku Induk",
+    href: "/mobile/buku-induk",
+    icon: BookUser,
+    activeIcon: BookUser,
   },
   {
     label: "Lainnya",

@@ -42,14 +42,14 @@ const defaultSchoolSettings: SchoolSettings = {
 const defaultAcademicSettings: AcademicSettings = {
   academicYears: [
     {
-      id: "1",
+      id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
       name: "2025/2026",
       startDate: "2025-07-15",
       endDate: "2026-06-30",
       isActive: true,
     },
     {
-      id: "2",
+      id: "b2c3d4e5-f6a7-8901-bcde-f12345678901",
       name: "2024/2025",
       startDate: "2024-07-15",
       endDate: "2025-06-30",
@@ -58,28 +58,28 @@ const defaultAcademicSettings: AcademicSettings = {
   ],
   semesters: [
     {
-      id: "1",
+      id: "s1a2b3c4-d5e6-7890-ab12-345678901234",
       name: "Semester Ganjil",
       type: "ganjil",
-      academicYearId: "1",
+      academicYearId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
       startDate: "2025-07-15",
       endDate: "2025-12-31",
       isActive: true,
     },
     {
-      id: "2",
+      id: "s2b3c4d5-e6f7-8901-bc23-456789012345",
       name: "Semester Genap",
       type: "genap",
-      academicYearId: "1",
+      academicYearId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
       startDate: "2026-01-01",
       endDate: "2026-06-30",
       isActive: false,
     },
   ],
-  activeAcademicYear: "1",
-  activeSemester: "1",
+  activeAcademicYear: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  activeSemester: "s1a2b3c4-d5e6-7890-ab12-345678901234",
   gradingScale: {
-    id: "1",
+    id: "g1r2a3d4-i5n6-g789-0sc1-a2l3e4567890",
     name: "Standar",
     intervals: [
       { grade: "A", minScore: 90, maxScore: 100, description: "Sangat Baik", color: "green", isPassing: true },

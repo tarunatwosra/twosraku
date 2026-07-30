@@ -267,6 +267,7 @@ export async function submitRegistration(
 
     // Personal data
     if (formData.nisn !== undefined) studentUpdateData.nisn = formData.nisn || null
+    if (formData.student_number !== undefined) studentUpdateData.student_number = formData.student_number || null
     if (formData.full_name !== undefined) studentUpdateData.full_name = formData.full_name
     if (formData.nickname !== undefined) studentUpdateData.nickname = formData.nickname || null
     if (formData.gender !== undefined) studentUpdateData.gender = formData.gender
@@ -276,6 +277,7 @@ export async function submitRegistration(
     if (formData.religion !== undefined) studentUpdateData.religion = formData.religion || null
     if (formData.phone !== undefined) studentUpdateData.phone = formData.phone || null
     if (formData.address !== undefined) studentUpdateData.address = formData.address || null
+    if (formData.enrollment_year !== undefined) studentUpdateData.enrollment_year = formData.enrollment_year || null
 
     // Health data
     if (formData.height_cm !== undefined)
@@ -472,12 +474,13 @@ export function isSessionValid(): boolean {
 }
 
 /**
- * Get student by ID with parents data
+ * Get student by ID with parents data and class info
  * Used for pre-filling registration form
  */
 export async function getStudentById(studentId: string): Promise<{
   student: Student | null
   parents: Parent[]
+  className?: string
 }> {
   try {
     // Fetch student data
@@ -489,7 +492,7 @@ export async function getStudentById(studentId: string): Promise<{
 
     if (studentError || !student) {
       console.error("Error fetching student:", studentError)
-      return { student: null, parents: [] }
+      return { student: null, parents: [], className: undefined }
     }
 
     // Fetch parents data
@@ -500,13 +503,33 @@ export async function getStudentById(studentId: string): Promise<{
 
     if (parentsError) {
       console.warn("Error fetching parents:", parentsError)
-      return { student, parents: [] }
     }
 
-    return { student, parents: parents || [] }
+    // Fetch current class info from student_classes
+    let className: string | undefined
+    try {
+      const { data: studentClass } = await supabase
+        .from("student_classes")
+        .select(`
+          classes (
+            name
+          )
+        `)
+        .eq("student_id", studentId)
+        .eq("status", "active")
+        .single()
+
+      if (studentClass && (studentClass.classes as { name: string } | null)?.name) {
+        className = (studentClass.classes as { name: string }).name
+      }
+    } catch {
+      // Ignore class fetch errors
+    }
+
+    return { student, parents: parents || [], className }
   } catch (err) {
     console.error("Error in getStudentById:", err)
-    return { student: null, parents: [] }
+    return { student: null, parents: [], className: undefined }
   }
 }
 

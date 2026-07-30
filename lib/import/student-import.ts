@@ -14,7 +14,6 @@ import * as XLSX from "xlsx"
 export interface ImportRow {
   rowNumber: number
   student_number: string
-  national_id: string
   nisn: string
   full_name: string
   nickname: string
@@ -22,11 +21,9 @@ export interface ImportRow {
   birth_place: string
   birth_date: string
   religion: string
-  nationality: string
   blood_type: string
   address: string
   phone: string
-  email: string
   enrollment_year: string
   status: string
   // Parent data
@@ -125,12 +122,9 @@ export const AVAILABLE_FIELDS: FieldDefinition[] = [
   { key: "birth_place", label: "Tempat Lahir", required: false, type: "text" },
   { key: "birth_date", label: "Tanggal Lahir", required: false, type: "date" },
   { key: "religion", label: "Agama", required: false, type: "select", options: ["Islam", "Kristen", "Katolik", "Hindu", "Buddha", "Konghucu", "Lainnya"] },
-  { key: "nationality", label: "Kewarganegaraan", required: false, type: "text" },
   { key: "blood_type", label: "Golongan Darah", required: false, type: "select", options: ["A", "B", "AB", "O", "Tidak Tahu"] },
   { key: "address", label: "Alamat", required: false, type: "text" },
   { key: "phone", label: "No. Telepon", required: false, type: "text" },
-  { key: "email", label: "Email", required: false, type: "text" },
-  { key: "national_id", label: "NIK", required: false, type: "text" },
   { key: "nisn", label: "NISN", required: false, type: "text" },
   { key: "enrollment_year", label: "Tahun Masuk", required: false, type: "number" },
   // Parent fields
@@ -174,8 +168,6 @@ export const COLUMN_MAPPING: Record<string, keyof ImportRow> = {
   "Tgl Lahir": "birth_date",
   Agama: "religion",
   Religion: "religion",
-  Kewarganegaraan: "nationality",
-  Nationality: "nationality",
   "Golongan Darah": "blood_type",
   "Blood Type": "blood_type",
   Alamat: "address",
@@ -184,12 +176,9 @@ export const COLUMN_MAPPING: Record<string, keyof ImportRow> = {
   Phone: "phone",
   "No. Telepon": "phone",
   HP: "phone",
-  Email: "email",
   "Tahun Masuk": "enrollment_year",
   "Enrollment Year": "enrollment_year",
   "Tahun Daftar": "enrollment_year",
-  NIK: "national_id",
-  "National ID": "national_id",
   NISN: "nisn",
   Status: "status",
   // Parent fields
@@ -516,32 +505,12 @@ export function validateRow(row: ImportRow): ImportError[] {
     }
   }
 
-  // Email
-  if (row.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(row.email)) {
-    errors.push({
-      row: row.rowNumber,
-      field: "email",
-      message: "Format email tidak valid",
-      severity: "warning",
-    })
-  }
-
   // Phone
   if (row.phone && !/^[0-9+\-\s()]+$/.test(row.phone)) {
     errors.push({
       row: row.rowNumber,
       field: "phone",
       message: "Format nomor telepon tidak valid",
-      severity: "warning",
-    })
-  }
-
-  // NIK
-  if (row.national_id && !/^[0-9]{16}$/.test(row.national_id)) {
-    errors.push({
-      row: row.rowNumber,
-      field: "national_id",
-      message: "NIK harus 16 digit angka",
       severity: "warning",
     })
   }
@@ -980,12 +949,9 @@ export async function updateStudentByNis(
       if (parsedDate) dbUpdates.birth_date = parsedDate
     }
     if (updates.religion) dbUpdates.religion = updates.religion
-    if (updates.nationality) dbUpdates.nationality = updates.nationality
     if (updates.blood_type) dbUpdates.blood_type = updates.blood_type
     if (updates.address) dbUpdates.address = updates.address
     if (updates.phone) dbUpdates.phone = updates.phone
-    if (updates.email) dbUpdates.email = updates.email
-    if (updates.national_id) dbUpdates.national_id = updates.national_id
     if (updates.nisn) dbUpdates.nisn = updates.nisn
     if (updates.enrollment_year) {
       const year = parseInt(updates.enrollment_year)

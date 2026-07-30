@@ -186,13 +186,9 @@ interface CreateStudentData {
   birth_place?: string | null
   birth_date?: string | null
   religion?: string | null
-  nationality?: string | null
   blood_type?: string | null
   address?: string | null
   phone?: string | null
-  email?: string | null
-  national_id?: string | null
-  is_active?: boolean
   enrollment_year?: number
   notes?: string | null
 }
@@ -276,12 +272,9 @@ export async function createStudentWithParents(
       birth_place: studentData.birth_place || null,
       birth_date: studentData.birth_date || null,
       religion: studentData.religion || null,
-      nationality: studentData.nationality || "Indonesia",
       blood_type: studentData.blood_type || null,
       address: studentData.address || null,
       phone: studentData.phone || null,
-      email: studentData.email || null,
-      national_id: studentData.national_id || null,
       enrollment_year: studentData.enrollment_year || new Date().getFullYear(),
       notes: studentData.notes || null,
       created_at: new Date().toISOString(),
@@ -356,12 +349,9 @@ export async function createStudentWithParents(
           birth_place: studentData.birth_place || null,
           birth_date: studentData.birth_date || null,
           religion: studentData.religion || null,
-          nationality: "Indonesia",
           blood_type: studentData.blood_type || null,
           address: studentData.address || null,
           phone: studentData.phone || null,
-          email: studentData.email || null,
-          national_id: studentData.national_id || null,
           enrollment_year: studentData.enrollment_year || new Date().getFullYear(),
           notes: studentData.notes || null,
           is_active: studentData.is_active !== false,

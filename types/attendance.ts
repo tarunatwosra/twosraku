@@ -22,6 +22,8 @@ export interface AttendanceRecord {
     id: string
     name: string
     studentNumber: string
+    entryYear: string
+    attendanceNumber: string
     class: string
     major: string
     gender: "L" | "P"

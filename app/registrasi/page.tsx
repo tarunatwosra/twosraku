@@ -174,9 +174,9 @@ export default function RegistrationPage() {
               3
             </div>
             <div>
-              <h3 className="font-medium text-[var(--text-primary)] mb-1">Isi Form Data</h3>
+              <h3 className="font-medium text-[var(--text-primary)] mb-1">Isi Form Data (6 Langkah)</h3>
               <p className="text-sm text-[var(--text-muted)]">
-                Lengkapi data diri, orang tua, dan kesehatan
+                Data Diri → Alamat → Akademik → Orang Tua → Kesehatan → Lainnya
               </p>
             </div>
           </div>

@@ -2,34 +2,32 @@
 
 import Link from "next/link";
 import {
-  UserPlus,
   CalendarCheck,
   ClipboardCheck,
-  FileText,
   Wallet,
   BookUser,
-  Settings,
-  BarChart3,
+  FileText,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface QuickAction {
   label: string;
   href: string;
-  icon: typeof UserPlus;
+  icon: typeof CalendarCheck;
   color: string;
 }
 
 const quickActions: QuickAction[] = [
   {
     label: "Absensi",
-    href: "/presensi/input",
+    href: "/mobile/presensi",
     icon: CalendarCheck,
     color: "bg-[var(--primary-soft)] text-[var(--primary)]",
   },
   {
     label: "Input Nilai",
-    href: "/penilaian/quick",
+    href: "/mobile/penilaian",
     icon: ClipboardCheck,
     color: "bg-[var(--success-soft)] text-[var(--success)]",
   },
@@ -41,14 +39,14 @@ const quickActions: QuickAction[] = [
   },
   {
     label: "Buku Induk",
-    href: "/buku-induk",
+    href: "/mobile/buku-induk",
     icon: BookUser,
     color: "bg-[var(--info-soft)] text-[var(--info)]",
   },
   {
-    label: "Tambah Siswa",
-    href: "/buku-induk/new",
-    icon: UserPlus,
+    label: "Unit Khusus",
+    href: "/pasukan-khusus",
+    icon: Users,
     color: "bg-purple-50 text-purple-500",
   },
   {

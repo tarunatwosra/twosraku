@@ -33,9 +33,7 @@ export interface VerifyStudentResult {
 // ============================================
 
 export interface RegistrationFormData {
-  // Data Diri
-  student_number: string
-  nisn: string
+  // Data Diri (Step 1)
   full_name: string
   nickname: string
   gender: "male" | "female"
@@ -45,9 +43,9 @@ export interface RegistrationFormData {
   religion: string
   phone: string
 
-  // Alamat - dipisah jadi 8 field, disimpan sebagai 1 string di database
+  // Alamat (Step 2) - 8 field terpisah, disimpan sebagai 1 string di database
   address_street: string      // Nama Jalan/Perumahan
-  address_village: string     // Nama Desa/Dusun/Kampung
+  address_village: string     // Desa/Dusun/Kampung
   address_rt: string          // RT
   address_rw: string          // RW
   address_neighborhood: string // Kelurahan
@@ -56,10 +54,13 @@ export interface RegistrationFormData {
   address_province: string    // Provinsi
   address: string            // Legacy - digabung saat save
 
-  // Data Akademik (read-only display)
+  // Akademik (Step 3)
+  nisn: string
+  student_number: string     // NIS lokal
+  class_name: string          // Nama kelas (read-only)
   enrollment_year: number
 
-  // Data Orang Tua/Wali
+  // Data Orang Tua/Wali (Step 4)
   father_name: string
   father_phone: string
   mother_name: string
@@ -68,7 +69,7 @@ export interface RegistrationFormData {
   guardian_relation: string
   guardian_phone: string
 
-  // Fisik dan Kesehatan
+  // Fisik dan Kesehatan (Step 5)
   height_cm: string
   weight_kg: string
   vision: string
@@ -79,7 +80,7 @@ export interface RegistrationFormData {
   allergies: string
   health_notes: string
 
-  // Lainnya
+  // Lainnya (Step 6)
   notes: string
 }
 
@@ -128,25 +129,27 @@ export interface RegistrationSettings {
 }
 
 // ============================================
-// FORM STEPS
+// FORM STEPS (6 Steps)
 // ============================================
 
 export enum RegistrationStep {
   VERIFY = "verify",
-  PERSONAL = "personal",
-  ACADEMIC = "academic",
-  PARENTS = "parents",
-  HEALTH = "health",
-  OTHER = "other",
+  PERSONAL = "personal",       // Step 1: Data Diri
+  ADDRESS = "address",         // Step 2: Alamat Lengkap (BARU)
+  ACADEMIC = "academic",       // Step 3: Akademik
+  PARENTS = "parents",         // Step 4: Orang Tua/Wali
+  HEALTH = "health",           // Step 5: Kesehatan
+  OTHER = "other",             // Step 6: Lainnya
   COMPLETE = "complete",
 }
 
 export const REGISTRATION_STEPS = [
-  { key: RegistrationStep.PERSONAL, label: "Data Diri" },
-  { key: RegistrationStep.ACADEMIC, label: "Akademik" },
-  { key: RegistrationStep.PARENTS, label: "Orang Tua" },
-  { key: RegistrationStep.HEALTH, label: "Kesehatan" },
-  { key: RegistrationStep.OTHER, label: "Lainnya" },
+  { key: RegistrationStep.PERSONAL, label: "Data Diri", icon: "User" },
+  { key: RegistrationStep.ADDRESS, label: "Alamat", icon: "MapPin" },
+  { key: RegistrationStep.ACADEMIC, label: "Akademik", icon: "GraduationCap" },
+  { key: RegistrationStep.PARENTS, label: "Orang Tua", icon: "Users" },
+  { key: RegistrationStep.HEALTH, label: "Kesehatan", icon: "Heart" },
+  { key: RegistrationStep.OTHER, label: "Lainnya", icon: "StickyNote" },
 ] as const
 
 // ============================================

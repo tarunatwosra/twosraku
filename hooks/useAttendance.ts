@@ -37,12 +37,15 @@ const generateStudents = (classId: string): AttendanceRecord[] => {
   const students: AttendanceRecord[] = []
 
   for (let i = 0; i < studentCount; i++) {
+    const num = String(i + 1).padStart(2, "0")
     students.push({
       id: `${classId}-${i}`,
       student: {
         id: `${classId}-${i}`,
         name: STUDENT_NAMES[i % STUDENT_NAMES.length],
-        studentNumber: `2025${classId.replace("class-", "").replace("-", "")}${String(i + 1).padStart(2, "0")}`,
+        studentNumber: `2025${classId.replace("class-", "").replace("-", "")}${num}`,
+        entryYear: "2025",
+        attendanceNumber: num,
         class: classInfo?.name || "Kelas",
         major: classInfo?.major || "TKJ",
         gender: (i % 2 === 0 ? "L" : "P") as "L" | "P",

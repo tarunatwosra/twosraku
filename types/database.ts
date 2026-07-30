@@ -57,28 +57,23 @@ export interface Class {
   id: UUID
   name: string
   major_id: UUID
-  academic_year_id: UUID
-  room_number: string | null
   status: 'active' | 'inactive' | 'archived'
   created_at: Timestamp
   updated_at: Timestamp
   // Relations
   majors?: Major
-  academic_years?: AcademicYear
 }
 
 export interface Student {
   id: UUID
   student_number: string
   nisn: string | null
-  national_id: string | null
   full_name: string
   nickname: string | null
   gender: 'male' | 'female'
   birth_place: string | null
   birth_date: Date | null
   religion: string | null
-  nationality: string | null
   blood_type: string | null
   height_cm: number | null
   weight_kg: number | null
@@ -91,13 +86,8 @@ export interface Student {
   health_notes: string | null
   address: string | null
   phone: string | null
-  email: string | null
   photo_url: string | null
-  is_active: boolean
   enrollment_year: number | null
-  graduation_year: number | null
-  transfer_date: Date | null
-  transfer_reason: string | null
   notes: string | null
   created_at: Timestamp
   updated_at: Timestamp
