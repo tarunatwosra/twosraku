@@ -314,7 +314,7 @@ function AcademicInfoSection({ student }: { student: StudentWithClass }) {
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <InfoItem label="NIS" value={student.student_number} />
-        <InfoItem label="Tahun Masuk" value={student.enrollment_year?.toString()} />
+        <InfoItem label="Tahun Ajaran" value={student.student_classes?.[0]?.academic_years?.name || "-"} />
         <InfoItem
           label="Status"
           value={
@@ -525,11 +525,13 @@ function ActivitySection({ student }: { student: StudentWithClass }) {
   const generateTimeline = () => {
     const items = []
 
-    if (student.enrollment_year) {
+    // Add enrollment activity if student has student_classes with academic_year
+    const activeClass = student.student_classes?.[0]
+    if (activeClass?.academic_years?.name) {
       items.push({
         id: "enrollment",
         title: "Pendaftaran Siswa Baru",
-        description: `Masuk sebagai siswa baru tahun ajaran ${student.enrollment_year}`,
+        description: `Masuk sebagai siswa baru tahun ajaran ${activeClass.academic_years.name}`,
         date: student.created_at,
         icon: <UserPlus className="w-4 h-4" />,
         variant: "success" as const,
@@ -596,9 +598,9 @@ function ActivitySection({ student }: { student: StudentWithClass }) {
           </Badge>
         </Card>
         <Card variant="soft" padding="md" className="hover:shadow-sm transition-shadow">
-          <p className="text-[11px] text-[var(--text-muted)] mb-1 uppercase tracking-wide">Tahun Masuk</p>
+          <p className="text-[11px] text-[var(--text-muted)] mb-1 uppercase tracking-wide">Tahun Ajaran</p>
           <p className="text-[18px] font-bold text-[var(--text-primary)]">
-            {student.enrollment_year || "-"}
+            {student.student_classes?.[0]?.academic_years?.name || "-"}
           </p>
         </Card>
         <Card variant="soft" padding="md" className="hover:shadow-sm transition-shadow">

@@ -30,7 +30,6 @@ export type ExportColumn =
   | "address"
   | "phone"
   | "status"
-  | "enrollment_year"
   | "class"
   | "father_name"
   | "mother_name"
@@ -50,7 +49,6 @@ export const COLUMN_LABELS: Record<ExportColumn, string> = {
   address: "Alamat",
   phone: "No. Telepon",
   status: "Status",
-  enrollment_year: "Tahun Masuk",
   class: "Kelas",
   father_name: "Nama Ayah",
   mother_name: "Nama Ibu",
@@ -69,7 +67,6 @@ export const DEFAULT_COLUMNS: ExportColumn[] = [
   "address",
   "phone",
   "status",
-  "enrollment_year",
   "class",
 ]
 
@@ -175,9 +172,6 @@ function transformStudentData(
         break
       case "status":
         row[COLUMN_LABELS[col]] = student.is_active ? "Aktif" : "Tidak Aktif"
-        break
-      case "enrollment_year":
-        row[COLUMN_LABELS[col]] = student.enrollment_year?.toString() || ""
         break
       case "class":
         row[COLUMN_LABELS[col]] = getClassName(student, academicYearId)

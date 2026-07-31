@@ -12,7 +12,7 @@ import type {
   RegistrationSession,
   RegistrationStats,
 } from "@/types/registrasi"
-import type { Student, Parent } from "@/types/database"
+import type { Student, Parent, Class, AcademicYear } from "@/types/database"
 
 // ============================================
 // REGISTRATION SETTINGS
@@ -166,6 +166,127 @@ export async function getAccessCount(): Promise<number> {
 }
 
 // ============================================
+// ACADEMIC YEAR & CLASSES
+// ============================================
+
+/**
+ * Get active academic year
+ * Returns the academic year with is_active = true
+ */
+export async function getActiveAcademicYear(): Promise<AcademicYear | null> {
+  try {
+    const { data, error } = await supabase
+      .from("academic_years")
+      .select("*")
+      .eq("is_active", true)
+      .single()
+
+    if (error || !data) {
+      console.error("Error fetching active academic year:", error)
+      return null
+    }
+
+    return data
+  } catch (err) {
+    console.error("Error in getActiveAcademicYear:", err)
+    return null
+  }
+}
+
+/**
+ * Get active classes
+ * Returns all classes with status = 'active'
+ * Optionally filtered by academic year for enrollment purposes
+ */
+export async function getActiveClasses(
+  academicYearId?: string
+): Promise<Class[]> {
+  try {
+    let query = supabase
+      .from("classes")
+      .select(`
+        id,
+        name,
+        major_id,
+        status,
+        created_at,
+        updated_at,
+        majors (
+          id,
+          name,
+          code
+        )
+      `)
+      .eq("status", "active")
+      .order("name")
+
+    if (academicYearId) {
+      // Get classes that are assigned to this academic year via student_classes
+      const { data: assignedClasses } = await supabase
+        .from("student_classes")
+        .select("class_id")
+        .eq("academic_year_id", academicYearId)
+
+      const classIds = assignedClasses?.map((sc) => sc.class_id) || []
+
+      if (classIds.length > 0) {
+        query = query.in("id", classIds)
+      }
+    }
+
+    const { data, error } = await query
+
+    if (error) {
+      console.error("Error fetching active classes:", error)
+      return []
+    }
+
+    return (data || []) as unknown as Class[]
+  } catch (err) {
+    console.error("Error in getActiveClasses:", err)
+    return []
+  }
+}
+
+/**
+ * Get all active classes (for registration dropdown)
+ * Returns classes with their major info, sorted by name
+ */
+export async function getClassesForRegistration(): Promise<
+  Array<{ id: string; name: string; major_name: string; major_code: string }>
+> {
+  try {
+    const { data, error } = await supabase
+      .from("classes")
+      .select(`
+        id,
+        name,
+        majors (
+          name,
+          code
+        )
+      `)
+      .eq("status", "active")
+      .order("name")
+
+    if (error) {
+      console.error("Error fetching classes for registration:", error)
+      return []
+    }
+
+    return (data || []).map((c) => ({
+      id: c.id,
+      name: c.name,
+      major_name: (c.majors as unknown as { name: string })?.name || "",
+      major_code: (c.majors as unknown as { code: string })?.code || "",
+    }))
+  } catch (err) {
+    console.error("Error in getClassesForRegistration:", err)
+    return []
+  }
+}
+
+// ============================================
 // VERIFICATION
 // ============================================
 
@@ -277,7 +398,7 @@ export async function submitRegistration(
     if (formData.religion !== undefined) studentUpdateData.religion = formData.religion || null
     if (formData.phone !== undefined) studentUpdateData.phone = formData.phone || null
     if (formData.address !== undefined) studentUpdateData.address = formData.address || null
-    if (formData.enrollment_year !== undefined) studentUpdateData.enrollment_year = formData.enrollment_year || null
+    // Note: enrollment_year sudah dihapus dari schema, tahun ajaran dikelola via academic_years
 
     // Health data
     if (formData.height_cm !== undefined)

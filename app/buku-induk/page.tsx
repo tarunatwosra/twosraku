@@ -166,7 +166,7 @@ export default function BukuIndukPage() {
   const [isSelectionMode, setIsSelectionMode] = useState(false)
 
   // Sorting state
-  const [sortField, setSortField] = useState<"full_name" | "student_number" | "created_at" | "enrollment_year">("full_name")
+  const [sortField, setSortField] = useState<"full_name" | "student_number" | "created_at">("full_name")
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
 
   // Action states

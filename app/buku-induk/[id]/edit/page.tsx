@@ -105,7 +105,6 @@ interface FormData {
 
   // Data Akademik
   class_id: string
-  enrollment_year: number
 
   // Data Orang Tua
   father_name: string
@@ -285,7 +284,6 @@ export default function EditStudentPage({ params }: EditStudentPageProps) {
 
     // Data Akademik
     class_id: "",
-    enrollment_year: new Date().getFullYear(),
 
     // Data Orang Tua
     father_name: "",
@@ -357,7 +355,6 @@ export default function EditStudentPage({ params }: EditStudentPageProps) {
 
           // Data Akademik
           class_id: (data as any).class_id || "",
-          enrollment_year: data.enrollment_year || new Date().getFullYear(),
 
           // Data Orang Tua - dari parents relation
           father_name: (data as any).father_name || "",
@@ -468,7 +465,6 @@ export default function EditStudentPage({ params }: EditStudentPageProps) {
 
         // Lainnya
         is_active: formData.is_active,
-        enrollment_year: formData.enrollment_year,
         notes: formData.notes || null,
         updated_at: new Date().toISOString(),
       }
@@ -766,23 +762,6 @@ export default function EditStudentPage({ params }: EditStudentPageProps) {
                   {academicYear?.name || "Tidak ada tahun ajaran aktif"}
                 </div>
               </div>
-            </FormField>
-
-            <FormField>
-              <Input
-                name="enrollment_year"
-                label="Angkatan"
-                type="number"
-                placeholder="Contoh: 2024"
-                value={formData.enrollment_year.toString()}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    enrollment_year: parseInt(e.target.value) || prev.enrollment_year,
-                  }))
-                }
-                required
-              />
             </FormField>
 
             <FormField fullWidth>

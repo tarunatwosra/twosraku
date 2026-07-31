@@ -1,6 +1,6 @@
 # Database Schema - Twosraku
 
-**Versi**: 2.2
+**Versi**: 2.3
 **Last Updated**: 2026-07-31
 **Database**: Supabase (PostgreSQL)
 
@@ -129,14 +129,13 @@ Tahap 4: System Tables (Bisa dibuat kapan saja)
 | phone | varchar(20) | | Nomor HP/WhatsApp |
 | photo_url | text | | URL foto |
 | is_active | boolean | DEFAULT true | Status aktif (true/false) |
-| enrollment_year | integer | | Tahun masuk |
 | notes | text | | Catatan |
 | created_at | timestamptz | DEFAULT now() | Timestamp |
 | updated_at | timestamptz | DEFAULT now() | Timestamp |
 | created_by | uuid | FK → users.id | User pembuat |
 | updated_by | uuid | FK → users.id | User pengupdate |
 
-**Catatan**: Kolom national_id, nationality, email, graduation_year, transfer_date, transfer_reason dihapus karena tidak diperlukan untuk fitur buku induk.
+**Catatan**: Kolom national_id, nationality, email, graduation_year, transfer_date, transfer_reason, enrollment_year dihapus karena tidak diperlukan untuk fitur buku induk. Tahun ajaran sekarang dikelola via `academic_years` dan `student_classes`.
 
 **Index**: `idx_students_number`, `idx_students_is_active`, `idx_students_name`, `idx_students_nisn`
 
@@ -1247,6 +1246,15 @@ audit_logs: created_at, module, entity_id
 2. Then tables that depend on them
 3. Then operational tables
 
+### Migration to v2.3 (2026-07-31)
+Jika upgrade dari versi sebelumnya ke v2.3, jalankan file migration:
+- `database/migrations/008_remove_enrollment_year.sql` - Hapus kolom enrollment_year dari students
+
+### Migration to v2.2 (2026-07-31)
+Jika upgrade dari versi sebelumnya ke v2.2, jalankan file migration:
+- `database/migrations/006_remove_class_year_room.sql` - Hapus academic_year_id dan room_number dari classes
+- `database/migrations/007_remove_unused_student_columns.sql` - Hapus national_id, nationality, email, graduation_year, transfer_date, transfer_reason dari students
+
 ### Migration to v2.1 (2026-07-05)
 Jika upgrade dari v2.0 ke v2.1, jalankan file migration:
 - `database/migrations/001_update_students_table.sql` - Update tabel students dengan field baru
@@ -1258,6 +1266,7 @@ Jika upgrade dari v1.0 ke v2.0, jalankan file migration:
 
 ### Important Notes
 - Tabel `grades` sudah dihapus di v2.1. Informasi tingkat diambil dari nama kelas.
+- Kolom `enrollment_year` sudah dihapus di v2.3. Tahun ajaran sekarang dikelola via `academic_years` dan `student_classes`.
 - Always add `created_at` and `updated_at` timestamps
 - Use UUID for all primary keys
 - Gunakan `is_active` (boolean) untuk status siswa - sederhana: true = aktif, false = tidak aktif
@@ -1266,5 +1275,5 @@ Jika upgrade dari v1.0 ke v2.0, jalankan file migration:
 
 ---
 
-**Last Updated**: 2026-07-05
-**Version**: 2.1
+**Last Updated**: 2026-07-31
+**Version**: 2.3

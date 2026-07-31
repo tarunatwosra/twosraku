@@ -337,20 +337,21 @@ export default function StudentHistoryPage({ params }: StudentHistoryPageProps) 
 
     const items: HistoryItem[] = []
 
-    // Enrollment
-    if (student.enrollment_year) {
+    // Enrollment - use academic year from student_classes
+    const activeClass = student.student_classes?.[0]
+    if (activeClass?.academic_years?.name) {
       items.push({
         id: "enrollment",
         type: "enrollment",
         title: "Pendaftaran Siswa Baru",
-        description: `Masuk sebagai siswa baru tahun ajaran ${student.enrollment_year}`,
+        description: `Masuk sebagai siswa baru tahun ajaran ${activeClass.academic_years.name}`,
         date: student.created_at,
         icon: <UserPlus className="w-5 h-5" />,
         variant: "success",
       })
     }
 
-    // Note: graduation_year, transfer_date, transfer_reason columns were removed from students table
+    // Note: enrollment_year column was removed from students table
 
     // Class changes
     const classHistory = [...(student.student_classes || [])]
@@ -513,10 +514,10 @@ export default function StudentHistoryPage({ params }: StudentHistoryPageProps) 
               icon={<UserPlus className="w-5 h-5" />}
               iconBg="bg-gradient-to-br from-emerald-50 to-emerald-100/50"
               iconColor="text-emerald-600"
-              label="Tahun Masuk"
-              value={student.enrollment_year?.toString() || "-"}
+              label="Tahun Ajaran"
+              value={student.student_classes?.[0]?.academic_years?.name || "-"}
             />
-            {/* Note: graduation_year column was removed from students table */}
+            {/* Note: enrollment_year column was removed from students table */}
           </div>
 
           {/* Timeline */}

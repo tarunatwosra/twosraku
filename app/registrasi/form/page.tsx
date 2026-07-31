@@ -25,11 +25,13 @@ import {
   getRegistrationSession,
   clearRegistrationSession,
   getStudentById,
+  getActiveAcademicYear,
+  getClassesForRegistration,
 } from "@/lib/registrasi"
 import { cn } from "@/lib/utils"
 import type { RegistrationFormData, RegistrationParentData, RegistrationStep } from "@/types/registrasi"
 import { RegistrationStep as RegistrationStepEnum } from "@/types/registrasi"
-import type { Student, Parent } from "@/types/database"
+import type { Student, Parent, AcademicYear } from "@/types/database"
 
 // ============================================
 // CONSTANTS
@@ -88,13 +90,23 @@ const GUARDIAN_RELATION_OPTIONS = [
   { value: "other", label: "Lainnya" },
 ]
 
-const STEPS: Array<{ key: RegistrationStep; label: string; icon: React.ReactNode }> = [
-  { key: RegistrationStepEnum.PERSONAL, label: "Data Diri", icon: <User className="w-4 h-4" /> },
-  { key: RegistrationStepEnum.ADDRESS, label: "Alamat", icon: <MapPin className="w-4 h-4" /> },
-  { key: RegistrationStepEnum.ACADEMIC, label: "Akademik", icon: <GraduationCap className="w-4 h-4" /> },
-  { key: RegistrationStepEnum.PARENTS, label: "Orang Tua", icon: <Users className="w-4 h-4" /> },
-  { key: RegistrationStepEnum.HEALTH, label: "Kesehatan", icon: <Heart className="w-4 h-4" /> },
-  { key: RegistrationStepEnum.OTHER, label: "Lainnya", icon: <StickyNote className="w-4 h-4" /> },
+// Step icons with consistent styling
+const STEP_ICONS: Record<string, React.ReactNode> = {
+  [RegistrationStepEnum.PERSONAL]: <User className="w-5 h-5" />,
+  [RegistrationStepEnum.ADDRESS]: <MapPin className="w-5 h-5" />,
+  [RegistrationStepEnum.ACADEMIC]: <GraduationCap className="w-5 h-5" />,
+  [RegistrationStepEnum.PARENTS]: <Users className="w-5 h-5" />,
+  [RegistrationStepEnum.HEALTH]: <Heart className="w-5 h-5" />,
+  [RegistrationStepEnum.OTHER]: <StickyNote className="w-5 h-5" />,
+}
+
+const STEPS: Array<{ key: RegistrationStep; label: string }> = [
+  { key: RegistrationStepEnum.PERSONAL, label: "Data Diri" },
+  { key: RegistrationStepEnum.ADDRESS, label: "Alamat" },
+  { key: RegistrationStepEnum.ACADEMIC, label: "Akademik" },
+  { key: RegistrationStepEnum.PARENTS, label: "Orang Tua" },
+  { key: RegistrationStepEnum.HEALTH, label: "Kesehatan" },
+  { key: RegistrationStepEnum.OTHER, label: "Lainnya" },
 ]
 
 // ============================================
@@ -264,6 +276,11 @@ function getDefaultFormData(): Partial<RegistrationFormData> {
     address_city: "",
     address_province: "",
     address: "", // Legacy - digabung saat save
+    // Akademik
+    student_number: "", // NIS - auto-filled dari database
+    class_id: "", // ID kelas yang dipilih
+    academic_year: "", // Tahun ajaran aktif - auto-filled
+    // Orang Tua
     father_name: "",
     father_phone: "",
     mother_name: "",
@@ -271,6 +288,7 @@ function getDefaultFormData(): Partial<RegistrationFormData> {
     guardian_name: "",
     guardian_relation: "",
     guardian_phone: "",
+    // Kesehatan
     height_cm: "",
     weight_kg: "",
     vision: "normal",
@@ -280,6 +298,7 @@ function getDefaultFormData(): Partial<RegistrationFormData> {
     illness_history: "",
     allergies: "",
     health_notes: "",
+    // Lainnya
     notes: "",
   }
 }
@@ -358,10 +377,33 @@ export default function RegistrationFormPage({
   const [isComplete, setIsComplete] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Load student data
+  // Academic year & Classes data
+  const [academicYear, setAcademicYear] = useState<AcademicYear | null>(null)
+  const [availableClasses, setAvailableClasses] = useState<
+    Array<{ id: string; name: string; major_name: string; major_code: string }>
+  >([])
+
+  // Load student data and academic year/classes
   useEffect(() => {
     loadStudentData()
+    loadAcademicData()
   }, [])
+
+  async function loadAcademicData() {
+    try {
+      // Get active academic year
+      const activeYear = await getActiveAcademicYear()
+      if (activeYear) {
+        setAcademicYear(activeYear)
+      }
+
+      // Get available classes
+      const classes = await getClassesForRegistration()
+      setAvailableClasses(classes)
+    } catch (err) {
+      console.error("Error loading academic data:", err)
+    }
+  }
 
   async function loadStudentData() {
     try {
@@ -422,6 +464,11 @@ export default function RegistrationFormPage({
         address_city: parsedAddress.city,
         address_province: parsedAddress.province,
         address: fetchedStudent.address || "", // Legacy
+
+        // Akademik - NIS auto-filled dari database
+        student_number: fetchedStudent.student_number || "",
+        class_id: "", // Will be set from student_classes if exists
+        academic_year: academicYear?.name || "",
 
         // Health data - only fill if exists
         height_cm: fetchedStudent.height_cm?.toString() || "",
@@ -653,48 +700,96 @@ export default function RegistrationFormPage({
         Kembali
       </Link>
 
-      {/* Progress */}
+      {/* Progress Bar - Elegant Style */}
       <div className="mb-6">
-        <div className="flex justify-between text-xs text-[var(--text-muted)] mb-2">
-          <span>Langkah {currentStepIndex + 1} dari {STEPS.length}</span>
-          <span>{STEPS[currentStepIndex].label}</span>
+        <div className="flex justify-between items-center mb-3">
+          <span className="text-sm font-medium text-[var(--text-primary)]">
+            {currentStepIndex + 1} / {STEPS.length}
+          </span>
+          <span className="text-xs font-medium text-[var(--primary)] bg-[var(--primary)]/10 px-3 py-1 rounded-full">
+            {STEPS[currentStepIndex].label}
+          </span>
         </div>
-        <div className="h-2 bg-[var(--surface-secondary)] rounded-full overflow-hidden">
+        <div className="relative h-2 bg-[var(--surface-secondary)] rounded-full overflow-hidden">
+          {/* Animated gradient progress */}
           <div
-            className="h-full bg-gradient-to-r from-[var(--primary)] to-[var(--primary)]/70 rounded-full transition-all duration-300"
-            style={{ width: `${progress}%` }}
+            className="absolute inset-y-0 left-0 rounded-full transition-all duration-500 ease-out"
+            style={{
+              width: `${progress}%`,
+              background: `linear-gradient(90deg, var(--primary) 0%, var(--primary-hover, #3E6CF2) 50%, var(--primary-active, #2F5AE8) 100%)`,
+            }}
+          />
+          {/* Shine effect */}
+          <div
+            className="absolute inset-y-0 left-0 w-8 rounded-full opacity-30 blur-sm"
+            style={{
+              width: `${progress}%`,
+              background: "linear-gradient(90deg, transparent, white, transparent)",
+            }}
           />
         </div>
       </div>
 
-      {/* Step Indicators - Full Width */}
-      <div className="flex gap-1 mb-6">
-        {STEPS.map((step, index) => (
-          <button
-            key={step.key}
-            onClick={() => {
-              setCurrentStep(step.key)
-              setErrors({})
-            }}
-            className={cn(
-              "flex-1 flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-xs font-medium transition-all min-w-0",
-              step.key === currentStep
-                ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary)]/20"
-                : index < currentStepIndex
-                ? "bg-green-100 text-green-700"
-                : "bg-[var(--surface-secondary)] text-[var(--text-muted)]"
-            )}
-          >
-            <div className="flex items-center justify-center">
-              {index < currentStepIndex ? (
-                <CheckCircle className="w-4 h-4" />
-              ) : (
-                step.icon
+      {/* Step Indicators - Elegant Card Style */}
+      <div className="flex gap-2 mb-6 overflow-x-auto pb-2 -mx-4 px-4">
+        {STEPS.map((step, index) => {
+          const isActive = step.key === currentStep
+          const isCompleted = index < currentStepIndex
+          const isPending = index > currentStepIndex
+
+          return (
+            <button
+              key={step.key}
+              onClick={() => {
+                setCurrentStep(step.key)
+                setErrors({})
+              }}
+              className={cn(
+                "flex-1 min-w-[80px] flex flex-col items-center justify-center gap-2 py-3 px-2 rounded-2xl transition-all duration-300 relative",
+                isActive && "bg-gradient-to-br from-[var(--primary)] to-[var(--primary-hover, #3E6CF2)] text-white shadow-lg shadow-[var(--primary)]/30 scale-[1.02]",
+                isCompleted && "bg-[var(--primary-soft)] text-[var(--primary)] hover:bg-[var(--primary)]/20",
+                isPending && "bg-[var(--surface-secondary)] text-[var(--text-muted)] hover:bg-[var(--surface-hover)]"
               )}
-            </div>
-            <span className="truncate text-[10px] leading-tight">{step.label}</span>
-          </button>
-        ))}
+            >
+              {/* Step number / Check icon */}
+              <div className={cn(
+                "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300",
+                isActive && "bg-white/20 text-white",
+                isCompleted && "bg-[var(--primary)] text-white",
+                isPending && "bg-[var(--border-default)] text-[var(--text-muted)]"
+              )}>
+                {isCompleted ? (
+                  <CheckCircle className="w-4 h-4" />
+                ) : (
+                  <span>{index + 1}</span>
+                )}
+              </div>
+
+              {/* Icon */}
+              <div className={cn(
+                "transition-transform duration-300",
+                isActive && "scale-110"
+              )}>
+                {STEP_ICONS[step.key]}
+              </div>
+
+              {/* Label */}
+              <span className={cn(
+                "text-[10px] font-medium text-center leading-tight truncate w-full",
+                isActive && "text-white/90",
+                isCompleted && "text-[var(--primary)]",
+                isPending && "text-[var(--text-muted)]"
+              )}>
+                {step.label}
+              </span>
+
+              {/* Active indicator dot */}
+              {isActive && (
+                <div className="absolute -bottom-1 w-2 h-2 rounded-full bg-white shadow animate-pulse" />
+              )}
+            </button>
+          )
+        })}
       </div>
 
       {/* Form Card */}
@@ -702,14 +797,14 @@ export default function RegistrationFormPage({
         {/* Step Header */}
         <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[var(--border-light)]">
           <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)]">
-            {STEPS[currentStepIndex].icon}
+            {STEP_ICONS[currentStep]}
           </div>
           <div>
             <h2 className="font-semibold text-[var(--text-primary)]">
               {STEPS[currentStepIndex].label}
             </h2>
             <p className="text-xs text-[var(--text-muted)]">
-              {currentStepIndex + 1} / {STEPS.length}
+              Langkah {currentStepIndex + 1} dari {STEPS.length}
             </p>
           </div>
         </div>
@@ -889,10 +984,40 @@ export default function RegistrationFormPage({
         {/* Academic Step */}
         {currentStep === RegistrationStepEnum.ACADEMIC && (
           <div className="space-y-4">
-            <div className="p-4 bg-[var(--surface-secondary)] rounded-xl mb-4">
-              <p className="text-sm text-[var(--text-muted)]">
-                Data akademik akan diisi oleh admin sekolah.
+            <div className="p-4 bg-[var(--primary)]/5 rounded-xl mb-4 border border-[var(--primary)]/10">
+              <p className="text-sm text-[var(--primary)] font-medium flex items-center gap-2">
+                <GraduationCap className="w-4 h-4" />
+                Data Akademik
               </p>
+            </div>
+
+            {/* NIS - Auto-filled dari database, read-only */}
+            <div>
+              <label className="text-sm font-medium text-[var(--text-primary)] mb-1.5 block">
+                NIS (Nomor Induk Siswa)
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  name="student_number"
+                  value={formData.student_number || student?.student_number || ""}
+                  readOnly
+                  disabled
+                  className={cn(
+                    "w-full px-4 py-3",
+                    "bg-[var(--surface-secondary)]",
+                    "border border-[var(--border-default)]",
+                    "rounded-xl",
+                    "text-[15px] text-[var(--text-primary)]",
+                    "cursor-not-allowed opacity-80"
+                  )}
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <span className="text-[10px] text-[var(--text-muted)] bg-[var(--primary)]/10 px-2 py-1 rounded-full">
+                    Auto
+                  </span>
+                </div>
+              </div>
             </div>
 
             <Input
@@ -905,32 +1030,47 @@ export default function RegistrationFormPage({
               maxLength={10}
             />
 
-            <Input
-              name="student_number"
-              label="NIS"
-              placeholder="Nomor Induk Siswa"
-              value={formData.student_number || ""}
+            {/* Kelas - Select dari database */}
+            <Select
+              name="class_id"
+              label="Pilih Kelas"
+              placeholder="Pilih kelas"
+              value={formData.class_id || ""}
               onChange={handleChange}
+              options={availableClasses.map((c) => ({
+                value: c.id,
+                label: `${c.name} (${c.major_code || c.major_name})`,
+              }))}
             />
 
-            <Input
-              name="class_name"
-              label="Kelas"
-              placeholder="Akan diisi oleh admin"
-              value={formData.class_name || ""}
-              onChange={handleChange}
-              disabled
-            />
-
-            <Input
-              name="enrollment_year"
-              label="Angkatan"
-              type="number"
-              placeholder="Contoh: 2024"
-              value={formData.enrollment_year?.toString() || new Date().getFullYear().toString()}
-              onChange={handleChange}
-              disabled
-            />
+            {/* Tahun Ajaran - Auto-filled, read-only */}
+            <div>
+              <label className="text-sm font-medium text-[var(--text-primary)] mb-1.5 block">
+                Tahun Ajaran
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  name="academic_year"
+                  value={academicYear?.name || formData.academic_year || "Tidak ada tahun ajaran aktif"}
+                  readOnly
+                  disabled
+                  className={cn(
+                    "w-full px-4 py-3",
+                    "bg-[var(--surface-secondary)]",
+                    "border border-[var(--primary)]/30",
+                    "rounded-xl",
+                    "text-[15px] text-[var(--primary)] font-medium",
+                    "cursor-not-allowed"
+                  )}
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <span className="text-[10px] text-white bg-[var(--primary)] px-2 py-1 rounded-full">
+                    Sistem
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 

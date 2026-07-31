@@ -87,7 +87,6 @@ export interface Student {
   address: string | null
   phone: string | null
   photo_url: string | null
-  enrollment_year: number | null
   is_active: boolean
   notes: string | null
   created_at: Timestamp
@@ -111,6 +110,7 @@ export interface StudentClass {
   // Relations
   students?: Student
   classes?: Class
+  academic_years?: AcademicYear
 }
 
 export interface Parent {
@@ -514,6 +514,6 @@ export interface StudentFilters {
 }
 
 export interface StudentSortOptions {
-  field: 'full_name' | 'student_number' | 'created_at' | 'enrollment_year'
+  field: 'full_name' | 'student_number' | 'created_at'
   direction: 'asc' | 'desc'
 }

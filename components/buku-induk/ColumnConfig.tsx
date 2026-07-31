@@ -178,7 +178,6 @@ export const DEFAULT_COLUMNS: ColumnConfig[] = [
   { id: "phone", label: "Telepon", visible: false },
   { id: "email", label: "Email", visible: false },
   { id: "status", label: "Status", visible: true },
-  { id: "enrollment_year", label: "Tahun Masuk", visible: false, sortable: true },
 ]
 
 // ============================================

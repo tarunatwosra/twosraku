@@ -24,7 +24,7 @@ export interface ImportRow {
   blood_type: string
   address: string
   phone: string
-  enrollment_year: string
+  // Note: enrollment_year column was removed from students table
   status: string
   // Parent data
   father_name: string
@@ -126,7 +126,7 @@ export const AVAILABLE_FIELDS: FieldDefinition[] = [
   { key: "address", label: "Alamat", required: false, type: "text" },
   { key: "phone", label: "No. Telepon", required: false, type: "text" },
   { key: "nisn", label: "NISN", required: false, type: "text" },
-  { key: "enrollment_year", label: "Tahun Masuk", required: false, type: "number" },
+  // Note: enrollment_year is no longer a column in students table
   // Parent fields
   { key: "father_name", label: "Nama Ayah", required: false, type: "text" },
   { key: "father_phone", label: "No. HP Ayah", required: false, type: "text" },
@@ -176,9 +176,7 @@ export const COLUMN_MAPPING: Record<string, keyof ImportRow> = {
   Phone: "phone",
   "No. Telepon": "phone",
   HP: "phone",
-  "Tahun Masuk": "enrollment_year",
-  "Enrollment Year": "enrollment_year",
-  "Tahun Daftar": "enrollment_year",
+  // Note: enrollment_year mappings removed (column no longer exists)
   NISN: "nisn",
   Status: "status",
   // Parent fields
@@ -515,18 +513,7 @@ export function validateRow(row: ImportRow): ImportError[] {
     })
   }
 
-  // Enrollment Year
-  if (row.enrollment_year) {
-    const year = parseInt(row.enrollment_year)
-    if (isNaN(year) || year < 1900 || year > 2100) {
-      errors.push({
-        row: row.rowNumber,
-        field: "enrollment_year",
-        message: "Tahun masuk tidak valid",
-        severity: "warning",
-      })
-    }
-  }
+  // Note: enrollment_year validation removed (column no longer exists)
 
   return errors
 }
@@ -953,10 +940,7 @@ export async function updateStudentByNis(
     if (updates.address) dbUpdates.address = updates.address
     if (updates.phone) dbUpdates.phone = updates.phone
     if (updates.nisn) dbUpdates.nisn = updates.nisn
-    if (updates.enrollment_year) {
-      const year = parseInt(updates.enrollment_year)
-      if (!isNaN(year)) dbUpdates.enrollment_year = year
-    }
+    // Note: enrollment_year handling removed (column no longer exists)
     // Health fields
     if (updates.height_cm) dbUpdates.height_cm = parseFloat(updates.height_cm) || null
     if (updates.weight_kg) dbUpdates.weight_kg = parseFloat(updates.weight_kg) || null

@@ -28,6 +28,18 @@ Berisi catatan semua perubahan yang dilakukan pada file-file panduan. Setiap kal
 
 <!-- Changelog entries will be added below this line -->
 
+## 2026-07-31 (Registrasi Enhancement)
+
+### student-registry.md (19-feature-specifications/)
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-07-31 |
+| Perubahan | ENHANCED REGISTRASI v2.5: (1) Progress bar dan step indicator lebih elegan dengan animasi dan glow effect. (2) NIS auto-fill dari database di bagian akademik. (3) Pilihan kelas dari database dengan dropdown select. (4) Hapus enrollment_year, ganti dengan academic_year aktif (read-only). (5) Update form page: app/registrasi/form/page.tsx, lib/registrasi.ts, types/registrasi.ts, types/database.ts. |
+| Backup | student-registry-001.md, student-registry-002.md, student-registry-003.md |
+| Catatan | Backup sebelumnya di-shift: 002→003, 001→002 |
+
+---
+
 ## 2026-07-31
 
 ### schema.md (database/)

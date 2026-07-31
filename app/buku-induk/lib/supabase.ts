@@ -11,7 +11,7 @@ import type { Student, StudentWithClass, StudentFilters } from "@/types/database
 // FETCH STUDENTS
 // ============================================
 
-export type SortField = "full_name" | "student_number" | "created_at" | "enrollment_year"
+export type SortField = "full_name" | "student_number" | "created_at"
 export type SortDirection = "asc" | "desc"
 
 interface FetchStudentsOptions {
@@ -190,7 +190,6 @@ interface CreateStudentData {
   address?: string | null
   phone?: string | null
   nisn?: string | null
-  enrollment_year?: number
   is_active?: boolean
   notes?: string | null
 }
@@ -213,7 +212,6 @@ export async function createStudent(
       blood_type: data.blood_type || null,
       address: data.address || null,
       phone: data.phone || null,
-      enrollment_year: data.enrollment_year || null,
       notes: data.notes || null,
       is_active: data.is_active !== undefined ? data.is_active : true,
       created_at: new Date().toISOString(),
@@ -295,7 +293,6 @@ export async function createStudentWithParents(
       blood_type: studentData.blood_type || null,
       address: studentData.address || null,
       phone: studentData.phone || null,
-      enrollment_year: studentData.enrollment_year || new Date().getFullYear(),
       notes: studentData.notes || null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -372,7 +369,6 @@ export async function createStudentWithParents(
           blood_type: studentData.blood_type || null,
           address: studentData.address || null,
           phone: studentData.phone || null,
-          enrollment_year: studentData.enrollment_year || new Date().getFullYear(),
           notes: studentData.notes || null,
           is_active: studentData.is_active !== false,
           created_at: new Date().toISOString(),

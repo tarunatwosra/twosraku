@@ -104,7 +104,6 @@ interface FormData {
 
   // Data Akademik
   class_id: string
-  enrollment_year: number
 
   // Data Orang Tua
   father_name: string
@@ -140,7 +139,6 @@ interface FormErrors {
 // ============================================
 
 function getDefaultFormData(): FormData {
-  const currentYear = new Date().getFullYear()
   return {
     // Data Diri
     student_number: "",
@@ -157,7 +155,6 @@ function getDefaultFormData(): FormData {
 
     // Data Akademik
     class_id: "",
-    enrollment_year: currentYear,
 
     // Data Orang Tua
     father_name: "",
@@ -388,7 +385,6 @@ export default function NewStudentPage() {
         allergies: formData.allergies || null,
         health_notes: formData.health_notes || null,
         is_active: formData.is_active,
-        enrollment_year: formData.enrollment_year,
         notes: formData.notes || null,
       }
 
@@ -673,23 +669,6 @@ export default function NewStudentPage() {
                   {academicYear?.name || "Tidak ada tahun ajaran aktif"}
                 </div>
               </div>
-            </FormField>
-
-            <FormField>
-              <Input
-                name="enrollment_year"
-                label="Angkatan"
-                type="number"
-                placeholder="Contoh: 2024"
-                value={formData.enrollment_year.toString()}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    enrollment_year: parseInt(e.target.value) || prev.enrollment_year,
-                  }))
-                }
-                required
-              />
             </FormField>
 
             <FormField fullWidth>

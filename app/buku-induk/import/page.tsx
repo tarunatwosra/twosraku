@@ -1214,14 +1214,11 @@ export default function ImportStudentsPage() {
           birth_place: row.birth_place || undefined,
           birth_date: row.birth_date || undefined,
           religion: row.religion || undefined,
-          // Note: nationality, email, national_id columns were removed from students table
+          // Note: nationality, email, national_id, enrollment_year columns were removed from students table
           blood_type: row.blood_type || undefined,
           address: row.address || undefined,
           phone: row.phone || undefined,
           nisn: row.nisn || undefined,
-          enrollment_year: row.enrollment_year
-            ? parseInt(row.enrollment_year)
-            : new Date().getFullYear(),
         })
 
         if (createResult.success) {

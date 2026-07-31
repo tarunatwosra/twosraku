@@ -51,6 +51,7 @@ interface StudentDisplay {
   student_number: string;
   nisn: string | null;
   class_name: string;
+  academic_year_name: string | null;
   attendance_number: number | null;
   gender: "male" | "female";
   birth_place: string | null;
@@ -68,7 +69,6 @@ interface StudentDisplay {
   illness_history: string | null;
   allergies: string | null;
   health_notes: string | null;
-  enrollment_year: number | null;
   is_active: boolean;
   notes: string | null;
   father: Parent | null;
@@ -95,6 +95,7 @@ function transformStudent(
     class_name: activeClass?.classes
       ? `${activeClass.classes.majors?.name || ""} ${activeClass.classes.name || ""}`.trim()
       : "-",
+    academic_year_name: activeClass?.academic_years?.name || null,
     attendance_number: activeClass?.attendance_number || null,
     gender: student.gender,
     birth_place: student.birth_place,
@@ -112,7 +113,6 @@ function transformStudent(
     illness_history: student.illness_history,
     allergies: student.allergies,
     health_notes: student.health_notes,
-    enrollment_year: student.enrollment_year,
     is_active: student.is_active,
     notes: student.notes,
     father,
@@ -271,8 +271,8 @@ function StudentDetailModal({ student, isOpen, onClose }: StudentDetailModalProp
                 <p className="text-[12px] font-medium text-[var(--text-primary)] mt-0.5">{student.student_number || "-"}</p>
               </div>
               <div>
-                <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wide">Angkatan</p>
-                <p className="text-[12px] font-medium text-[var(--text-primary)] mt-0.5">{student.enrollment_year || "-"}</p>
+                <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wide">Tahun Ajaran</p>
+                <p className="text-[12px] font-medium text-[var(--text-primary)] mt-0.5">{student.academic_year_name || "-"}</p>
               </div>
               <div>
                 <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wide">Status</p>
