@@ -10,9 +10,7 @@ import {
   X,
   Phone,
   MapPin,
-  Calendar,
   User,
-  GraduationCap,
   Heart,
   Users,
   UserRound,
@@ -20,10 +18,8 @@ import {
   BookOpen,
   Eye,
   Activity,
-  Mail,
-  Briefcase,
   Shield,
-  Clock,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -47,11 +43,12 @@ const formatAge = (birthDate: string) => {
 const getStatusVariant = (isActive: boolean) => isActive ? "success" : "neutral";
 const getStatusLabel = (isActive: boolean) => isActive ? "Aktif" : "Tidak Aktif";
 
-// Sample data - lengkap sesuai desktop version
+// Sample data - sesuai struktur database
 const sampleStudents = [
   {
     id: "1",
     name: "Anisa Rahman",
+    nickname: "Anisa",
     nis: "2025001",
     nisn: "0012345678",
     class: "X IPA 1",
@@ -61,7 +58,6 @@ const sampleStudents = [
     birthDate: "2010-05-15",
     religion: "Islam",
     phone: "081234567890",
-    email: "anisa.rahman@email.com",
     address: "Jl. Melati No. 10, RT 001/RW 005, Kel. Kebon Jeruk, Kec. Kebon Jeruk, Jakarta Barat 11540",
     bloodType: "A",
     height: 155,
@@ -75,29 +71,19 @@ const sampleStudents = [
     healthNotes: "Sehat, tidak ada catatan khusus",
     fatherName: "Ahmad Rahman",
     fatherPhone: "081234567891",
-    fatherOccupation: "PNS - Kemenkeu",
-    fatherEducation: "S1",
-    fatherNik: "3175012501800001",
-    fatherEmail: "ahmad.rahman@email.com",
     motherName: "Siti Rahman",
     motherPhone: "081234567892",
-    motherOccupation: "Guru SD",
-    motherEducation: "S2",
-    motherNik: "3175012505800002",
-    motherEmail: "siti.rahman@email.com",
     guardianName: "",
     guardianRelation: "",
     guardianPhone: "",
-    guardianOccupation: "",
-    guardianEmail: "",
     enrollmentYear: 2025,
     status: "active",
-    createdAt: "2025-07-01",
-    updatedAt: "2025-07-15",
+    additionalNotes: "-",
   },
   {
     id: "2",
     name: "Budi Santoso",
+    nickname: "Budi",
     nis: "2025002",
     nisn: "0012345679",
     class: "X IPA 1",
@@ -107,7 +93,6 @@ const sampleStudents = [
     birthDate: "2010-08-22",
     religion: "Kristen",
     phone: "082345678901",
-    email: "budi.santoso@email.com",
     address: "Jl. Mawar No. 5, RT 002/RW 001, Kel. Sukajadi, Kec. Sukajadi, Bandung 40162",
     bloodType: "B",
     height: 160,
@@ -121,29 +106,19 @@ const sampleStudents = [
     healthNotes: "Alergi makanan laut",
     fatherName: "Joko Santoso",
     fatherPhone: "082345678902",
-    fatherOccupation: "Wiraswasta",
-    fatherEducation: "SMA",
-    fatherNik: "3273012508800001",
-    fatherEmail: "joko.santoso@email.com",
     motherName: "Maria Santoso",
     motherPhone: "082345678903",
-    motherOccupation: "Ibu Rumah Tangga",
-    motherEducation: "S1",
-    motherNik: "3273012508800002",
-    motherEmail: "maria.santoso@email.com",
     guardianName: "",
     guardianRelation: "",
     guardianPhone: "",
-    guardianOccupation: "",
-    guardianEmail: "",
     enrollmentYear: 2025,
     status: "active",
-    createdAt: "2025-07-02",
-    updatedAt: "2025-07-10",
+    additionalNotes: "-",
   },
   {
     id: "3",
     name: "Dewi Lestari",
+    nickname: "Dewi",
     nis: "2025003",
     nisn: "0012345680",
     class: "X IPA 2",
@@ -153,7 +128,6 @@ const sampleStudents = [
     birthDate: "2010-03-10",
     religion: "Islam",
     phone: "083456789012",
-    email: "dewi.lestari@email.com",
     address: "Jl. Anggrek No. 8, RT 001/RW 003, Kel. Gubeng, Kec. Gubeng, Surabaya 60281",
     bloodType: "O",
     height: 152,
@@ -167,29 +141,19 @@ const sampleStudents = [
     healthNotes: "Peka terhadap debu",
     fatherName: "Hendra Lestari",
     fatherPhone: "083456789013",
-    fatherOccupation: "Dosen UNESA",
-    fatherEducation: "S3",
-    fatherNik: "3578012503900001",
-    fatherEmail: "hendra.lestari@email.com",
     motherName: "Rini Lestari",
     motherPhone: "083456789014",
-    motherOccupation: "Dosen UNESA",
-    motherEducation: "S2",
-    motherNik: "3578012503900002",
-    motherEmail: "rini.lestari@email.com",
     guardianName: "",
     guardianRelation: "",
     guardianPhone: "",
-    guardianOccupation: "",
-    guardianEmail: "",
     enrollmentYear: 2025,
     status: "active",
-    createdAt: "2025-07-03",
-    updatedAt: "2025-07-12",
+    additionalNotes: "-",
   },
   {
     id: "4",
     name: "Eko Prasetyo",
+    nickname: "Eko",
     nis: "2025004",
     nisn: "0012345681",
     class: "X IPS 1",
@@ -199,7 +163,6 @@ const sampleStudents = [
     birthDate: "2010-11-28",
     religion: "Islam",
     phone: "084567890123",
-    email: "eko.prasetyo@email.com",
     address: "Jl. Kenanga No. 12, RT 002/RW 005, Kel. Mergangsan, Kec. Mergangsan, Yogyakarta 55152",
     bloodType: "AB",
     height: 165,
@@ -213,29 +176,19 @@ const sampleStudents = [
     healthNotes: "Menggunakan kacamata -2.5",
     fatherName: "Budi Prasetyo",
     fatherPhone: "084567890124",
-    fatherOccupation: "PNS - Diknas",
-    fatherEducation: "S1",
-    fatherNik: "3471012511800001",
-    fatherEmail: "budi.prasetyo@email.com",
     motherName: "Wati Prasetyo",
     motherPhone: "084567890125",
-    motherOccupation: "Guru SMA",
-    motherEducation: "S1",
-    motherNik: "3471012511800002",
-    motherEmail: "wati.prasetyo@email.com",
     guardianName: "",
     guardianRelation: "",
     guardianPhone: "",
-    guardianOccupation: "",
-    guardianEmail: "",
     enrollmentYear: 2025,
     status: "active",
-    createdAt: "2025-07-01",
-    updatedAt: "2025-07-08",
+    additionalNotes: "Memerlukan pemeriksaan mata rutin",
   },
   {
     id: "5",
     name: "Fitri Handayani",
+    nickname: "Fitri",
     nis: "2025005",
     nisn: "0012345682",
     class: "X IPA 2",
@@ -245,7 +198,6 @@ const sampleStudents = [
     birthDate: "2010-07-05",
     religion: "Islam",
     phone: "085678901234",
-    email: "fitri.handayani@email.com",
     address: "Jl. Dahlia No. 3, RT 001/RW 002, Kel. Banyumanik, Kec. Banyumanik, Semarang 50262",
     bloodType: "A",
     height: 158,
@@ -259,29 +211,19 @@ const sampleStudents = [
     healthNotes: "Sehat",
     fatherName: "Dedi Handayani",
     fatherPhone: "085678901235",
-    fatherOccupation: "Karyawan Swasta",
-    fatherEducation: "SMA",
-    fatherNik: "3372012507700001",
-    fatherEmail: "dedi.handayani@email.com",
     motherName: "Ani Handayani",
     motherPhone: "085678901236",
-    motherOccupation: "Ibu Rumah Tangga",
-    motherEducation: "SMA",
-    motherNik: "3372012507700002",
-    motherEmail: "ani.handayani@email.com",
     guardianName: "",
     guardianRelation: "",
     guardianPhone: "",
-    guardianOccupation: "",
-    guardianEmail: "",
     enrollmentYear: 2025,
     status: "active",
-    createdAt: "2025-07-04",
-    updatedAt: "2025-07-14",
+    additionalNotes: "-",
   },
   {
     id: "6",
     name: "Galang Ramadhan",
+    nickname: "Galang",
     nis: "2025006",
     nisn: "0012345683",
     class: "X IPS 1",
@@ -291,7 +233,6 @@ const sampleStudents = [
     birthDate: "2010-09-18",
     religion: "Islam",
     phone: "086789012345",
-    email: "galang.ramadhan@email.com",
     address: "Jl. Seruni No. 7, RT 003/RW 001, Kel. Polonia, Kec. Medan Polonia, Medan 20152",
     bloodType: "B",
     height: 162,
@@ -305,29 +246,19 @@ const sampleStudents = [
     healthNotes: "Sehat",
     fatherName: "Surya Ramadhan",
     fatherPhone: "086789012346",
-    fatherOccupation: "Pengusaha",
-    fatherEducation: "S1",
-    fatherNik: "1271012509800001",
-    fatherEmail: "surya.ramadhan@email.com",
     motherName: "Lina Ramadhan",
     motherPhone: "086789012347",
-    motherOccupation: "Ibu Rumah Tangga",
-    motherEducation: "S1",
-    motherNik: "1271012509800002",
-    motherEmail: "lina.ramadhan@email.com",
     guardianName: "",
     guardianRelation: "",
     guardianPhone: "",
-    guardianOccupation: "",
-    guardianEmail: "",
     enrollmentYear: 2025,
     status: "active",
-    createdAt: "2025-07-05",
-    updatedAt: "2025-07-11",
+    additionalNotes: "-",
   },
   {
     id: "7",
     name: "Hana Wijaya",
+    nickname: "Hana",
     nis: "2025007",
     nisn: "0012345684",
     class: "XI IPA 1",
@@ -337,7 +268,6 @@ const sampleStudents = [
     birthDate: "2009-04-12",
     religion: "Islam",
     phone: "087890123456",
-    email: "hana.wijaya@email.com",
     address: "Jl. Flamboyan No. 15, RT 002/RW 004, Kel. 9 Ilir, Kec. Ilir Timur II, Palembang 30114",
     bloodType: "O",
     height: 156,
@@ -351,29 +281,19 @@ const sampleStudents = [
     healthNotes: "Sehat",
     fatherName: "Herman Wijaya",
     fatherPhone: "087890123457",
-    fatherOccupation: "PNS - Bappeda",
-    fatherEducation: "S2",
-    fatherNik: "1671012504900001",
-    fatherEmail: "herman.wijaya@email.com",
     motherName: "Dewi Wijaya",
     motherPhone: "087890123458",
-    motherOccupation: "Guru SMP",
-    motherEducation: "S1",
-    motherNik: "1671012504900002",
-    motherEmail: "dewi.wijaya@email.com",
     guardianName: "",
     guardianRelation: "",
     guardianPhone: "",
-    guardianOccupation: "",
-    guardianEmail: "",
     enrollmentYear: 2024,
     status: "active",
-    createdAt: "2024-07-01",
-    updatedAt: "2025-06-20",
+    additionalNotes: "-",
   },
   {
     id: "8",
     name: "Irfan Kurniawan",
+    nickname: "Irfan",
     nis: "2025008",
     nisn: "0012345685",
     class: "XI IPS 1",
@@ -383,7 +303,6 @@ const sampleStudents = [
     birthDate: "2009-12-03",
     religion: "Islam",
     phone: "088901234567",
-    email: "irfan.kurniawan@email.com",
     address: "Jl. Bougenville No. 9, RT 001/RW 003, Kel. Ballaparang, Kec. Rappocini, Makassar 90222",
     bloodType: "A",
     height: 168,
@@ -397,25 +316,14 @@ const sampleStudents = [
     healthNotes: "Peka terhadap suara keras di telinga kanan",
     fatherName: "Rudi Kurniawan",
     fatherPhone: "088901234568",
-    fatherOccupation: "Karyawan Bank",
-    fatherEducation: "S1",
-    fatherNik: "7371012512030001",
-    fatherEmail: "rudi.kurniawan@email.com",
     motherName: "Sari Kurniawan",
     motherPhone: "088901234569",
-    motherOccupation: "Ibu Rumah Tangga",
-    motherEducation: "SMA",
-    motherNik: "7371012512030002",
-    motherEmail: "sari.kurniawan@email.com",
-    guardianName: "",
-    guardianRelation: "",
-    guardianPhone: "",
-    guardianOccupation: "",
-    guardianEmail: "",
+    guardianName: "Bapak Hari",
+    guardianRelation: "Kakek",
+    guardianPhone: "088901234570",
     enrollmentYear: 2024,
     status: "active",
-    createdAt: "2024-07-02",
-    updatedAt: "2025-06-15",
+    additionalNotes: "Wali: Kakek (karena orang tua bekerja di luar kota)",
   },
 ];
 
@@ -480,7 +388,7 @@ function StudentDetailModal({ student, isOpen, onClose }: StudentDetailModalProp
                   {student.name}
                 </h2>
                 <p className="text-[13px] text-[var(--text-muted)] font-mono">
-                  NIS: {student.nis} | NISN: {student.nisn}
+                  NIS: {student.nis}
                 </p>
                 <div className="flex items-center gap-2 mt-1">
                   <span className={cn(
@@ -492,7 +400,7 @@ function StudentDetailModal({ student, isOpen, onClose }: StudentDetailModalProp
                     {isActive ? "Aktif" : "Tidak Aktif"}
                   </span>
                   <span className="text-[12px] text-[var(--text-muted)]">
-                    {student.class} | No. Absen: {student.attendanceNumber}
+                    {student.class}
                   </span>
                 </div>
               </div>
@@ -508,30 +416,28 @@ function StudentDetailModal({ student, isOpen, onClose }: StudentDetailModalProp
 
         {/* Content */}
         <div className="overflow-y-auto px-5 py-4 pb-[calc(24px+env(safe-area-inset-bottom,24px))] max-h-[calc(90vh-220px)]">
-          {/* Data Pribadi */}
-          <Section title="Data Pribadi" icon={<User className="w-4 h-4" />}>
+          {/* 1. Data Diri */}
+          <Section title="Data Diri" icon={<User className="w-4 h-4" />}>
             <div className="grid grid-cols-2 gap-3">
-              <InfoItem label="NIS" value={student.nis} />
-              {student.nisn && <InfoItem label="NISN" value={student.nisn} />}
               <InfoItem label="Nama Lengkap" value={student.name} fullWidth />
+              {student.nickname && <InfoItem label="Nama Panggilan" value={student.nickname} />}
               <InfoItem label="Jenis Kelamin" value={student.gender === "L" ? "Laki-laki" : "Perempuan"} />
               <InfoItem label="Tempat Lahir" value={student.birthPlace} />
-              <InfoItem label="Tanggal Lahir" value={`${formatDate(student.birthDate)} (${formatAge(student.birthDate)})`} />
-              <InfoItem label="Agama" value={student.religion} />
+              <InfoItem label="Tanggal Lahir" value={`${formatDate(student.birthDate)} (${formatAge(student.birthDate)})`} fullWidth />
               <InfoItem label="Gol. Darah" value={student.bloodType} />
-              {student.email && <InfoItem label="Email" value={student.email} icon={<Mail className="w-3 h-3" />} fullWidth />}
-              {student.phone && <InfoItem label="No. Telepon" value={student.phone} icon={<Phone className="w-3 h-3" />} fullWidth />}
-              {student.address && <InfoItem label="Alamat" value={student.address} icon={<MapPin className="w-3 h-3" />} fullWidth />}
+              <InfoItem label="Agama" value={student.religion} />
+              {student.phone && <InfoItem label="No. WhatsApp" value={student.phone} icon={<Phone className="w-3 h-3" />} fullWidth />}
+              {student.address && <InfoItem label="Alamat Lengkap" value={student.address} icon={<MapPin className="w-3 h-3" />} fullWidth />}
             </div>
           </Section>
 
-          {/* Data Akademik */}
+          {/* 2. Data Akademik */}
           <Section title="Data Akademik" icon={<BookOpen className="w-4 h-4" />}>
             <div className="grid grid-cols-2 gap-3">
               <InfoItem label="Kelas" value={student.class} />
               <InfoItem label="No. Absen" value={student.attendanceNumber.toString()} />
-              <InfoItem label="Tahun Masuk" value={student.enrollmentYear.toString()} />
-              <InfoItem label="Tahun Ajaran" value={`${student.enrollmentYear}/${student.enrollmentYear + 1}`} />
+              <InfoItem label="NISN" value={student.nisn} />
+              <InfoItem label="NIS" value={student.nis} />
               <InfoItem label="Angkatan" value={student.enrollmentYear.toString()} />
               <InfoItem
                 label="Status"
@@ -549,18 +455,79 @@ function StudentDetailModal({ student, isOpen, onClose }: StudentDetailModalProp
             </div>
           </Section>
 
-          {/* Data Kesehatan */}
+          {/* 3. Orang Tua/Wali */}
+          <Section title="Orang Tua/Wali" icon={<Users className="w-4 h-4" />}>
+            <div className="space-y-3">
+              {/* Ayah */}
+              <div className="p-3 bg-blue-50 rounded-xl border border-blue-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center">
+                    <UserRound className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <span className="text-[13px] font-semibold text-blue-700">Ayah</span>
+                </div>
+                <div className="space-y-1.5">
+                  <p className="text-[14px] font-medium text-[var(--text-primary)]">{student.fatherName}</p>
+                  <p className="text-[12px] text-[var(--text-muted)] flex items-center gap-1.5">
+                    <Phone className="w-3 h-3" />
+                    {student.fatherPhone}
+                  </p>
+                </div>
+              </div>
+
+              {/* Ibu */}
+              <div className="p-3 bg-pink-50 rounded-xl border border-pink-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-7 h-7 rounded-lg bg-pink-100 flex items-center justify-center">
+                    <Baby className="w-4 h-4 text-pink-600" />
+                  </div>
+                  <span className="text-[13px] font-semibold text-pink-700">Ibu</span>
+                </div>
+                <div className="space-y-1.5">
+                  <p className="text-[14px] font-medium text-[var(--text-primary)]">{student.motherName}</p>
+                  <p className="text-[12px] text-[var(--text-muted)] flex items-center gap-1.5">
+                    <Phone className="w-3 h-3" />
+                    {student.motherPhone}
+                  </p>
+                </div>
+              </div>
+
+              {/* Wali (jika ada) */}
+              {student.guardianName && (
+                <div className="p-3 bg-purple-50 rounded-xl border border-purple-200">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-7 h-7 rounded-lg bg-purple-100 flex items-center justify-center">
+                      <Shield className="w-4 h-4 text-purple-600" />
+                    </div>
+                    <span className="text-[13px] font-semibold text-purple-700">
+                      Wali - {student.guardianRelation || "Lainnya"}
+                    </span>
+                  </div>
+                  <div className="space-y-1.5">
+                    <p className="text-[14px] font-medium text-[var(--text-primary)]">{student.guardianName}</p>
+                    {student.guardianPhone && (
+                      <p className="text-[12px] text-[var(--text-muted)] flex items-center gap-1.5">
+                        <Phone className="w-3 h-3" />
+                        {student.guardianPhone}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </Section>
+
+          {/* 4. Data Kesehatan */}
           <Section title="Data Kesehatan" icon={<Heart className="w-4 h-4" />}>
             <div className="grid grid-cols-2 gap-3">
-              <InfoItem label="Tinggi Badan" value={`${student.height} cm`} />
-              <InfoItem label="Berat Badan" value={`${student.weight} kg`} />
-              <InfoItem label="Gol. Darah" value={student.bloodType} />
+              <InfoItem label="Tinggi" value={`${student.height} cm`} />
+              <InfoItem label="Berat" value={`${student.weight} kg`} />
               <InfoItem label="Penglihatan" value={student.vision} icon={<Eye className="w-3 h-3" />} />
               <InfoItem label="Pendengaran" value={student.hearing} icon={<Activity className="w-3 h-3" />} />
               <InfoItem label="Gigi & Mulut" value={student.teeth} />
               <InfoItem label="Cacat Tubuh" value={student.disability} />
             </div>
-            {(student.illnessHistory !== "-" || student.allergies !== "-" || student.healthNotes !== "-") && (
+            {(student.illnessHistory !== "-" || student.allergies !== "-") && (
               <div className="mt-3 space-y-2">
                 {student.illnessHistory !== "-" && (
                   <div className="p-3 bg-amber-50 rounded-xl border border-amber-200">
@@ -584,152 +551,28 @@ function StudentDetailModal({ student, isOpen, onClose }: StudentDetailModalProp
             )}
           </Section>
 
-          {/* Data Orang Tua */}
-          <Section title="Data Orang Tua/Wali" icon={<Users className="w-4 h-4" />}>
-            <div className="space-y-4">
-              {/* Ayah */}
-              <div className="p-4 bg-[var(--surface-secondary)] rounded-xl">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
-                    <UserRound className="w-4 h-4 text-blue-600" />
+          {/* 5. Lainnya */}
+          <Section title="Lainnya" icon={<FileText className="w-4 h-4" />}>
+            {(student.healthNotes && student.healthNotes !== "-") || (student.additionalNotes && student.additionalNotes !== "-") ? (
+              <div className="space-y-3">
+                {student.healthNotes && student.healthNotes !== "-" && (
+                  <div className="p-3 bg-blue-50 rounded-xl border border-blue-200">
+                    <p className="text-[11px] text-blue-600 font-medium mb-1">Catatan Kesehatan</p>
+                    <p className="text-[13px] text-[var(--text-primary)]">{student.healthNotes}</p>
                   </div>
-                  <span className="text-[13px] font-semibold text-[var(--text-primary)]">Data Ayah</span>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-[14px] font-semibold text-[var(--text-primary)]">{student.fatherName}</p>
-                  <div className="grid grid-cols-2 gap-2 text-[12px]">
-                    <div className="flex items-center gap-1.5 text-[var(--text-muted)]">
-                      <Briefcase className="w-3 h-3" />
-                      <span>{student.fatherOccupation}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-[var(--text-muted)]">
-                      <BookOpen className="w-3 h-3" />
-                      <span>{student.fatherEducation}</span>
-                    </div>
+                )}
+                {student.additionalNotes && student.additionalNotes !== "-" && (
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                    <p className="text-[11px] text-slate-600 font-medium mb-1">Catatan Tambahan</p>
+                    <p className="text-[13px] text-[var(--text-primary)]">{student.additionalNotes}</p>
                   </div>
-                  {student.fatherNik && (
-                    <p className="text-[11px] text-[var(--text-muted)]">NIK: {student.fatherNik}</p>
-                  )}
-                  <div className="flex flex-col gap-1 pt-1 border-t border-[var(--border-light)]/50">
-                    <p className="text-[12px] text-[var(--text-muted)] flex items-center gap-1.5">
-                      <Phone className="w-3 h-3" />
-                      {student.fatherPhone}
-                    </p>
-                    {student.fatherEmail && (
-                      <p className="text-[12px] text-[var(--text-muted)] flex items-center gap-1.5">
-                        <Mail className="w-3 h-3" />
-                        {student.fatherEmail}
-                      </p>
-                    )}
-                  </div>
-                </div>
+                )}
               </div>
-
-              {/* Ibu */}
-              <div className="p-4 bg-[var(--surface-secondary)] rounded-xl">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-8 h-8 rounded-lg bg-pink-100 flex items-center justify-center">
-                    <Baby className="w-4 h-4 text-pink-600" />
-                  </div>
-                  <span className="text-[13px] font-semibold text-[var(--text-primary)]">Data Ibu</span>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-[14px] font-semibold text-[var(--text-primary)]">{student.motherName}</p>
-                  <div className="grid grid-cols-2 gap-2 text-[12px]">
-                    <div className="flex items-center gap-1.5 text-[var(--text-muted)]">
-                      <Briefcase className="w-3 h-3" />
-                      <span>{student.motherOccupation}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-[var(--text-muted)]">
-                      <BookOpen className="w-3 h-3" />
-                      <span>{student.motherEducation}</span>
-                    </div>
-                  </div>
-                  {student.motherNik && (
-                    <p className="text-[11px] text-[var(--text-muted)]">NIK: {student.motherNik}</p>
-                  )}
-                  <div className="flex flex-col gap-1 pt-1 border-t border-[var(--border-light)]/50">
-                    <p className="text-[12px] text-[var(--text-muted)] flex items-center gap-1.5">
-                      <Phone className="w-3 h-3" />
-                      {student.motherPhone}
-                    </p>
-                    {student.motherEmail && (
-                      <p className="text-[12px] text-[var(--text-muted)] flex items-center gap-1.5">
-                        <Mail className="w-3 h-3" />
-                        {student.motherEmail}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Wali (jika ada) */}
-              {student.guardianName && (
-                <div className="p-4 bg-purple-50 rounded-xl border border-purple-200">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
-                      <Shield className="w-4 h-4 text-purple-600" />
-                    </div>
-                    <span className="text-[13px] font-semibold text-[var(--text-primary)]">
-                      Data Wali ({student.guardianRelation})
-                    </span>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-[14px] font-semibold text-[var(--text-primary)]">{student.guardianName}</p>
-                    {student.guardianOccupation && (
-                      <p className="text-[12px] text-[var(--text-muted)]">{student.guardianOccupation}</p>
-                    )}
-                    <div className="flex flex-col gap-1 pt-1 border-t border-purple-200">
-                      {student.guardianPhone && (
-                        <p className="text-[12px] text-[var(--text-muted)] flex items-center gap-1.5">
-                          <Phone className="w-3 h-3" />
-                          {student.guardianPhone}
-                        </p>
-                      )}
-                      {student.guardianEmail && (
-                        <p className="text-[12px] text-[var(--text-muted)] flex items-center gap-1.5">
-                          <Mail className="w-3 h-3" />
-                          {student.guardianEmail}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </Section>
-
-          {/* Riwayat */}
-          <Section title="Riwayat" icon={<Clock className="w-4 h-4" />}>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between p-3 bg-[var(--surface-secondary)] rounded-xl">
-                <div className="flex items-center gap-2">
-                  <User className="w-4 h-4 text-emerald-500" />
-                  <span className="text-[13px] text-[var(--text-primary)]">Pendaftaran</span>
-                </div>
-                <span className="text-[11px] text-[var(--text-muted)]">
-                  {formatDate(student.createdAt)}
-                </span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-[var(--surface-secondary)] rounded-xl">
-                <div className="flex items-center gap-2">
-                  <BookOpen className="w-4 h-4 text-blue-500" />
-                  <span className="text-[13px] text-[var(--text-primary)]">Kelas Saat Ini</span>
-                </div>
-                <span className="text-[11px] text-[var(--text-muted)]">
-                  {student.class}
-                </span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-[var(--surface-secondary)] rounded-xl">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-slate-400" />
-                  <span className="text-[13px] text-[var(--text-primary)]">Terakhir Diperbarui</span>
-                </div>
-                <span className="text-[11px] text-[var(--text-muted)]">
-                  {formatDate(student.updatedAt)}
-                </span>
-              </div>
-            </div>
+            ) : (
+              <p className="text-[13px] text-[var(--text-muted)] text-center py-4 bg-[var(--surface-secondary)] rounded-xl">
+                Tidak ada catatan tambahan
+              </p>
+            )}
           </Section>
         </div>
       </div>
