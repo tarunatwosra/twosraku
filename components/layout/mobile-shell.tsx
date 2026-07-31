@@ -23,12 +23,21 @@ export function MobileShell({
 
   // Redirect to login if not authenticated (and save redirect URL)
   useEffect(() => {
+    console.log("[MobileShell] Auth state:", { authLoading, isAuthenticated, pathname: window.location.pathname });
+
     if (!authLoading && !isAuthenticated) {
-      const currentPath = getStoredRedirectUrl() || window.location.pathname;
+      const currentPath = window.location.pathname;
+      console.log("[MobileShell] Will save redirect URL:", currentPath);
+      console.log("[MobileShell] SessionStorage before:", sessionStorage.getItem("redirectUrl"));
+
       if (currentPath !== "/login") {
         sessionStorage.setItem("redirectUrl", currentPath);
+        console.log("[MobileShell] SessionStorage after:", sessionStorage.getItem("redirectUrl"));
+        console.log("[MobileShell] REDIRECTING TO LOGIN");
       }
       router.push("/login");
+    } else if (!authLoading && isAuthenticated) {
+      console.log("[MobileShell] User is authenticated, showing content");
     }
   }, [isAuthenticated, authLoading, router]);
 

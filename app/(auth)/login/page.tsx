@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, FormEvent, useEffect } from "react"
+import React, { useState, FormEvent, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from "@/hooks/useAuth"
@@ -30,13 +30,23 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
 
+  // Track if we just redirected from login success
+  const justRedirected = useRef(false)
+
   // Redirect if already authenticated (this handles direct visits to /login while already logged in)
   useEffect(() => {
+    // Skip if we just redirected from handleSubmit
+    if (justRedirected.current) {
+      justRedirected.current = false
+      return
+    }
+
     if (isAuthenticated && !authLoading && !isSubmitting) {
-      // Only redirect here if there's no redirectUrl (direct visit to /login)
-      // If there's a redirectUrl, let handleSubmit handle it to avoid race condition
       const storedRedirect = sessionStorage.getItem("redirectUrl")
+      console.log("[LoginPage] useEffect fired, storedRedirect:", storedRedirect)
+
       if (!storedRedirect) {
+        console.log("[LoginPage] No redirectUrl, going to /")
         router.push("/")
       }
     }
@@ -83,13 +93,20 @@ export default function LoginPage() {
       })
 
       if (result.success) {
-        // Check for stored redirect URL (from ProtectedRoute)
-        const storedRedirect = sessionStorage.getItem("redirectUrl")
-        const redirectTo = storedRedirect || "/"
+        console.log("[LoginPage] handleSubmit: Login successful, checking redirect...");
+        console.log("[LoginPage] handleSubmit: SessionStorage redirectUrl:", sessionStorage.getItem("redirectUrl"));
+        const storedRedirect = sessionStorage.getItem("redirectUrl");
+        const redirectTo = storedRedirect || "/";
+
+        // Mark that we just redirected to prevent useEffect from running
+        justRedirected.current = true
 
         // Clear the stored redirect URL
         if (storedRedirect) {
-          sessionStorage.removeItem("redirectUrl")
+          sessionStorage.removeItem("redirectUrl");
+          console.log("[LoginPage] handleSubmit: Cleared redirectUrl, redirecting to:", redirectTo);
+        } else {
+          console.log("[LoginPage] handleSubmit: No redirectUrl found, redirecting to:", redirectTo);
         }
 
         router.push(redirectTo)
