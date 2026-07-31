@@ -58,6 +58,7 @@ export interface RegistrationFormData {
   nisn: string
   student_number: string     // NIS lokal (auto-filled dari database)
   class_id: string           // ID kelas yang dipilih
+  attendance_number: string   // No. Absen (diisi manual oleh siswa)
   academic_year: string      // Tahun ajaran aktif (auto-filled, read-only)
 
   // Data Orang Tua/Wali (Step 4)

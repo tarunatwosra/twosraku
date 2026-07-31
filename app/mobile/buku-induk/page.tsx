@@ -92,9 +92,7 @@ function transformStudent(
     nickname: student.nickname,
     student_number: student.student_number,
     nisn: student.nisn,
-    class_name: activeClass?.classes
-      ? `${activeClass.classes.majors?.name || ""} ${activeClass.classes.name || ""}`.trim()
-      : "-",
+    class_name: activeClass?.classes?.name || "-",
     academic_year_name: activeClass?.academic_years?.name || null,
     attendance_number: activeClass?.attendance_number || null,
     gender: student.gender,
@@ -553,7 +551,8 @@ export default function MobileBukuIndukPage() {
             classes (
               *,
               majors (*)
-            )
+            ),
+            academic_years (*)
           ),
           parents (*)
         `, { count: "exact" })

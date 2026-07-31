@@ -101,7 +101,6 @@ export interface StudentClass {
   class_id: UUID
   academic_year_id: UUID
   attendance_number: number | null
-  is_homeroom: boolean
   status: 'active' | 'inactive' | 'archived'
   start_date: DateString | null
   end_date: DateString | null

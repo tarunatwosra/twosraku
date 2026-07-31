@@ -384,6 +384,7 @@ export async function submitRegistration(
     // Prepare student update data
     const studentUpdateData: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
+      is_active: true, // Set status aktif secara otomatis saat registrasi
     }
 
     // Personal data
@@ -445,12 +446,18 @@ export async function submitRegistration(
           .eq("status", "active")
           .single()
 
+        // Parse attendance number
+        const attendanceNumber = formData.attendance_number
+          ? parseInt(formData.attendance_number)
+          : null
+
         if (existingEnrollment) {
           // Update existing enrollment
           const { error: updateError } = await supabase
             .from("student_classes")
             .update({
               class_id: formData.class_id,
+              attendance_number: attendanceNumber,
               updated_at: new Date().toISOString(),
             })
             .eq("id", existingEnrollment.id)
@@ -467,8 +474,8 @@ export async function submitRegistration(
               student_id: studentId,
               class_id: formData.class_id,
               academic_year_id: activeYear.id,
+              attendance_number: attendanceNumber,
               status: "active",
-              is_homeroom: true,
               start_date: new Date().toISOString().split("T")[0],
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),

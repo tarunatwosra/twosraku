@@ -127,7 +127,6 @@ CREATE TABLE IF NOT EXISTS student_classes (
     class_id UUID REFERENCES classes(id) ON DELETE CASCADE NOT NULL,
     academic_year_id UUID REFERENCES academic_years(id) ON DELETE CASCADE NOT NULL,
     attendance_number INTEGER,
-    is_homeroom BOOLEAN DEFAULT FALSE,
     status VARCHAR(20) DEFAULT 'active',
     start_date DATE,
     end_date DATE,

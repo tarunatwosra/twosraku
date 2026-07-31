@@ -545,7 +545,6 @@ export async function assignStudentToClass(
       class_id: classId,
       academic_year_id: academicYearId,
       attendance_number: attendanceNumber,
-      is_homeroom: false,
       status: "active",
       start_date: new Date().toISOString().split("T")[0],
     })

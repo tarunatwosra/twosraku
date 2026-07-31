@@ -152,12 +152,13 @@ Tahap 4: System Tables (Bisa dibuat kapan saja)
 | class_id | uuid | FK → classes.id, NOT NULL | Kelas |
 | academic_year_id | uuid | FK → academic_years.id, NOT NULL | Tahun ajaran |
 | attendance_number | integer | | Nomor presensi di kelas |
-| is_homeroom | boolean | DEFAULT false | Apakah wali kelas |
 | status | varchar(20) | DEFAULT 'active' | Status |
 | start_date | date | | Tanggal masuk kelas |
 | end_date | date | | Tanggal keluar kelas |
 | created_at | timestamptz | DEFAULT now() | Timestamp |
 | updated_at | timestamptz | DEFAULT now() | Timestamp |
+
+**Catatan**: Field `is_homeroom` dihapus karena tidak relevan untuk student_classes. Wali kelas dikelola secara terpisah di tabel users.
 
 **Unique Constraint**: `unique_student_class_year` (student_id, class_id, academic_year_id)
 

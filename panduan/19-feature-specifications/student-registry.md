@@ -1,11 +1,18 @@
 # Student Registry Module (Buku Induk) — Compact
-Version: 2.6 | Updated: 2026-07-31
+Version: 2.7 | Updated: 2026-07-31
 
 **Purpose:** Student Registry adalah modul data master Twosraku — single source of truth untuk identitas siswa. Menyimpan & mengelola semua informasi siswa yang dibutuhkan seluruh sistem; setiap modul operasional bergantung pada data ini.
 
 **Scope**
 - Mengelola: Identitas Siswa, Informasi Akademik, Informasi Pribadi, Data Fisik & Kesehatan, Informasi Orang Tua/Wali, Kontak, Status Aktif, Riwayat.
 - Tidak dikelola di sini: Absensi, Penilaian, Poin Karakter, dan modul operasional lain (masing-masing di modulnya sendiri).
+
+**Catatan Perubahan v2.7:**
+- Registrasi Mandiri: Tambah input No. Absen (diisi manual oleh siswa)
+- Registrasi Mandiri: Status otomatis aktif saat registrasi
+- Registrasi Mandiri: Golongan darah menggunakan dropdown (A, B, AB, O, Tidak Tahu)
+- Registrasi Mandiri: UI progress bar lebih menarik dengan animasi dan gradient
+- Hapus field `is_homeroom` dari tabel `student_classes` (tidak relevan)
 
 **Catatan Perubahan v2.6:**
 - Registrasi Mandiri: Fix - kelas dan academic year sekarang tersimpan ke database (student_classes)
@@ -26,6 +33,7 @@ Version: 2.6 | Updated: 2026-07-31
 
 **Status Siswa:** sistem `is_active` (boolean). `true` = Aktif (masih bersekolah), `false` = Tidak Aktif (lulus/pindah/arsip).
 **Lifecycle:** Aktif → Tidak Aktif → (opsional: Restore) → Aktif. Siswa aktif tampil di daftar utama; siswa tidak aktif tampil di halaman khusus; data historis tetap tersimpan.
+**Registrasi:** Status siswa otomatis设置为 aktif saat registrasi mandiri selesai.
 
 **Navigasi:** Main Navigation → Student Registry (Buku Induk). Sub Pages: Student List, Student Detail, Create Student, Edit Student, Student History, Import Students, Export Students, Inactive Students.
 
@@ -55,7 +63,8 @@ Version: 2.6 | Updated: 2026-07-31
 | NISN | Text | - | Nomor Induk Sekolah Nasional (10 digit) |
 | Tahun Ajaran | Auto | - | Otomatis dari academic year aktif (read-only) |
 | Kelas | Select | - | Pilihan kelas dari database (dropdown) |
-| Status | Select | ✅ | Aktif / Tidak Aktif |
+| No. Absen | Number | - | Nomor absensi siswa (diisi manual) |
+| Status | Auto | ✅ | Otomatis aktif saat registrasi (read-only) |
 
 **Catatan:** Data Kelas diambil dari **Settings Academic → Tab Kelas**. Pastikan kelas sudah dibuat di Settings sebelum menambahkan siswa. Siswa terhubung ke kelas melalui `student_classes` yang menyimpan tahun ajaran.
 
@@ -328,5 +337,5 @@ Selesai jika: menyimpan semua data master siswa; mendukung lifecycle aktif/tidak
 Student Registry adalah fondasi Twosraku. Setiap modul operasional bergantung pada akurasi dan konsistensi data yang dikelola di sini. Melindungi integritas data siswa lebih penting daripada menambahkan fitur baru.
 
 ---
-Last Updated: 2026-07-31 | Version: 2.6
+Last Updated: 2026-07-31 | Version: 2.7
 # End of Student Registry Module (Compact)

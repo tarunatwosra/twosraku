@@ -212,19 +212,20 @@ function parseAddressFromDb(address: string | null): ParsedAddress {
 function formatAddressForDb(data: Partial<RegistrationFormData>): string {
   const parts: string[] = []
 
+  // Street/Village name (tanpa prefix)
   if (data.address_street) {
     parts.push(data.address_street)
   }
-
   if (data.address_village) {
-    parts.push(`Desa ${data.address_village}`)
+    parts.push(data.address_village)
   }
 
+  // RT RW (tanpa / di antaranya)
   if (data.address_rt || data.address_rw) {
     const rt = data.address_rt ? `RT ${data.address_rt}` : ""
     const rw = data.address_rw ? `RW ${data.address_rw}` : ""
     if (rt && rw) {
-      parts.push(`${rt}/${rw}`)
+      parts.push(`${rt} ${rw}`)
     } else if (rt) {
       parts.push(rt)
     } else if (rw) {
@@ -232,20 +233,18 @@ function formatAddressForDb(data: Partial<RegistrationFormData>): string {
     }
   }
 
+  // Sisanya tanpa prefix
   if (data.address_neighborhood) {
-    parts.push(`Kel. ${data.address_neighborhood}`)
+    parts.push(data.address_neighborhood)
   }
-
   if (data.address_subdistrict) {
-    parts.push(`Kec. ${data.address_subdistrict}`)
+    parts.push(data.address_subdistrict)
   }
-
   if (data.address_city) {
-    parts.push(`Kab. ${data.address_city}`)
+    parts.push(data.address_city)
   }
-
   if (data.address_province) {
-    parts.push(`Provinsi ${data.address_province}`)
+    parts.push(data.address_province)
   }
 
   return parts.join(", ")
@@ -279,6 +278,7 @@ function getDefaultFormData(): Partial<RegistrationFormData> {
     // Akademik
     student_number: "", // NIS - auto-filled dari database
     class_id: "", // ID kelas yang dipilih
+    attendance_number: "", // No. Absen - diisi manual
     academic_year: "", // Tahun ajaran aktif - auto-filled
     // Orang Tua
     father_name: "",
@@ -700,38 +700,65 @@ export default function RegistrationFormPage({
         Kembali
       </Link>
 
-      {/* Progress Bar - Elegant Style */}
+      {/* Progress Bar - Modern Glassmorphic Style */}
       <div className="mb-6">
-        <div className="flex justify-between items-center mb-3">
-          <span className="text-sm font-medium text-[var(--text-primary)]">
-            {currentStepIndex + 1} / {STEPS.length}
-          </span>
-          <span className="text-xs font-medium text-[var(--primary)] bg-[var(--primary)]/10 px-3 py-1 rounded-full">
-            {STEPS[currentStepIndex].label}
-          </span>
+        {/* Step Counter */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <span className="text-lg font-bold text-[var(--primary)]">{currentStepIndex + 1}</span>
+            <span className="text-sm text-[var(--text-muted)]">dari {STEPS.length}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 text-xs font-medium text-[var(--primary)] bg-[var(--primary)]/10 rounded-full border border-[var(--primary)]/20">
+              {STEPS[currentStepIndex].label}
+            </span>
+          </div>
         </div>
-        <div className="relative h-2 bg-[var(--surface-secondary)] rounded-full overflow-hidden">
-          {/* Animated gradient progress */}
+
+        {/* Progress Track with Gradient Fill */}
+        <div className="relative h-1.5 bg-[var(--border-default)] rounded-full overflow-hidden">
+          {/* Background glow */}
+          <div
+            className="absolute inset-0 opacity-20"
+            style={{
+              background: `linear-gradient(90deg, var(--primary), var(--primary))`,
+              filter: 'blur(8px)',
+              transform: `scaleX(${progress / 100})`,
+              transformOrigin: 'left',
+            }}
+          />
+          {/* Main progress bar */}
           <div
             className="absolute inset-y-0 left-0 rounded-full transition-all duration-500 ease-out"
             style={{
               width: `${progress}%`,
-              background: `linear-gradient(90deg, var(--primary) 0%, var(--primary-hover, #3E6CF2) 50%, var(--primary-active, #2F5AE8) 100%)`,
+              background: `linear-gradient(90deg, var(--primary) 0%, #6366F1 100%)`,
             }}
           />
-          {/* Shine effect */}
+          {/* Animated shine */}
           <div
-            className="absolute inset-y-0 left-0 w-8 rounded-full opacity-30 blur-sm"
+            className="absolute inset-y-0 left-0 rounded-full animate-shine"
             style={{
-              width: `${progress}%`,
-              background: "linear-gradient(90deg, transparent, white, transparent)",
+              width: `${Math.min(progress + 10, 100)}%`,
+              background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)',
+              transform: 'translateX(-100%)',
             }}
           />
         </div>
+
+        {/* Step Labels */}
+        <div className="flex justify-between mt-2">
+          <span className="text-[10px] text-[var(--text-muted)]">
+            {STEPS[currentStepIndex].label}
+          </span>
+          <span className="text-[10px] text-[var(--text-muted)]">
+            {Math.round(progress)}% Complete
+          </span>
+        </div>
       </div>
 
-      {/* Step Indicators - Elegant Card Style */}
-      <div className="flex gap-2 mb-6 overflow-x-auto pb-2 -mx-4 px-4">
+      {/* Step Indicators - Modern Pill Navigation */}
+      <div className="flex gap-1.5 mb-6 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
         {STEPS.map((step, index) => {
           const isActive = step.key === currentStep
           const isCompleted = index < currentStepIndex
@@ -745,16 +772,16 @@ export default function RegistrationFormPage({
                 setErrors({})
               }}
               className={cn(
-                "flex-1 min-w-[80px] flex flex-col items-center justify-center gap-2 py-3 px-2 rounded-2xl transition-all duration-300 relative",
-                isActive && "bg-gradient-to-br from-[var(--primary)] to-[var(--primary-hover, #3E6CF2)] text-white shadow-lg shadow-[var(--primary)]/30 scale-[1.02]",
-                isCompleted && "bg-[var(--primary-soft)] text-[var(--primary)] hover:bg-[var(--primary)]/20",
+                "flex-shrink-0 flex flex-col items-center justify-center gap-1 py-2.5 px-3 rounded-xl transition-all duration-300 min-w-[70px]",
+                isActive && "bg-gradient-to-br from-[var(--primary)] to-indigo-500 text-white shadow-lg shadow-[var(--primary)]/30 -translate-y-0.5",
+                isCompleted && "bg-[var(--primary)]/10 text-[var(--primary)] hover:bg-[var(--primary)]/20",
                 isPending && "bg-[var(--surface-secondary)] text-[var(--text-muted)] hover:bg-[var(--surface-hover)]"
               )}
             >
               {/* Step number / Check icon */}
               <div className={cn(
-                "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300",
-                isActive && "bg-white/20 text-white",
+                "w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-all duration-300",
+                isActive && "bg-white/20 text-white ring-2 ring-white/30",
                 isCompleted && "bg-[var(--primary)] text-white",
                 isPending && "bg-[var(--border-default)] text-[var(--text-muted)]"
               )}>
@@ -775,18 +802,13 @@ export default function RegistrationFormPage({
 
               {/* Label */}
               <span className={cn(
-                "text-[10px] font-medium text-center leading-tight truncate w-full",
+                "text-[9px] font-medium text-center leading-tight truncate max-w-full",
                 isActive && "text-white/90",
                 isCompleted && "text-[var(--primary)]",
                 isPending && "text-[var(--text-muted)]"
               )}>
                 {step.label}
               </span>
-
-              {/* Active indicator dot */}
-              {isActive && (
-                <div className="absolute -bottom-1 w-2 h-2 rounded-full bg-white shadow animate-pulse" />
-              )}
             </button>
           )
         })}
@@ -856,12 +878,13 @@ export default function RegistrationFormPage({
             />
 
             <div className="grid grid-cols-2 gap-3">
-              <Input
+              <Select
                 name="blood_type"
                 label="Gol. Darah"
                 placeholder="Pilih"
                 value={formData.blood_type || ""}
                 onChange={handleChange}
+                options={BLOOD_TYPES}
               />
 
               <Input
@@ -984,7 +1007,7 @@ export default function RegistrationFormPage({
         {/* Academic Step */}
         {currentStep === RegistrationStepEnum.ACADEMIC && (
           <div className="space-y-4">
-            <div className="p-4 bg-[var(--primary)]/5 rounded-xl mb-4 border border-[var(--primary)]/10">
+            <div className="p-4 bg-gradient-to-r from-[var(--primary)]/5 to-[var(--primary)]/10 rounded-xl mb-4 border border-[var(--primary)]/20">
               <p className="text-sm text-[var(--primary)] font-medium flex items-center gap-2">
                 <GraduationCap className="w-4 h-4" />
                 Data Akademik
@@ -1020,6 +1043,7 @@ export default function RegistrationFormPage({
               </div>
             </div>
 
+            {/* NISN */}
             <Input
               name="nisn"
               label="NISN"
@@ -1028,19 +1052,6 @@ export default function RegistrationFormPage({
               onChange={handleChange}
               error={errors.nisn}
               maxLength={10}
-            />
-
-            {/* Kelas - Select dari database */}
-            <Select
-              name="class_id"
-              label="Pilih Kelas"
-              placeholder="Pilih kelas"
-              value={formData.class_id || ""}
-              onChange={handleChange}
-              options={availableClasses.map((c) => ({
-                value: c.id,
-                label: `${c.name} (${c.major_code || c.major_name})`,
-              }))}
             />
 
             {/* Tahun Ajaran - Auto-filled, read-only */}
@@ -1067,6 +1078,50 @@ export default function RegistrationFormPage({
                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
                   <span className="text-[10px] text-white bg-[var(--primary)] px-2 py-1 rounded-full">
                     Sistem
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Kelas - Select dari database */}
+            <Select
+              name="class_id"
+              label="Pilih Kelas"
+              placeholder="Pilih kelas"
+              value={formData.class_id || ""}
+              onChange={handleChange}
+              options={availableClasses.map((c) => ({
+                value: c.id,
+                label: `${c.name} (${c.major_code || c.major_name})`,
+              }))}
+            />
+
+            {/* No. Absen - Manual Input */}
+            <Input
+              name="attendance_number"
+              label="No. Absen"
+              type="number"
+              placeholder="Contoh: 1"
+              value={formData.attendance_number || ""}
+              onChange={handleChange}
+              min="1"
+            />
+
+            {/* Status - Auto-filled, read-only */}
+            <div>
+              <label className="text-sm font-medium text-[var(--text-primary)] mb-1.5 block">
+                Status Siswa
+              </label>
+              <div className="relative">
+                <div className="w-full px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-xl text-[15px] text-emerald-700 font-medium">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                    Aktif
+                  </div>
+                </div>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <span className="text-[10px] text-emerald-600 bg-emerald-100 px-2 py-1 rounded-full">
+                    Auto
                   </span>
                 </div>
               </div>
