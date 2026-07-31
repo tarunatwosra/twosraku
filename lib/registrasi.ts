@@ -430,6 +430,58 @@ export async function submitRegistration(
       return { success: false, error: studentError.message }
     }
 
+    // Save class enrollment to student_classes
+    if (formData.class_id && formData.class_id.trim()) {
+      // Get active academic year
+      const activeYear = await getActiveAcademicYear()
+
+      if (activeYear) {
+        // Check if student already has a class enrollment for this academic year
+        const { data: existingEnrollment } = await supabase
+          .from("student_classes")
+          .select("id")
+          .eq("student_id", studentId)
+          .eq("academic_year_id", activeYear.id)
+          .eq("status", "active")
+          .single()
+
+        if (existingEnrollment) {
+          // Update existing enrollment
+          const { error: updateError } = await supabase
+            .from("student_classes")
+            .update({
+              class_id: formData.class_id,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", existingEnrollment.id)
+
+          if (updateError) {
+            console.error("Error updating student class enrollment:", updateError)
+            // Don't fail the whole registration for this
+          }
+        } else {
+          // Insert new enrollment
+          const { error: insertError } = await supabase
+            .from("student_classes")
+            .insert({
+              student_id: studentId,
+              class_id: formData.class_id,
+              academic_year_id: activeYear.id,
+              status: "active",
+              is_homeroom: true,
+              start_date: new Date().toISOString().split("T")[0],
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            })
+
+          if (insertError) {
+            console.error("Error inserting student class enrollment:", insertError)
+            // Don't fail the whole registration for this
+          }
+        }
+      }
+    }
+
     // Delete existing parents and insert new ones
     await supabase.from("parents").delete().eq("student_id", studentId)
 

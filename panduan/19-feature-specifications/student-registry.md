@@ -1,11 +1,14 @@
 # Student Registry Module (Buku Induk) — Compact
-Version: 2.4 | Updated: 2026-07-31
+Version: 2.6 | Updated: 2026-07-31
 
 **Purpose:** Student Registry adalah modul data master Twosraku — single source of truth untuk identitas siswa. Menyimpan & mengelola semua informasi siswa yang dibutuhkan seluruh sistem; setiap modul operasional bergantung pada data ini.
 
 **Scope**
 - Mengelola: Identitas Siswa, Informasi Akademik, Informasi Pribadi, Data Fisik & Kesehatan, Informasi Orang Tua/Wali, Kontak, Status Aktif, Riwayat.
 - Tidak dikelola di sini: Absensi, Penilaian, Poin Karakter, dan modul operasional lain (masing-masing di modulnya sendiri).
+
+**Catatan Perubahan v2.6:**
+- Registrasi Mandiri: Fix - kelas dan academic year sekarang tersimpan ke database (student_classes)
 
 **Catatan Perubahan v2.5:**
 - Hapus kolom students: enrollment_year (tahun ajaran sekarang dikelola via academic_years + student_classes)
@@ -325,5 +328,5 @@ Selesai jika: menyimpan semua data master siswa; mendukung lifecycle aktif/tidak
 Student Registry adalah fondasi Twosraku. Setiap modul operasional bergantung pada akurasi dan konsistensi data yang dikelola di sini. Melindungi integritas data siswa lebih penting daripada menambahkan fitur baru.
 
 ---
-Last Updated: 2026-07-31 | Version: 2.5
+Last Updated: 2026-07-31 | Version: 2.6
 # End of Student Registry Module (Compact)

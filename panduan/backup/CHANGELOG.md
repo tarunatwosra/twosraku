@@ -28,6 +28,18 @@ Berisi catatan semua perubahan yang dilakukan pada file-file panduan. Setiap kal
 
 <!-- Changelog entries will be added below this line -->
 
+## 2026-07-31 (Registrasi Bug Fix)
+
+### student-registry.md (19-feature-specifications/)
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-07-31 |
+| Perubahan | FIX v2.6: submitRegistration sekarang menyimpan class_id dan academic_year ke tabel student_classes |
+| Backup | (minor fix, tidak perlu backup) |
+| Catatan | File: lib/registrasi.ts |
+
+---
+
 ## 2026-07-31 (Registrasi Enhancement)
 
 ### student-registry.md (19-feature-specifications/)

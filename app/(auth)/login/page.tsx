@@ -30,12 +30,17 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
 
-  // Redirect if already authenticated
+  // Redirect if already authenticated (this handles direct visits to /login while already logged in)
   useEffect(() => {
-    if (isAuthenticated && !authLoading) {
-      router.push("/")
+    if (isAuthenticated && !authLoading && !isSubmitting) {
+      // Only redirect here if there's no redirectUrl (direct visit to /login)
+      // If there's a redirectUrl, let handleSubmit handle it to avoid race condition
+      const storedRedirect = sessionStorage.getItem("redirectUrl")
+      if (!storedRedirect) {
+        router.push("/")
+      }
     }
-  }, [isAuthenticated, authLoading, router])
+  }, [isAuthenticated, authLoading, isSubmitting, router])
 
   // Clear error when user starts typing
   useEffect(() => {
