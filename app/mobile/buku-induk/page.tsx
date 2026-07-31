@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { MobileShell } from "@/components/layout/mobile-shell";
 import { Card } from "@/components/ui/card";
 import { Select } from "@/components/ui/select";
+import { Avatar } from "@/components/ui/avatar";
 import {
   Search,
   ChevronRight,
@@ -13,18 +14,19 @@ import {
   User,
   Heart,
   Users,
-  UserRound,
-  Baby,
   BookOpen,
-  Eye,
-  Activity,
   Shield,
   FileText,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/lib/supabase";
+import { useAcademicYear } from "@/hooks";
+import type { StudentWithClass, StudentFilters, Class, Parent } from "@/types/database";
 
 // Format helpers
-const formatDate = (dateString: string) => {
+const formatDate = (dateString: string | null) => {
+  if (!dateString) return "-";
   const date = new Date(dateString);
   return date.toLocaleDateString("id-ID", {
     day: "numeric",
@@ -33,313 +35,95 @@ const formatDate = (dateString: string) => {
   });
 };
 
-const formatAge = (birthDate: string) => {
+const formatAge = (birthDate: string | null) => {
+  if (!birthDate) return "-";
   const birth = new Date(birthDate);
   const today = new Date();
   const age = Math.floor((today.getTime() - birth.getTime()) / (365.25 * 24 * 60 * 60 * 1000));
   return `${age} tahun`;
 };
 
-const getStatusVariant = (isActive: boolean) => isActive ? "success" : "neutral";
-const getStatusLabel = (isActive: boolean) => isActive ? "Aktif" : "Tidak Aktif";
+// Student interface for modal display
+interface StudentDisplay {
+  id: string;
+  full_name: string;
+  nickname: string | null;
+  student_number: string;
+  nisn: string | null;
+  class_name: string;
+  attendance_number: number | null;
+  gender: "male" | "female";
+  birth_place: string | null;
+  birth_date: string | null;
+  religion: string | null;
+  phone: string | null;
+  address: string | null;
+  blood_type: string | null;
+  height_cm: number | null;
+  weight_kg: number | null;
+  vision: string | null;
+  hearing: string | null;
+  teeth_condition: string | null;
+  physical_disability: string | null;
+  illness_history: string | null;
+  allergies: string | null;
+  health_notes: string | null;
+  enrollment_year: number | null;
+  is_active: boolean;
+  notes: string | null;
+  father: Parent | null;
+  mother: Parent | null;
+  guardian: Parent | null;
+}
 
-// Sample data - sesuai struktur database
-const sampleStudents = [
-  {
-    id: "1",
-    name: "Anisa Rahman",
-    nickname: "Anisa",
-    nis: "2025001",
-    nisn: "0012345678",
-    class: "X IPA 1",
-    attendanceNumber: 1,
-    gender: "P",
-    birthPlace: "Jakarta",
-    birthDate: "2010-05-15",
-    religion: "Islam",
-    phone: "081234567890",
-    address: "Jl. Melati No. 10, RT 001/RW 005, Kel. Kebon Jeruk, Kec. Kebon Jeruk, Jakarta Barat 11540",
-    bloodType: "A",
-    height: 155,
-    weight: 45,
-    vision: "Normal",
-    hearing: "Normal",
-    teeth: "Normal",
-    disability: "Tidak Ada",
-    illnessHistory: "-",
-    allergies: "-",
-    healthNotes: "Sehat, tidak ada catatan khusus",
-    fatherName: "Ahmad Rahman",
-    fatherPhone: "081234567891",
-    motherName: "Siti Rahman",
-    motherPhone: "081234567892",
-    guardianName: "",
-    guardianRelation: "",
-    guardianPhone: "",
-    enrollmentYear: 2025,
-    status: "active",
-    additionalNotes: "-",
-  },
-  {
-    id: "2",
-    name: "Budi Santoso",
-    nickname: "Budi",
-    nis: "2025002",
-    nisn: "0012345679",
-    class: "X IPA 1",
-    attendanceNumber: 2,
-    gender: "L",
-    birthPlace: "Bandung",
-    birthDate: "2010-08-22",
-    religion: "Kristen",
-    phone: "082345678901",
-    address: "Jl. Mawar No. 5, RT 002/RW 001, Kel. Sukajadi, Kec. Sukajadi, Bandung 40162",
-    bloodType: "B",
-    height: 160,
-    weight: 50,
-    vision: "Normal",
-    hearing: "Normal",
-    teeth: "Normal",
-    disability: "Tidak Ada",
-    illnessHistory: "Demam berdarah 2023",
-    allergies: "Udang",
-    healthNotes: "Alergi makanan laut",
-    fatherName: "Joko Santoso",
-    fatherPhone: "082345678902",
-    motherName: "Maria Santoso",
-    motherPhone: "082345678903",
-    guardianName: "",
-    guardianRelation: "",
-    guardianPhone: "",
-    enrollmentYear: 2025,
-    status: "active",
-    additionalNotes: "-",
-  },
-  {
-    id: "3",
-    name: "Dewi Lestari",
-    nickname: "Dewi",
-    nis: "2025003",
-    nisn: "0012345680",
-    class: "X IPA 2",
-    attendanceNumber: 3,
-    gender: "P",
-    birthPlace: "Surabaya",
-    birthDate: "2010-03-10",
-    religion: "Islam",
-    phone: "083456789012",
-    address: "Jl. Anggrek No. 8, RT 001/RW 003, Kel. Gubeng, Kec. Gubeng, Surabaya 60281",
-    bloodType: "O",
-    height: 152,
-    weight: 48,
-    vision: "Normal",
-    hearing: "Normal",
-    teeth: "Normal",
-    disability: "Tidak Ada",
-    illnessHistory: "-",
-    allergies: "Debu",
-    healthNotes: "Peka terhadap debu",
-    fatherName: "Hendra Lestari",
-    fatherPhone: "083456789013",
-    motherName: "Rini Lestari",
-    motherPhone: "083456789014",
-    guardianName: "",
-    guardianRelation: "",
-    guardianPhone: "",
-    enrollmentYear: 2025,
-    status: "active",
-    additionalNotes: "-",
-  },
-  {
-    id: "4",
-    name: "Eko Prasetyo",
-    nickname: "Eko",
-    nis: "2025004",
-    nisn: "0012345681",
-    class: "X IPS 1",
-    attendanceNumber: 4,
-    gender: "L",
-    birthPlace: "Yogyakarta",
-    birthDate: "2010-11-28",
-    religion: "Islam",
-    phone: "084567890123",
-    address: "Jl. Kenanga No. 12, RT 002/RW 005, Kel. Mergangsan, Kec. Mergangsan, Yogyakarta 55152",
-    bloodType: "AB",
-    height: 165,
-    weight: 55,
-    vision: "Tidak Normal",
-    hearing: "Normal",
-    teeth: "Normal",
-    disability: "Tidak Ada",
-    illnessHistory: "-",
-    allergies: "-",
-    healthNotes: "Menggunakan kacamata -2.5",
-    fatherName: "Budi Prasetyo",
-    fatherPhone: "084567890124",
-    motherName: "Wati Prasetyo",
-    motherPhone: "084567890125",
-    guardianName: "",
-    guardianRelation: "",
-    guardianPhone: "",
-    enrollmentYear: 2025,
-    status: "active",
-    additionalNotes: "Memerlukan pemeriksaan mata rutin",
-  },
-  {
-    id: "5",
-    name: "Fitri Handayani",
-    nickname: "Fitri",
-    nis: "2025005",
-    nisn: "0012345682",
-    class: "X IPA 2",
-    attendanceNumber: 5,
-    gender: "P",
-    birthPlace: "Semarang",
-    birthDate: "2010-07-05",
-    religion: "Islam",
-    phone: "085678901234",
-    address: "Jl. Dahlia No. 3, RT 001/RW 002, Kel. Banyumanik, Kec. Banyumanik, Semarang 50262",
-    bloodType: "A",
-    height: 158,
-    weight: 46,
-    vision: "Normal",
-    hearing: "Normal",
-    teeth: "Normal",
-    disability: "Tidak Ada",
-    illnessHistory: "-",
-    allergies: "-",
-    healthNotes: "Sehat",
-    fatherName: "Dedi Handayani",
-    fatherPhone: "085678901235",
-    motherName: "Ani Handayani",
-    motherPhone: "085678901236",
-    guardianName: "",
-    guardianRelation: "",
-    guardianPhone: "",
-    enrollmentYear: 2025,
-    status: "active",
-    additionalNotes: "-",
-  },
-  {
-    id: "6",
-    name: "Galang Ramadhan",
-    nickname: "Galang",
-    nis: "2025006",
-    nisn: "0012345683",
-    class: "X IPS 1",
-    attendanceNumber: 6,
-    gender: "L",
-    birthPlace: "Medan",
-    birthDate: "2010-09-18",
-    religion: "Islam",
-    phone: "086789012345",
-    address: "Jl. Seruni No. 7, RT 003/RW 001, Kel. Polonia, Kec. Medan Polonia, Medan 20152",
-    bloodType: "B",
-    height: 162,
-    weight: 52,
-    vision: "Normal",
-    hearing: "Normal",
-    teeth: "Normal",
-    disability: "Tidak Ada",
-    illnessHistory: "-",
-    allergies: "-",
-    healthNotes: "Sehat",
-    fatherName: "Surya Ramadhan",
-    fatherPhone: "086789012346",
-    motherName: "Lina Ramadhan",
-    motherPhone: "086789012347",
-    guardianName: "",
-    guardianRelation: "",
-    guardianPhone: "",
-    enrollmentYear: 2025,
-    status: "active",
-    additionalNotes: "-",
-  },
-  {
-    id: "7",
-    name: "Hana Wijaya",
-    nickname: "Hana",
-    nis: "2025007",
-    nisn: "0012345684",
-    class: "XI IPA 1",
-    attendanceNumber: 1,
-    gender: "P",
-    birthPlace: "Palembang",
-    birthDate: "2009-04-12",
-    religion: "Islam",
-    phone: "087890123456",
-    address: "Jl. Flamboyan No. 15, RT 002/RW 004, Kel. 9 Ilir, Kec. Ilir Timur II, Palembang 30114",
-    bloodType: "O",
-    height: 156,
-    weight: 47,
-    vision: "Normal",
-    hearing: "Normal",
-    teeth: "Normal",
-    disability: "Tidak Ada",
-    illnessHistory: "-",
-    allergies: "-",
-    healthNotes: "Sehat",
-    fatherName: "Herman Wijaya",
-    fatherPhone: "087890123457",
-    motherName: "Dewi Wijaya",
-    motherPhone: "087890123458",
-    guardianName: "",
-    guardianRelation: "",
-    guardianPhone: "",
-    enrollmentYear: 2024,
-    status: "active",
-    additionalNotes: "-",
-  },
-  {
-    id: "8",
-    name: "Irfan Kurniawan",
-    nickname: "Irfan",
-    nis: "2025008",
-    nisn: "0012345685",
-    class: "XI IPS 1",
-    attendanceNumber: 2,
-    gender: "L",
-    birthPlace: "Makassar",
-    birthDate: "2009-12-03",
-    religion: "Islam",
-    phone: "088901234567",
-    address: "Jl. Bougenville No. 9, RT 001/RW 003, Kel. Ballaparang, Kec. Rappocini, Makassar 90222",
-    bloodType: "A",
-    height: 168,
-    weight: 58,
-    vision: "Normal",
-    hearing: "Tidak Normal",
-    teeth: "Normal",
-    disability: "Tidak Ada",
-    illnessHistory: "Otitis media 2023",
-    allergies: "-",
-    healthNotes: "Peka terhadap suara keras di telinga kanan",
-    fatherName: "Rudi Kurniawan",
-    fatherPhone: "088901234568",
-    motherName: "Sari Kurniawan",
-    motherPhone: "088901234569",
-    guardianName: "Bapak Hari",
-    guardianRelation: "Kakek",
-    guardianPhone: "088901234570",
-    enrollmentYear: 2024,
-    status: "active",
-    additionalNotes: "Wali: Kakek (karena orang tua bekerja di luar kota)",
-  },
-];
+// Transform database student to display format
+function transformStudent(
+  student: StudentWithClass,
+  activeClass: (typeof student.student_classes)[0] | undefined,
+  parents: Parent[]
+): StudentDisplay {
+  const father = parents.find(p => p.type === "father") || null;
+  const mother = parents.find(p => p.type === "mother") || null;
+  const guardian = parents.find(p => p.type === "guardian") || null;
 
-// Available classes
-const availableClasses = [
-  { value: "", label: "Semua Kelas" },
-  { value: "X IPA 1", label: "X IPA 1" },
-  { value: "X IPA 2", label: "X IPA 2" },
-  { value: "X IPS 1", label: "X IPS 1" },
-  { value: "XI IPA 1", label: "XI IPA 1" },
-  { value: "XI IPS 1", label: "XI IPS 1" },
-];
+  return {
+    id: student.id,
+    full_name: student.full_name,
+    nickname: student.nickname,
+    student_number: student.student_number,
+    nisn: student.nisn,
+    class_name: activeClass?.classes
+      ? `${activeClass.classes.majors?.name || ""} ${activeClass.classes.name || ""}`.trim()
+      : "-",
+    attendance_number: activeClass?.attendance_number || null,
+    gender: student.gender,
+    birth_place: student.birth_place,
+    birth_date: student.birth_date,
+    religion: student.religion,
+    phone: student.phone,
+    address: student.address,
+    blood_type: student.blood_type,
+    height_cm: student.height_cm,
+    weight_kg: student.weight_kg,
+    vision: student.vision,
+    hearing: student.hearing,
+    teeth_condition: student.teeth_condition,
+    physical_disability: student.physical_disability,
+    illness_history: student.illness_history,
+    allergies: student.allergies,
+    health_notes: student.health_notes,
+    enrollment_year: student.enrollment_year,
+    is_active: student.is_active,
+    notes: student.notes,
+    father,
+    mother,
+    guardian,
+  };
+}
 
 // Student Detail Modal Component
 interface StudentDetailModalProps {
-  student: typeof sampleStudents[0] | null;
+  student: StudentDisplay | null;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -347,298 +131,460 @@ interface StudentDetailModalProps {
 function StudentDetailModal({ student, isOpen, onClose }: StudentDetailModalProps) {
   if (!isOpen || !student) return null;
 
-  const isActive = student.status === "active";
+  const genderLabel = student.gender === "male" ? "Laki-laki" : student.gender === "female" ? "Perempuan" : "-";
 
   return (
-    <>
+    <div className="fixed inset-0 z-[100] animate-slide-up">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
 
-      {/* Modal Content - Slide up from bottom */}
-      <div className="fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-[32px] max-h-[90vh] overflow-hidden animate-slide-up">
-        {/* Handle */}
-        <div className="flex justify-center pt-3 pb-2">
-          <div className="w-12 h-1.5 bg-[var(--border-light)] rounded-full" />
-        </div>
-
-        {/* Header */}
-        <div className="px-5 pb-4 border-b border-[var(--border-light)]/60">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-4">
-              {/* Avatar */}
-              <div
-                className={cn(
-                  "w-16 h-16 rounded-2xl flex items-center justify-center text-xl font-bold",
-                  student.gender === "L"
-                    ? "bg-[var(--primary-soft)] text-[var(--primary)]"
-                    : "bg-pink-100 text-pink-600"
-                )}
-              >
-                {student.name
-                  .split(" ")
-                  .map((n) => n[0])
-                  .slice(0, 2)
-                  .join("")}
-              </div>
-              <div>
-                <h2 className="text-[18px] font-semibold text-[var(--text-primary)]">
-                  {student.name}
-                </h2>
-                <p className="text-[13px] text-[var(--text-muted)] font-mono">
-                  NIS: {student.nis}
-                </p>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className={cn(
-                    "px-2 py-0.5 text-[11px] font-medium rounded-lg",
-                    isActive
-                      ? "bg-emerald-50 text-emerald-600"
-                      : "bg-slate-100 text-slate-600"
-                  )}>
-                    {isActive ? "Aktif" : "Tidak Aktif"}
-                  </span>
-                  <span className="text-[12px] text-[var(--text-muted)]">
-                    {student.class}
-                  </span>
-                </div>
-              </div>
+      {/* Modal Panel */}
+      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-b from-white to-slate-50 rounded-t-[28px] max-h-[92vh] flex flex-col shadow-[0_-4px_30px_rgba(0,0,0,0.15)]">
+        {/* Drag Handle Area */}
+        <div className="flex-none pt-[env(safe-area-inset-top,12px)] px-5 pb-2">
+          <div className="flex items-center justify-between">
+            <div className="flex-1 flex justify-center">
+              <div className="w-10 h-1 bg-slate-300 rounded-full mt-2" />
             </div>
             <button
               onClick={onClose}
-              className="w-10 h-10 rounded-xl flex items-center justify-center text-[var(--text-muted)] hover:bg-[var(--surface-hover)] transition-colors"
+              className="w-9 h-9 rounded-full flex items-center justify-center text-[var(--text-muted)] bg-slate-100 hover:bg-slate-200 transition-colors"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        {/* Content */}
-        <div className="overflow-y-auto px-5 py-4 pb-[calc(24px+env(safe-area-inset-bottom,24px))] max-h-[calc(90vh-220px)]">
-          {/* 1. Data Diri */}
-          <Section title="Data Diri" icon={<User className="w-4 h-4" />}>
-            <div className="grid grid-cols-2 gap-3">
-              <InfoItem label="Nama Lengkap" value={student.name} fullWidth />
-              {student.nickname && <InfoItem label="Nama Panggilan" value={student.nickname} />}
-              <InfoItem label="Jenis Kelamin" value={student.gender === "L" ? "Laki-laki" : "Perempuan"} />
-              <InfoItem label="Tempat Lahir" value={student.birthPlace} />
-              <InfoItem label="Tanggal Lahir" value={`${formatDate(student.birthDate)} (${formatAge(student.birthDate)})`} fullWidth />
-              <InfoItem label="Gol. Darah" value={student.bloodType} />
-              <InfoItem label="Agama" value={student.religion} />
-              {student.phone && <InfoItem label="No. WhatsApp" value={student.phone} icon={<Phone className="w-3 h-3" />} fullWidth />}
-              {student.address && <InfoItem label="Alamat Lengkap" value={student.address} icon={<MapPin className="w-3 h-3" />} fullWidth />}
+        {/* Header Info */}
+        <div className="flex-none px-5 pb-3">
+          <div className="flex items-center gap-3">
+            <Avatar
+              src={undefined}
+              fallback={student.full_name}
+              size="md"
+              className={cn(
+                "w-12 h-12 rounded-2xl text-base font-bold shadow-lg flex-shrink-0",
+                student.gender === "male"
+                  ? "bg-gradient-to-br from-blue-400 to-blue-600 text-white"
+                  : "bg-gradient-to-br from-pink-400 to-pink-500 text-white"
+              )}
+            />
+            <div className="flex-1 min-w-0">
+              <h2 className="text-[16px] font-bold text-[var(--text-primary)] truncate">
+                {student.full_name || "-"}
+              </h2>
+              <p className="text-[11px] text-[var(--text-muted)]">
+                {student.student_number || "-"} • {student.class_name || "-"}
+              </p>
             </div>
-          </Section>
+            <span className={cn(
+              "px-2.5 py-1 text-[10px] font-semibold rounded-full shadow-sm flex-none",
+              student.is_active
+                ? "bg-emerald-100 text-emerald-700"
+                : "bg-slate-100 text-slate-600"
+            )}>
+              {student.is_active ? "● Aktif" : "○ Nonaktif"}
+            </span>
+          </div>
+        </div>
+
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto px-5 pb-[calc(120px+env(safe-area-inset-bottom,24px))] space-y-4">
+          {/* 1. Data Diri */}
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center">
+                <User className="w-4 h-4 text-slate-600" />
+              </div>
+              <h3 className="text-[13px] font-semibold text-[var(--text-primary)]">Data Diri</h3>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wide">Nama Lengkap</p>
+                <p className="text-[14px] font-semibold text-[var(--text-primary)] mt-0.5">{student.full_name || "-"}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                <div>
+                  <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wide">Nama Panggilan</p>
+                  <p className="text-[12px] font-medium text-[var(--text-primary)] mt-0.5">{student.nickname || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wide">Jenis Kelamin</p>
+                  <p className="text-[12px] font-medium text-[var(--text-primary)] mt-0.5">{genderLabel}</p>
+                </div>
+                <div>
+                  <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wide">Tempat Lahir</p>
+                  <p className="text-[12px] font-medium text-[var(--text-primary)] mt-0.5">{student.birth_place || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wide">Tanggal Lahir</p>
+                  <p className="text-[12px] font-medium text-[var(--text-primary)] mt-0.5">{student.birth_date ? formatDate(student.birth_date) : "-"}</p>
+                </div>
+                <div>
+                  <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wide">Agama</p>
+                  <p className="text-[12px] font-medium text-[var(--text-primary)] mt-0.5">{student.religion || "-"}</p>
+                </div>
+              </div>
+              <div className="pt-2 border-t border-slate-100">
+                <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wide">No. WhatsApp</p>
+                <p className="text-[12px] font-medium text-[var(--text-primary)] mt-0.5 flex items-center gap-1.5">
+                  <Phone className="w-3 h-3" />
+                  {student.phone || "-"}
+                </p>
+              </div>
+              <div className="pt-2 border-t border-slate-100">
+                <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wide">Alamat Lengkap</p>
+                <p className="text-[12px] text-[var(--text-primary)] mt-0.5 leading-relaxed flex items-start gap-2">
+                  <MapPin className="w-4 h-4 text-[var(--text-muted)] mt-0.5 flex-shrink-0" />
+                  {student.address || "-"}
+                </p>
+              </div>
+            </div>
+          </div>
 
           {/* 2. Data Akademik */}
-          <Section title="Data Akademik" icon={<BookOpen className="w-4 h-4" />}>
-            <div className="grid grid-cols-2 gap-3">
-              <InfoItem label="Kelas" value={student.class} />
-              <InfoItem label="No. Absen" value={student.attendanceNumber.toString()} />
-              <InfoItem label="NISN" value={student.nisn} />
-              <InfoItem label="NIS" value={student.nis} />
-              <InfoItem label="Angkatan" value={student.enrollmentYear.toString()} />
-              <InfoItem
-                label="Status"
-                value={
-                  <span className={cn(
-                    "px-2 py-0.5 text-[11px] font-medium rounded-lg",
-                    isActive
-                      ? "bg-emerald-50 text-emerald-600"
-                      : "bg-slate-100 text-slate-600"
-                  )}>
-                    {isActive ? "Aktif" : "Tidak Aktif"}
-                  </span>
-                }
-              />
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center">
+                <BookOpen className="w-4 h-4 text-blue-500" />
+              </div>
+              <h3 className="text-[13px] font-semibold text-[var(--text-primary)]">Data Akademik</h3>
             </div>
-          </Section>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+              <div>
+                <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wide">Kelas</p>
+                <p className="text-[13px] font-semibold text-[var(--text-primary)] mt-0.5">{student.class_name || "-"}</p>
+              </div>
+              <div>
+                <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wide">No. Absen</p>
+                <p className="text-[13px] font-semibold text-[var(--text-primary)] mt-0.5">{student.attendance_number || "-"}</p>
+              </div>
+              <div>
+                <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wide">NISN</p>
+                <p className="text-[12px] font-medium text-[var(--text-primary)] mt-0.5">{student.nisn || "-"}</p>
+              </div>
+              <div>
+                <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wide">NIS</p>
+                <p className="text-[12px] font-medium text-[var(--text-primary)] mt-0.5">{student.student_number || "-"}</p>
+              </div>
+              <div>
+                <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wide">Angkatan</p>
+                <p className="text-[12px] font-medium text-[var(--text-primary)] mt-0.5">{student.enrollment_year || "-"}</p>
+              </div>
+              <div>
+                <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wide">Status</p>
+                <span className={cn(
+                  "inline-block mt-1 px-2 py-0.5 text-[10px] font-semibold rounded-full",
+                  student.is_active
+                    ? "bg-emerald-100 text-emerald-700"
+                    : "bg-slate-100 text-slate-600"
+                )}>
+                  {student.is_active ? "● Aktif" : "○ Tidak Aktif"}
+                </span>
+              </div>
+            </div>
+          </div>
 
           {/* 3. Orang Tua/Wali */}
-          <Section title="Orang Tua/Wali" icon={<Users className="w-4 h-4" />}>
-            <div className="space-y-3">
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 rounded-xl bg-purple-50 flex items-center justify-center">
+                <Users className="w-4 h-4 text-purple-500" />
+              </div>
+              <h3 className="text-[13px] font-semibold text-[var(--text-primary)]">Orang Tua / Wali</h3>
+            </div>
+            <div className="space-y-2.5">
               {/* Ayah */}
-              <div className="p-3 bg-blue-50 rounded-xl border border-blue-200">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center">
-                    <UserRound className="w-4 h-4 text-blue-600" />
-                  </div>
-                  <span className="text-[13px] font-semibold text-blue-700">Ayah</span>
+              <div className="flex items-start gap-3 p-3 bg-gradient-to-r from-blue-50 to-blue-100/50 rounded-xl">
+                <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center text-white font-bold text-sm shadow-md">
+                  {student.father?.full_name ? student.father.full_name.split(" ")[0][0] : "?"}
                 </div>
-                <div className="space-y-1.5">
-                  <p className="text-[14px] font-medium text-[var(--text-primary)]">{student.fatherName}</p>
-                  <p className="text-[12px] text-[var(--text-muted)] flex items-center gap-1.5">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-medium text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">Ayah</span>
+                  </div>
+                  <p className="text-[14px] font-semibold text-[var(--text-primary)] mt-1">{student.father?.full_name || "-"}</p>
+                  <p className="text-[12px] text-[var(--text-muted)] flex items-center gap-1.5 mt-0.5">
                     <Phone className="w-3 h-3" />
-                    {student.fatherPhone}
+                    {student.father?.phone || "-"}
                   </p>
                 </div>
               </div>
 
               {/* Ibu */}
-              <div className="p-3 bg-pink-50 rounded-xl border border-pink-200">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-7 h-7 rounded-lg bg-pink-100 flex items-center justify-center">
-                    <Baby className="w-4 h-4 text-pink-600" />
-                  </div>
-                  <span className="text-[13px] font-semibold text-pink-700">Ibu</span>
+              <div className="flex items-start gap-3 p-3 bg-gradient-to-r from-pink-50 to-pink-100/50 rounded-xl">
+                <div className="w-10 h-10 rounded-xl bg-pink-500 flex items-center justify-center text-white font-bold text-sm shadow-md">
+                  {student.mother?.full_name ? student.mother.full_name.split(" ")[0][0] : "?"}
                 </div>
-                <div className="space-y-1.5">
-                  <p className="text-[14px] font-medium text-[var(--text-primary)]">{student.motherName}</p>
-                  <p className="text-[12px] text-[var(--text-muted)] flex items-center gap-1.5">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-medium text-pink-600 bg-pink-100 px-2 py-0.5 rounded-full">Ibu</span>
+                  </div>
+                  <p className="text-[14px] font-semibold text-[var(--text-primary)] mt-1">{student.mother?.full_name || "-"}</p>
+                  <p className="text-[12px] text-[var(--text-muted)] flex items-center gap-1.5 mt-0.5">
                     <Phone className="w-3 h-3" />
-                    {student.motherPhone}
+                    {student.mother?.phone || "-"}
                   </p>
                 </div>
               </div>
 
-              {/* Wali (jika ada) */}
-              {student.guardianName && (
-                <div className="p-3 bg-purple-50 rounded-xl border border-purple-200">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-7 h-7 rounded-lg bg-purple-100 flex items-center justify-center">
-                      <Shield className="w-4 h-4 text-purple-600" />
-                    </div>
-                    <span className="text-[13px] font-semibold text-purple-700">
-                      Wali - {student.guardianRelation || "Lainnya"}
-                    </span>
+              {/* Wali */}
+              {student.guardian && (
+                <div className="flex items-start gap-3 p-3 bg-gradient-to-r from-purple-50 to-purple-100/50 rounded-xl border border-purple-200">
+                  <div className="w-10 h-10 rounded-xl bg-purple-500 flex items-center justify-center text-white shadow-md">
+                    <Shield className="w-4 h-4" />
                   </div>
-                  <div className="space-y-1.5">
-                    <p className="text-[14px] font-medium text-[var(--text-primary)]">{student.guardianName}</p>
-                    {student.guardianPhone && (
-                      <p className="text-[12px] text-[var(--text-muted)] flex items-center gap-1.5">
-                        <Phone className="w-3 h-3" />
-                        {student.guardianPhone}
-                      </p>
-                    )}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-medium text-purple-600 bg-purple-100 px-2 py-0.5 rounded-full">
+                        Wali {student.guardian.guardian_relation ? `• ${student.guardian.guardian_relation}` : ""}
+                      </span>
+                    </div>
+                    <p className="text-[14px] font-semibold text-[var(--text-primary)] mt-1">{student.guardian.full_name}</p>
+                    <p className="text-[12px] text-[var(--text-muted)] flex items-center gap-1.5 mt-0.5">
+                      <Phone className="w-3 h-3" />
+                      {student.guardian.phone || "-"}
+                    </p>
                   </div>
                 </div>
               )}
             </div>
-          </Section>
+          </div>
 
           {/* 4. Data Kesehatan */}
-          <Section title="Data Kesehatan" icon={<Heart className="w-4 h-4" />}>
-            <div className="grid grid-cols-2 gap-3">
-              <InfoItem label="Tinggi" value={`${student.height} cm`} />
-              <InfoItem label="Berat" value={`${student.weight} kg`} />
-              <InfoItem label="Penglihatan" value={student.vision} icon={<Eye className="w-3 h-3" />} />
-              <InfoItem label="Pendengaran" value={student.hearing} icon={<Activity className="w-3 h-3" />} />
-              <InfoItem label="Gigi & Mulut" value={student.teeth} />
-              <InfoItem label="Cacat Tubuh" value={student.disability} />
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 rounded-xl bg-red-50 flex items-center justify-center">
+                <Heart className="w-4 h-4 text-red-400" />
+              </div>
+              <h3 className="text-[13px] font-semibold text-[var(--text-primary)]">Data Kesehatan</h3>
             </div>
-            {(student.illnessHistory !== "-" || student.allergies !== "-") && (
+            <div className="grid grid-cols-3 gap-2">
+              <HealthBadge label="Tinggi" value={student.height_cm ? `${student.height_cm} cm` : "-"} />
+              <HealthBadge label="Berat" value={student.weight_kg ? `${student.weight_kg} kg` : "-"} />
+              <HealthBadge label="Gol. Darah" value={student.blood_type || "-"} />
+              <HealthBadge label="Penglihatan" value={student.vision || "-"} />
+              <HealthBadge label="Pendengaran" value={student.hearing || "-"} />
+              <HealthBadge label="Gigi & Mulut" value={student.teeth_condition || "-"} />
+            </div>
+            <div className="mt-3 pt-3 border-t border-slate-100">
+              <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wide">Cacat Tubuh</p>
+              <p className="text-[12px] text-[var(--text-primary)] mt-0.5">{student.physical_disability || "-"}</p>
+            </div>
+            {(student.illness_history || student.allergies || (student.health_notes && student.health_notes !== "-")) && (
               <div className="mt-3 space-y-2">
-                {student.illnessHistory !== "-" && (
-                  <div className="p-3 bg-amber-50 rounded-xl border border-amber-200">
-                    <p className="text-[11px] text-amber-600 font-medium mb-1">Riwayat Sakit</p>
-                    <p className="text-[13px] text-[var(--text-primary)]">{student.illnessHistory}</p>
+                {student.illness_history && student.illness_history !== "-" && (
+                  <div className="p-2.5 bg-amber-50 rounded-xl border border-amber-200">
+                    <p className="text-[10px] text-amber-600 font-semibold mb-0.5">⚠️ Riwayat Sakit</p>
+                    <p className="text-[12px] text-[var(--text-primary)]">{student.illness_history}</p>
                   </div>
                 )}
-                {student.allergies !== "-" && (
-                  <div className="p-3 bg-red-50 rounded-xl border border-red-200">
-                    <p className="text-[11px] text-red-600 font-medium mb-1">Alergi</p>
-                    <p className="text-[13px] text-[var(--text-primary)]">{student.allergies}</p>
+                {student.allergies && student.allergies !== "-" && (
+                  <div className="p-2.5 bg-red-50 rounded-xl border border-red-200">
+                    <p className="text-[10px] text-red-600 font-semibold mb-0.5">⚠️ Alergi</p>
+                    <p className="text-[12px] text-[var(--text-primary)]">{student.allergies}</p>
                   </div>
                 )}
-                {student.healthNotes !== "-" && (
-                  <div className="p-3 bg-blue-50 rounded-xl border border-blue-200">
-                    <p className="text-[11px] text-blue-600 font-medium mb-1">Catatan Kesehatan</p>
-                    <p className="text-[13px] text-[var(--text-primary)]">{student.healthNotes}</p>
+                {student.health_notes && student.health_notes !== "-" && (
+                  <div className="p-2.5 bg-blue-50 rounded-xl border border-blue-200">
+                    <p className="text-[10px] text-blue-600 font-semibold mb-0.5">📝 Catatan Kesehatan</p>
+                    <p className="text-[12px] text-[var(--text-primary)] leading-relaxed">{student.health_notes}</p>
                   </div>
                 )}
               </div>
             )}
-          </Section>
+          </div>
 
-          {/* 5. Lainnya */}
-          <Section title="Lainnya" icon={<FileText className="w-4 h-4" />}>
-            {(student.healthNotes && student.healthNotes !== "-") || (student.additionalNotes && student.additionalNotes !== "-") ? (
-              <div className="space-y-3">
-                {student.healthNotes && student.healthNotes !== "-" && (
-                  <div className="p-3 bg-blue-50 rounded-xl border border-blue-200">
-                    <p className="text-[11px] text-blue-600 font-medium mb-1">Catatan Kesehatan</p>
-                    <p className="text-[13px] text-[var(--text-primary)]">{student.healthNotes}</p>
-                  </div>
-                )}
-                {student.additionalNotes && student.additionalNotes !== "-" && (
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                    <p className="text-[11px] text-slate-600 font-medium mb-1">Catatan Tambahan</p>
-                    <p className="text-[13px] text-[var(--text-primary)]">{student.additionalNotes}</p>
-                  </div>
-                )}
+          {/* 5. Lainnya - Catatan Tambahan */}
+          {student.notes && student.notes !== "-" ? (
+            <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center">
+                  <FileText className="w-4 h-4 text-slate-500" />
+                </div>
+                <h3 className="text-[13px] font-semibold text-[var(--text-primary)]">Lainnya</h3>
               </div>
-            ) : (
-              <p className="text-[13px] text-[var(--text-muted)] text-center py-4 bg-[var(--surface-secondary)] rounded-xl">
-                Tidak ada catatan tambahan
-              </p>
-            )}
-          </Section>
+              <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200">
+                <p className="text-[10px] text-slate-600 font-semibold mb-0.5">Catatan Tambahan</p>
+                <p className="text-[12px] text-[var(--text-primary)] leading-relaxed">{student.notes}</p>
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
-    </>
-  );
-}
-
-// Section Component
-interface SectionProps {
-  title: string;
-  icon: React.ReactNode;
-  children: React.ReactNode;
-}
-
-function Section({ title, icon, children }: SectionProps) {
-  return (
-    <div className="mb-5">
-      <div className="flex items-center gap-2 mb-3">
-        <div className="text-[var(--primary)]">{icon}</div>
-        <h3 className="text-[14px] font-semibold text-[var(--text-primary)]">{title}</h3>
-      </div>
-      {children}
     </div>
   );
 }
 
-// Info Item Component
-interface InfoItemProps {
-  label: string;
-  value: React.ReactNode;
-  icon?: React.ReactNode;
-  fullWidth?: boolean;
-}
-
-function InfoItem({ label, value, icon, fullWidth }: InfoItemProps) {
+// Health Badge Component
+function HealthBadge({ label, value }: { label: string; value: string }) {
+  const isNormal = value === "Normal" || value.includes("cm") || value.includes("kg") || value === "-";
   return (
-    <div className={cn(fullWidth ? "col-span-2" : "")}>
-      <p className="text-[11px] text-[var(--text-muted)] mb-0.5">{label}</p>
-      <div className="flex items-center gap-1.5">
-        {icon && <span className="text-[var(--text-muted)]">{icon}</span>}
-        <p className="text-[13px] font-medium text-[var(--text-primary)]">{value}</p>
-      </div>
+    <div className={cn(
+      "p-2 rounded-xl text-center",
+      isNormal ? "bg-emerald-50" : "bg-amber-50"
+    )}>
+      <p className="text-[8px] text-[var(--text-muted)] uppercase">{label}</p>
+      <p className={cn(
+        "text-[11px] font-semibold mt-0.5",
+        isNormal ? "text-emerald-700" : "text-amber-700"
+      )}>
+        {value}
+      </p>
     </div>
   );
 }
 
 // Main Page Component
 export default function MobileBukuIndukPage() {
+  const { academicYear } = useAcademicYear();
+
+  // State
   const [search, setSearch] = useState("");
-  const [selectedClass, setSelectedClass] = useState("");
-  const [selectedStudent, setSelectedStudent] = useState<typeof sampleStudents[0] | null>(null);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [selectedClassId, setSelectedClassId] = useState("");
+  const [classes, setClasses] = useState<Class[]>([]);
+  const [students, setStudents] = useState<StudentDisplay[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedStudent, setSelectedStudent] = useState<StudentDisplay | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
-  // Filter students based on search and class
-  const filteredStudents = useMemo(() => {
-    return sampleStudents.filter((student) => {
-      const matchesSearch =
-        student.name.toLowerCase().includes(search.toLowerCase()) ||
-        student.nis.includes(search);
-      const matchesClass = selectedClass === "" || student.class === selectedClass;
-      return matchesSearch && matchesClass;
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  // Fetch classes
+  useEffect(() => {
+    const fetchClasses = async () => {
+      try {
+        let query = supabase
+          .from("classes")
+          .select("*, majors(*)")
+          .eq("status", "active");
+
+        if (academicYear?.id) {
+          // Get classes that have students in this academic year
+          const { data: studentClasses } = await supabase
+            .from("student_classes")
+            .select("class_id")
+            .eq("academic_year_id", academicYear.id)
+            .eq("status", "active");
+
+          if (studentClasses && studentClasses.length > 0) {
+            const uniqueClassIds = studentClasses.map((sc: any) => sc.class_id);
+            const classIds = [...new Set(uniqueClassIds)] as string[];
+            query = query.in("id", classIds);
+          }
+        }
+
+        const { data, error } = await query.order("name", { ascending: true });
+
+        if (error) throw error;
+        setClasses(data || []);
+      } catch (err) {
+        console.error("Error fetching classes:", err);
+      }
+    };
+
+    if (academicYear?.id) {
+      fetchClasses();
+    }
+  }, [academicYear?.id]);
+
+  // Fetch students
+  const fetchStudents = useCallback(async () => {
+    try {
+      setLoading(true);
+
+      let studentIds: string[] = [];
+
+      // Get students by class if selected
+      if (academicYear?.id && selectedClassId) {
+        const { data: studentClasses } = await supabase
+          .from("student_classes")
+          .select("student_id")
+          .eq("academic_year_id", academicYear.id)
+          .eq("class_id", selectedClassId)
+          .eq("status", "active");
+
+        if (studentClasses && studentClasses.length > 0) {
+          studentIds = studentClasses.map(sc => sc.student_id);
+        }
+      }
+
+      // Build students query
+      let query = supabase
+        .from("students")
+        .select(`
+          *,
+          student_classes (
+            *,
+            classes (
+              *,
+              majors (*)
+            )
+          ),
+          parents (*)
+        `, { count: "exact" });
+
+      // Apply search filter
+      if (debouncedSearch) {
+        query = query.or(
+          `full_name.ilike.%${debouncedSearch}%,student_number.ilike.%${debouncedSearch}%,nickname.ilike.%${debouncedSearch}%`
+        );
+      }
+
+      // Apply class filter
+      if (academicYear?.id && selectedClassId && studentIds.length > 0) {
+        query = query.in("id", studentIds);
+      }
+
+      // Sort by name
+      query = query.order("full_name", { ascending: true });
+
+      const { data, error, count } = await query;
+
+      if (error) throw error;
+
+      // Transform to display format
+      const displayStudents = (data || []).map((student) => {
+        const activeClass = student.student_classes?.find(
+          (sc: any) => sc.academic_year_id === academicYear?.id && sc.status === "active"
+        );
+        return transformStudent(student, activeClass, student.parents || []);
+      });
+
+      setStudents(displayStudents);
+    } catch (err) {
+      console.error("Error fetching students:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [academicYear?.id, selectedClassId, debouncedSearch]);
+
+  useEffect(() => {
+    fetchStudents();
+  }, [fetchStudents]);
+
+  // Class options for select
+  const classOptions = useMemo(() => {
+    const options = [{ value: "", label: "Semua Kelas" }];
+    classes.forEach((cls) => {
+      const className = `${cls.majors?.name || ""} ${cls.name}`.trim();
+      options.push({ value: cls.id, label: className });
     });
-  }, [search, selectedClass]);
+    return options;
+  }, [classes]);
 
   // Open student detail
-  const openStudentDetail = (student: typeof sampleStudents[0]) => {
+  const openStudentDetail = (student: StudentDisplay) => {
     setSelectedStudent(student);
     setIsDetailOpen(true);
   };
@@ -657,7 +603,7 @@ export default function MobileBukuIndukPage() {
           Buku Induk
         </h1>
         <p className="text-[13px] text-[var(--text-muted)] mt-0.5">
-          Daftar siswa aktif
+          {loading ? "Memuat..." : `${students.length} siswa`}
         </p>
       </div>
 
@@ -684,98 +630,86 @@ export default function MobileBukuIndukPage() {
       {/* Class Filter */}
       <div className="mb-4">
         <Select
-          options={availableClasses}
-          value={selectedClass}
-          onChange={(e) => setSelectedClass(e.target.value)}
+          options={classOptions}
+          value={selectedClassId}
+          onChange={(e) => setSelectedClassId(e.target.value)}
           placeholder="Semua Kelas"
         />
       </div>
 
-      {/* Results Info */}
-      <div className="flex items-center justify-between mb-3">
-        <p className="text-[13px] text-[var(--text-muted)]">
-          Menampilkan <span className="font-medium text-[var(--text-primary)]">{filteredStudents.length}</span> siswa
-        </p>
-        {selectedClass && (
-          <button
-            onClick={() => setSelectedClass("")}
-            className="text-[12px] text-[var(--primary)] hover:underline"
-          >
-            Reset filter
-          </button>
-        )}
-      </div>
+      {/* Loading State */}
+      {loading && (
+        <div className="flex items-center justify-center py-10">
+          <Loader2 className="w-6 h-6 text-[var(--primary)] animate-spin" />
+          <span className="ml-2 text-[14px] text-[var(--text-muted)]">Memuat data...</span>
+        </div>
+      )}
 
       {/* Student List */}
-      <Card className="p-0 overflow-hidden" padding="none">
-        {/* Student List */}
-        <div className="divide-y divide-[var(--border-light)]/40">
-          {filteredStudents.length === 0 ? (
-            <div className="px-4 py-10 text-center">
-              <User className="w-12 h-12 text-[var(--text-muted)] mx-auto mb-3" />
-              <p className="text-[14px] text-[var(--text-secondary)]">
-                {search || selectedClass
-                  ? "Tidak ada siswa yang cocok"
-                  : "Belum ada data siswa"}
-              </p>
-              {(search || selectedClass) && (
-                <button
-                  onClick={() => {
-                    setSearch("");
-                    setSelectedClass("");
-                  }}
-                  className="mt-3 text-[13px] text-[var(--primary)] hover:underline"
-                >
-                  Reset pencarian
-                </button>
-              )}
-            </div>
-          ) : (
-            filteredStudents.map((student) => (
-              <div
-                key={student.id}
-                className="px-4 py-3 flex items-center gap-3 hover:bg-[var(--surface-hover)] transition-colors cursor-pointer active:bg-[var(--surface-secondary)]"
-                onClick={() => openStudentDetail(student)}
-              >
-                {/* Avatar */}
-                <div
-                  className={cn(
-                    "w-11 h-11 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0",
-                    student.gender === "L"
-                      ? "bg-[var(--primary-soft)] text-[var(--primary)]"
-                      : "bg-pink-100 text-pink-600"
-                  )}
-                >
-                  {student.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .slice(0, 2)
-                    .join("")}
-                </div>
-
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <p className="text-[14px] font-medium text-[var(--text-primary)] truncate">
-                    {student.name}
-                  </p>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-[11px] text-[var(--text-muted)] font-mono">
-                      {student.nis}
-                    </span>
-                    <span className="text-[11px] text-[var(--text-muted)]">•</span>
-                    <span className="text-[11px] text-[var(--text-muted)]">
-                      {student.class}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Arrow */}
-                <ChevronRight className="w-5 h-5 text-[var(--text-muted)]" />
+      {!loading && (
+        <Card className="p-0 overflow-hidden" padding="none">
+          <div className="divide-y divide-[var(--border-light)]/40">
+            {students.length === 0 ? (
+              <div className="px-4 py-10 text-center">
+                <User className="w-12 h-12 text-[var(--text-muted)] mx-auto mb-3" />
+                <p className="text-[14px] text-[var(--text-secondary)]">
+                  {search || selectedClassId
+                    ? "Tidak ada siswa yang cocok"
+                    : "Belum ada data siswa"}
+                </p>
+                {(search || selectedClassId) && (
+                  <button
+                    onClick={() => {
+                      setSearch("");
+                      setSelectedClassId("");
+                    }}
+                    className="mt-3 text-[13px] text-[var(--primary)] hover:underline"
+                  >
+                    Reset pencarian
+                  </button>
+                )}
               </div>
-            ))
-          )}
-        </div>
-      </Card>
+            ) : (
+              students.map((student) => (
+                <div
+                  key={student.id}
+                  className="px-4 py-3 flex items-center gap-3 hover:bg-[var(--surface-hover)] transition-colors cursor-pointer active:bg-[var(--surface-secondary)]"
+                  onClick={() => openStudentDetail(student)}
+                >
+                  <Avatar
+                    src={undefined}
+                    fallback={student.full_name}
+                    size="sm"
+                    className={cn(
+                      "w-11 h-11 rounded-xl text-sm font-bold flex-shrink-0",
+                      student.gender === "male"
+                        ? "bg-[var(--primary-soft)] text-[var(--primary)]"
+                        : "bg-pink-100 text-pink-600"
+                    )}
+                  />
+
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[14px] font-medium text-[var(--text-primary)] truncate">
+                      {student.full_name}
+                    </p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-[11px] text-[var(--text-muted)] font-mono">
+                        {student.student_number}
+                      </span>
+                      <span className="text-[11px] text-[var(--text-muted)]">•</span>
+                      <span className="text-[11px] text-[var(--text-muted)]">
+                        {student.class_name}
+                      </span>
+                    </div>
+                  </div>
+
+                  <ChevronRight className="w-5 h-5 text-[var(--text-muted)]" />
+                </div>
+              ))
+            )}
+          </div>
+        </Card>
+      )}
 
       {/* Bottom Spacing */}
       <div className="h-4" />
