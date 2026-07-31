@@ -183,12 +183,7 @@ function StudentHeader({ student }: { student: StudentWithClass }) {
                     <span className="font-medium text-[var(--primary)]">{className}</span>
                   </div>
                 )}
-                {student.email && (
-                  <div className="flex items-center gap-2">
-                    <Mail className="w-4 h-4 text-[var(--text-muted)]" />
-                    <span>{student.email}</span>
-                  </div>
-                )}
+                {/* Note: email column was removed from students table */}
                 {student.phone && (
                   <div className="flex items-center gap-2">
                     <Phone className="w-4 h-4 text-[var(--text-muted)]" />

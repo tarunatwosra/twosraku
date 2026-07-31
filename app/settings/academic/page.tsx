@@ -106,7 +106,7 @@ function ClassFormModal({
         result = await updateClass(classToEdit.id, {
           name: formData.name,
           major_id: formData.major_id,
-          room_number: formData.room_number || null,
+          // Note: room_number column was removed from classes table
         })
       } else {
         result = await createClass({

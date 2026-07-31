@@ -602,7 +602,7 @@ function Section({ title, icon, children }: SectionProps) {
 // Info Item Component
 interface InfoItemProps {
   label: string;
-  value: string;
+  value: React.ReactNode;
   icon?: React.ReactNode;
   fullWidth?: boolean;
 }

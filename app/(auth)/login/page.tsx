@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, FormEvent, useEffect } from "react"
+import React, { useState, FormEvent, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from "@/hooks/useAuth"
@@ -23,11 +23,11 @@ export default function LoginPage() {
   const router = useRouter()
   const { login, isAuthenticated, isLoading: authLoading, error, clearError } = useAuth()
 
-  const [username, setUsername] = useState("")
-  const [password, setPassword] = useState("")
-  const [rememberMe, setRememberMe] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [username, setUsername] = useState<string>("")
+  const [password, setPassword] = useState<string>("")
+  const [rememberMe, setRememberMe] = useState<boolean>(false)
+  const [showPassword, setShowPassword] = useState<boolean>(false)
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
 
   // Redirect if already authenticated

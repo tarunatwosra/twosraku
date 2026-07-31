@@ -11,7 +11,7 @@
 
 export type UUID = string
 export type Timestamp = string
-export type Date = string
+export type DateString = string
 
 // ============================================
 // CORE TABLES
@@ -20,8 +20,8 @@ export type Date = string
 export interface AcademicYear {
   id: UUID
   name: string
-  start_date: Date
-  end_date: Date
+  start_date: DateString
+  end_date: DateString
   is_active: boolean
   is_locked: boolean
   created_at: Timestamp
@@ -35,8 +35,8 @@ export interface Semester {
   academic_year_id: UUID
   name: string
   semester_number: 1 | 2
-  start_date: Date
-  end_date: Date
+  start_date: DateString
+  end_date: DateString
   is_active: boolean
   is_locked: boolean
   created_at: Timestamp
@@ -72,7 +72,7 @@ export interface Student {
   nickname: string | null
   gender: 'male' | 'female'
   birth_place: string | null
-  birth_date: Date | null
+  birth_date: DateString | null
   religion: string | null
   blood_type: string | null
   height_cm: number | null
@@ -88,6 +88,7 @@ export interface Student {
   phone: string | null
   photo_url: string | null
   enrollment_year: number | null
+  is_active: boolean
   notes: string | null
   created_at: Timestamp
   updated_at: Timestamp
@@ -103,8 +104,8 @@ export interface StudentClass {
   attendance_number: number | null
   is_homeroom: boolean
   status: 'active' | 'inactive' | 'archived'
-  start_date: Date | null
-  end_date: Date | null
+  start_date: DateString | null
+  end_date: DateString | null
   created_at: Timestamp
   updated_at: Timestamp
   // Relations
@@ -118,7 +119,7 @@ export interface Parent {
   type: 'father' | 'mother' | 'guardian'
   full_name: string
   nik: string | null
-  birth_date: Date | null
+  birth_date: DateString | null
   occupation: string | null
   education: string | null
   phone: string | null
@@ -141,7 +142,7 @@ export interface User {
   full_name: string
   nickname: string | null
   gender: 'male' | 'female' | null
-  birth_date: Date | null
+  birth_date: DateString | null
   phone: string | null
   photo_url: string | null
   employee_number: string | null
@@ -183,7 +184,7 @@ export interface Attendance {
   class_id: UUID
   academic_year_id: UUID
   semester_id: UUID
-  date: Date
+  date: DateString
   status: AttendanceStatus
   notes: string | null
   recorded_by: UUID | null
@@ -264,8 +265,8 @@ export interface AssessmentSession {
   semester_id: UUID
   class_id: UUID | null
   evaluator_id: UUID | null
-  start_date: Date | null
-  end_date: Date | null
+  start_date: DateString | null
+  end_date: DateString | null
   status: SessionStatus
   is_locked: boolean
   locked_by: UUID | null
@@ -347,7 +348,7 @@ export interface CharacterEvent {
   id: UUID
   name: string
   description: string | null
-  event_date: Date
+  event_date: DateString
   location: string | null
   organizer: string | null
   academic_year_id: UUID | null
@@ -367,7 +368,7 @@ export interface CharacterRecord {
   class_id: UUID | null
   academic_year_id: UUID | null
   semester_id: UUID | null
-  date: Date
+  date: DateString
   description: string | null
   evidence_url: string | null
   status: RecordStatus

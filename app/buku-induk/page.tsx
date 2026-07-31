@@ -201,7 +201,6 @@ export default function BukuIndukPage() {
   // Filter hooks
   const { majors } = useMajors()
   const { classes } = useClasses({
-    academicYearId: academicYear?.id,
     majorId: majorId || undefined,
   })
 

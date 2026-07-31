@@ -190,6 +190,7 @@ interface CreateStudentData {
   address?: string | null
   phone?: string | null
   enrollment_year?: number
+  is_active?: boolean
   notes?: string | null
 }
 

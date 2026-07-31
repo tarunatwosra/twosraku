@@ -350,33 +350,7 @@ export default function StudentHistoryPage({ params }: StudentHistoryPageProps) 
       })
     }
 
-    // Status changes - check graduation via graduation_year
-    if (student.graduation_year) {
-      items.push({
-        id: "graduation",
-        type: "graduation",
-        title: "Kelulusan",
-        description: `Lulus dari sekolah tahun ${student.graduation_year}`,
-        date: student.graduation_year
-          ? `${student.graduation_year}-06-01`
-          : student.updated_at,
-        icon: <GraduationCap className="w-5 h-5" />,
-        variant: "info",
-      })
-    }
-
-    // Check transfer via transfer_date
-    if (student.transfer_date && !student.graduation_year) {
-      items.push({
-        id: "transfer",
-        type: "transfer",
-        title: "perpindahan",
-        description: student.transfer_reason || "Siswa pindah ke sekolah lain",
-        date: student.transfer_date || student.updated_at,
-        icon: <ArrowRightLeft className="w-5 h-5" />,
-        variant: "warning",
-      })
-    }
+    // Note: graduation_year, transfer_date, transfer_reason columns were removed from students table
 
     // Class changes
     const classHistory = [...(student.student_classes || [])]
@@ -542,15 +516,7 @@ export default function StudentHistoryPage({ params }: StudentHistoryPageProps) 
               label="Tahun Masuk"
               value={student.enrollment_year?.toString() || "-"}
             />
-            {student.graduation_year && (
-              <SummaryCard
-                icon={<GraduationCap className="w-5 h-5" />}
-                iconBg="bg-gradient-to-br from-blue-50 to-blue-100/50"
-                iconColor="text-blue-600"
-                label="Tahun Lulus"
-                value={student.graduation_year.toString()}
-              />
-            )}
+            {/* Note: graduation_year column was removed from students table */}
           </div>
 
           {/* Timeline */}

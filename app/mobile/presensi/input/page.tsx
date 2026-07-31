@@ -135,7 +135,15 @@ function StudentListItem({
   status,
   onStatusChange,
 }: {
-  student: { id: string; name: string; studentNumber: string; gender: "L" | "P" }
+  student: {
+    id: string;
+    name: string;
+    studentNumber: string;
+    gender: "L" | "P";
+    entryYear?: string | number;
+    class?: string;
+    attendanceNumber?: string | number;
+  }
   status: AttendanceStatus
   onStatusChange: (status: AttendanceStatus) => void
 }) {
@@ -159,7 +167,7 @@ function StudentListItem({
           </h3>
           <div className="flex items-center justify-between mt-0.5">
             <span className="text-[10px] text-[var(--text-muted)]">
-              {student.entryYear} - {student.class.replace(/^X |^XI |^XII /, "")} - {student.attendanceNumber}
+              {student.entryYear ? `${student.entryYear} - ` : ""}{student.class?.replace(/^X |^XI |^XII /, "") || ""}{student.attendanceNumber ? ` - ${student.attendanceNumber}` : ""}
             </span>
             <span className="text-[10px] text-[var(--text-muted)]">
               {student.gender === "L" ? "Laki-laki" : "Perempuan"}

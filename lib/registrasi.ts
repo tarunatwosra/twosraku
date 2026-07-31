@@ -519,8 +519,13 @@ export async function getStudentById(studentId: string): Promise<{
         .eq("status", "active")
         .single()
 
-      if (studentClass && (studentClass.classes as { name: string } | null)?.name) {
-        className = (studentClass.classes as { name: string }).name
+      if (studentClass?.classes) {
+        const classesData = studentClass.classes as { name: string } | { name: string }[] | null
+        if (classesData && !Array.isArray(classesData)) {
+          className = classesData.name
+        } else if (Array.isArray(classesData) && classesData.length > 0) {
+          className = classesData[0].name
+        }
       }
     } catch {
       // Ignore class fetch errors

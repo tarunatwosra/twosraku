@@ -315,11 +315,9 @@ export default function NewStudentPage() {
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitSuccess, setSubmitSuccess] = useState(false)
 
-  // Academic data
+  // Classes (no academic year filter - classes are not tied to academic years)
   const { academicYear } = useAcademicYear()
-  const { classes } = useClasses({
-    academicYearId: academicYear?.id,
-  })
+  const { classes } = useClasses()
 
   // Handle input change
   const handleChange = (
