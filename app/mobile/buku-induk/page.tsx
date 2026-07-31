@@ -460,63 +460,87 @@ export default function MobileBukuIndukPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  // Fetch classes
+  // Fetch classes - hanya kelas yang memiliki siswa di tahun ajaran aktif
   useEffect(() => {
     const fetchClasses = async () => {
+      if (!academicYear?.id) {
+        setClasses([]);
+        return;
+      }
+
       try {
-        let query = supabase
-          .from("classes")
-          .select("*, majors(*)")
+        // Ambil student_classes untuk tahun ajaran aktif
+        const { data: studentClasses } = await supabase
+          .from("student_classes")
+          .select("class_id")
+          .eq("academic_year_id", academicYear.id)
           .eq("status", "active");
 
-        if (academicYear?.id) {
-          // Get classes that have students in this academic year
-          const { data: studentClasses } = await supabase
-            .from("student_classes")
-            .select("class_id")
-            .eq("academic_year_id", academicYear.id)
-            .eq("status", "active");
-
-          if (studentClasses && studentClasses.length > 0) {
-            const uniqueClassIds = studentClasses.map((sc: any) => sc.class_id);
-            const classIds = [...new Set(uniqueClassIds)] as string[];
-            query = query.in("id", classIds);
-          }
+        if (!studentClasses || studentClasses.length === 0) {
+          setClasses([]);
+          return;
         }
 
-        const { data, error } = await query.order("name", { ascending: true });
+        // Ambil unique class IDs
+        const uniqueClassIds = [...new Set(studentClasses.map(sc => sc.class_id))];
+
+        // Ambil detail kelas
+        const { data, error } = await supabase
+          .from("classes")
+          .select("*, majors(*)")
+          .eq("status", "active")
+          .in("id", uniqueClassIds)
+          .order("name", { ascending: true });
 
         if (error) throw error;
         setClasses(data || []);
       } catch (err) {
         console.error("Error fetching classes:", err);
+        setClasses([]);
       }
     };
 
-    if (academicYear?.id) {
-      fetchClasses();
-    }
+    fetchClasses();
   }, [academicYear?.id]);
 
-  // Fetch students
+  // Fetch students - selalu filter berdasarkan tahun ajaran aktif
   const fetchStudents = useCallback(async () => {
     try {
       setLoading(true);
 
+      // Pastikan ada tahun ajaran aktif
+      if (!academicYear?.id) {
+        setStudents([]);
+        setLoading(false);
+        return;
+      }
+
       let studentIds: string[] = [];
 
-      // Get students by class if selected
-      if (academicYear?.id && selectedClassId) {
-        const { data: studentClasses } = await supabase
-          .from("student_classes")
-          .select("student_id")
-          .eq("academic_year_id", academicYear.id)
-          .eq("class_id", selectedClassId)
-          .eq("status", "active");
+      // Ambil siswa berdasarkan tahun ajaran aktif
+      const { data: studentClassesData, error: scError } = await supabase
+        .from("student_classes")
+        .select("student_id, class_id")
+        .eq("academic_year_id", academicYear.id)
+        .eq("status", "active");
 
-        if (studentClasses && studentClasses.length > 0) {
-          studentIds = studentClasses.map(sc => sc.student_id);
-        }
+      if (scError) throw scError;
+
+      // Jika ada filter kelas, ambil hanya siswa di kelas tersebut
+      if (selectedClassId) {
+        studentIds = (studentClassesData || [])
+          .filter(sc => sc.class_id === selectedClassId)
+          .map(sc => sc.student_id);
+      } else {
+        // Jika tidak ada filter kelas, ambil semua siswa di tahun ajaran aktif
+        studentIds = (studentClassesData || []).map(sc => sc.student_id);
+      }
+
+      // Jika tidak ada siswa yang match, tampilkan empty
+      if (studentIds.length === 0) {
+        setStudents([]);
+        setLoading(false);
+        return;
       }
 
       // Build students query
@@ -532,7 +556,8 @@ export default function MobileBukuIndukPage() {
             )
           ),
           parents (*)
-        `, { count: "exact" });
+        `, { count: "exact" })
+        .in("id", studentIds);
 
       // Apply search filter
       if (debouncedSearch) {
@@ -541,15 +566,10 @@ export default function MobileBukuIndukPage() {
         );
       }
 
-      // Apply class filter
-      if (academicYear?.id && selectedClassId && studentIds.length > 0) {
-        query = query.in("id", studentIds);
-      }
-
       // Sort by name
       query = query.order("full_name", { ascending: true });
 
-      const { data, error, count } = await query;
+      const { data, error } = await query;
 
       if (error) throw error;
 
