@@ -1218,6 +1218,7 @@ export default function ImportStudentsPage() {
           blood_type: row.blood_type || undefined,
           address: row.address || undefined,
           phone: row.phone || undefined,
+          nisn: row.nisn || undefined,
           enrollment_year: row.enrollment_year
             ? parseInt(row.enrollment_year)
             : new Date().getFullYear(),

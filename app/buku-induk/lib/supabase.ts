@@ -189,6 +189,7 @@ interface CreateStudentData {
   blood_type?: string | null
   address?: string | null
   phone?: string | null
+  nisn?: string | null
   enrollment_year?: number
   is_active?: boolean
   notes?: string | null
@@ -201,14 +202,32 @@ export async function createStudent(
   data: CreateStudentData
 ): Promise<{ success: boolean; student?: Student; error?: string }> {
   try {
+    const insertData: Record<string, unknown> = {
+      student_number: data.student_number,
+      full_name: data.full_name,
+      nickname: data.nickname || null,
+      gender: data.gender,
+      birth_place: data.birth_place || null,
+      birth_date: data.birth_date || null,
+      religion: data.religion || null,
+      blood_type: data.blood_type || null,
+      address: data.address || null,
+      phone: data.phone || null,
+      enrollment_year: data.enrollment_year || null,
+      notes: data.notes || null,
+      is_active: data.is_active !== undefined ? data.is_active : true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+
+    // Add nisn if provided and has value
+    if (data.nisn && data.nisn.trim()) {
+      insertData.nisn = data.nisn.trim()
+    }
+
     const { data: newStudent, error } = await supabase
       .from("students")
-      .insert({
-        ...data,
-        is_active: data.is_active !== undefined ? data.is_active : true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
+      .insert(insertData)
       .select()
       .single()
 
