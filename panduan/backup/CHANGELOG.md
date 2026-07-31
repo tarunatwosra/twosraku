@@ -28,6 +28,26 @@ Berisi catatan semua perubahan yang dilakukan pada file-file panduan. Setiap kal
 
 <!-- Changelog entries will be added below this line -->
 
+## 2026-07-31
+
+### schema.md (database/)
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-07-31 |
+| Perubahan | Hapus academic_year_id dan room_number dari classes; Hapus national_id, nationality, email, graduation_year, transfer_date, transfer_reason dari students |
+| Backup | schema-001.md |
+| Catatan | Sinkron dengan migration 006 & 007 |
+
+### student-registry.md (19-feature-specifications/)
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-07-31 |
+| Perubahan | Update field form sesuai kolom students terbaru; Hapus field yang sudah tidak ada |
+| Backup | student-registry-001.md, student-registry-002.md |
+| Catatan | Sinkron dengan schema terbaru |
+
+---
+
 ## 2026-07-10 (Import Enhancement)
 
 ### student-registry.md (19-feature-specifications/)

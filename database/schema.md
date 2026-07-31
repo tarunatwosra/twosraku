@@ -1,7 +1,7 @@
 # Database Schema - Twosraku
 
-**Versi**: 2.1
-**Last Updated**: 2026-07-05
+**Versi**: 2.2
+**Last Updated**: 2026-07-31
 **Database**: Supabase (PostgreSQL)
 
 ---
@@ -90,15 +90,11 @@ Tahap 4: System Tables (Bisa dibuat kapan saja)
 | id | uuid | PK | Primary key |
 | name | varchar(50) | NOT NULL | Nama kelas (contoh: "TKJ 1") |
 | major_id | uuid | FK → majors.id, NOT NULL | Jurusan |
-| academic_year_id | uuid | FK → academic_years.id, NOT NULL | Tahun ajaran |
-| room_number | varchar(10) | | Nomor ruang |
 | status | varchar(20) | DEFAULT 'active' | Status |
 | created_at | timestamptz | DEFAULT now() | Timestamp |
 | updated_at | timestamptz | DEFAULT now() | Timestamp |
 
-**Index**: `idx_classes_academic_year`, `idx_classes_major`
-
-**Catatan**: Tingkat kelas (X, XI, XII) tidak disimpan di tabel terpisah. Informasi tingkat diambil dari nama kelas atau bisa ditambahkan sebagai field单独的 jika diperlukan.
+**Catatan**: Classes tidak lagi terikat tahun ajaran. Siswa terhubung ke kelas melalui tabel `student_classes` yang memiliki `academic_year_id`. Room number dihapus karena tidak diperlukan.
 
 **Contoh Data**: TKJ 1, RPL 2, AKL 1
 
@@ -113,14 +109,12 @@ Tahap 4: System Tables (Bisa dibuat kapan saja)
 | id | uuid | PK | Primary key |
 | student_number | varchar(20) | NOT NULL, UNIQUE | Nomor induk siswa |
 | nisn | varchar(20) | UNIQUE | NISN (nullable) |
-| national_id | varchar(20) | UNIQUE | NIK/KTP (nullable) |
 | full_name | varchar(255) | NOT NULL | Nama lengkap |
 | nickname | varchar(100) | | Nama panggilan |
 | gender | varchar(10) | NOT NULL | male, female |
 | birth_place | varchar(100) | | Tempat lahir |
 | birth_date | date | | Tanggal lahir |
 | religion | varchar(50) | | Agama |
-| nationality | varchar(50) | DEFAULT 'Indonesia' | Kewarganegaraan |
 | blood_type | varchar(5) | | Golongan darah |
 | height_cm | decimal(5,2) | | Tinggi badan (cm) |
 | weight_kg | decimal(5,2) | | Berat badan (kg) |
@@ -133,18 +127,16 @@ Tahap 4: System Tables (Bisa dibuat kapan saja)
 | health_notes | text | | Catatan kesehatan |
 | address | text | | Alamat lengkap |
 | phone | varchar(20) | | Nomor HP/WhatsApp |
-| email | varchar(255) | | Email |
 | photo_url | text | | URL foto |
 | is_active | boolean | DEFAULT true | Status aktif (true/false) |
 | enrollment_year | integer | | Tahun masuk |
-| graduation_year | integer | | Tahun lulus |
-| transfer_date | date | | Tanggal mutasi |
-| transfer_reason | text | | Alasan mutasi |
 | notes | text | | Catatan |
 | created_at | timestamptz | DEFAULT now() | Timestamp |
 | updated_at | timestamptz | DEFAULT now() | Timestamp |
 | created_by | uuid | FK → users.id | User pembuat |
 | updated_by | uuid | FK → users.id | User pengupdate |
+
+**Catatan**: Kolom national_id, nationality, email, graduation_year, transfer_date, transfer_reason dihapus karena tidak diperlukan untuk fitur buku induk.
 
 **Index**: `idx_students_number`, `idx_students_is_active`, `idx_students_name`, `idx_students_nisn`
 

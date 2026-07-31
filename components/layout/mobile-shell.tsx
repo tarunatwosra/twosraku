@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { MobileHeader } from "./mobile-header";
 import { MobileBottomNav } from "./mobile-bottom-nav";
+import { getStoredRedirectUrl } from "@/hooks/useAuthRedirect";
 
 interface MobileShellProps {
   children: React.ReactNode;
@@ -20,9 +21,13 @@ export function MobileShell({
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
 
-  // Redirect to login if not authenticated
+  // Redirect to login if not authenticated (and save redirect URL)
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
+      const currentPath = getStoredRedirectUrl() || window.location.pathname;
+      if (currentPath !== "/login") {
+        sessionStorage.setItem("redirectUrl", currentPath);
+      }
       router.push("/login");
     }
   }, [isAuthenticated, authLoading, router]);

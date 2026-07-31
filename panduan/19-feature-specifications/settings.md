@@ -1,5 +1,5 @@
 # Settings Module — Compact
-Version: 2.1 | Updated: 2026-07-05
+Version: 2.2 | Updated: 2026-07-31
 
 **Purpose:** Settings is Twosraku's centralized configuration engine, managing all configurable aspects of the application without touching operational data. Settings determine how the system behaves, not what data it contains. Configuration should be centralized, reusable, auditable, and secure.
 
@@ -9,7 +9,7 @@ Version: 2.1 | Updated: 2026-07-05
 
 **Scope:** General Settings, School Profile, Academic Settings, User Management, Roles & Permissions, Appearance, Notifications, Import & Export, Reports, Security, Backup, Storage, Integrations, Audit Logs, System Maintenance, AI Configuration (future).
 
-**Navigation:** Settings → General, School Profile, Academic (Tahun Ajaran, Sistem Penilaian, **Jurusan** [NEW v2.0], **Kelas** [NEW v2.0]), Users, Roles & Permissions, Appearance, Notifications, Reports, Import & Export, Security, Backup & Restore, Storage, Integrations, Audit Logs, Maintenance, About.
+**Navigation:** Settings → General, School Profile, Academic (Tahun Ajaran, Sistem Penilaian, Jurusan, Kelas), Users, Roles & Permissions, Appearance, Notifications, Reports, Import & Export, Security, Backup & Restore, Storage, Integrations, Audit Logs, Maintenance, About.
 
 ### General Settings
 **Purpose:** configure global application behavior.
@@ -22,15 +22,23 @@ Version: 2.1 | Updated: 2026-07-05
 
 ### Academic Settings
 **Purpose:** configure academic structure.
-**Properties:** Academic Year, Semester, Active Semester, Grading Scale, Attendance Threshold, Character Formula, Passing Grade, Default Class Status, Graduation Rules, Jurusan (Majors) [NEW v2.0], Kelas (Classes) [NEW v2.0]. Academic changes require administrator permission.
+**Properties:** Academic Year, Semester, Active Semester, Grading Scale, Attendance Threshold, Character Formula, Passing Grade, Default Class Status, Graduation Rules, Jurusan (Majors), Kelas (Classes). Academic changes require administrator permission.
 
-**Academic Tabs (NEW v2.0):**
+**Academic Tabs:**
 
-**1. Tahun Ajaran** — mengelola tahun ajaran sekolah. Aksi: lihat daftar tahun ajaran, pilih tahun ajaran aktif, tambah tahun ajaran baru (disabled — belum diimplementasi). Catatan: tahun ajaran aktif menentukan data kelas yang ditampilkan.
+**1. Tahun Ajaran** — mengelola tahun ajaran sekolah dari database. Aksi: lihat daftar tahun ajaran, pilih tahun ajaran aktif, tambah/hapus tahun ajaran. Data diambil langsung dari tabel `academic_years` di Supabase.
+
+| Field | Tipe | Required | Deskripsi |
+|-------|------|----------|-----------|
+| Nama | Text | ✅ | Nama tahun ajaran (contoh: "2025/2026") |
+| Tanggal Mulai | Date | ✅ | Tanggal mulai tahun ajaran |
+| Tanggal Selesai | Date | ✅ | Tanggal selesai tahun ajaran |
+
+**Catatan:** Tahun ajaran aktif menentukan konteks data yang ditampilkan di seluruh aplikasi (absensi, penilaian, dll).
 
 **2. Sistem Penilaian** — mengatur skala penilaian dan ambang batas kelulusan. Komponen: Skala Penilaian (A-E dengan rentang skor), Batas Kehadiran (minimum persentase kehadiran untuk lulus), Nilai Kelulusan (minimum nilai untuk dinyatakan lulus).
 
-**3. Jurusan (Majors) [NEW v2.0]** — mengelola jurusan/program keahlian di sekolah.
+**3. Jurusan (Majors)** — mengelola jurusan/program keahlian di sekolah. Data dari tabel `majors`.
 
 | Field | Tipe | Required | Deskripsi |
 |-------|------|----------|-----------|
@@ -47,18 +55,20 @@ Contoh:
 | Rekayasa Perangkat Lunak | RPL | Program keahlian pengembangan software |
 | Akuntansi | AKT | Program keahlian akuntansi |
 
-**4. Kelas (Classes) [NEW v2.0]** — mengelola kelas yang terdiri dari jurusan dan tahun ajaran.
+**4. Kelas (Classes)** — mengelola kelas yang terdiri dari nama dan jurusan. Data dari tabel `classes`.
 
 | Field | Tipe | Required | Deskripsi |
 |-------|------|----------|-----------|
 | Nama Kelas | Text | ✅ | Nama kelas (contoh: "TKJ 1") |
 | Jurusan | Select | ✅ | Pilih dari daftar jurusan |
-| Tahun Ajaran | Select | ✅ | Pilih tahun ajaran aktif |
-| Nomor Ruang | Text | - | Nomor ruang kelas (opsional) |
 
-Aksi: tambah/edit kelas; hapus kelas (soft delete jika punya siswa, hard delete jika kosong). Filter: berdasarkan tahun ajaran. Integrasi: kelas yang dibuat di sini muncul di dropdown "Kelas" saat tambah/edit siswa di Buku Induk.
+Aksi: tambah/edit kelas; hapus kelas (soft delete jika punya siswa, hard delete jika kosong). Integrasi: kelas yang dibuat di sini muncul di dropdown "Kelas" saat tambah/edit siswa di Buku Induk.
 
-**Business Rules:** kelas terikat pada tahun ajaran tertentu; satu kombinasi jurusan + tahun ajaran bisa memiliki multiple kelas (TKJ 1, TKJ 2); menghapus kelas dengan siswa akan mengubah status menjadi "inactive" (soft delete).
+**Business Rules:**
+- **Kelas adalah entitas STATIS** — kelas tidak terikat tahun ajaran
+- Siswa terikat tahun ajaran melalui tabel `student_classes`
+- Satu kombinasi jurusan bisa memiliki multiple kelas (TKJ 1, TKJ 2, TKJ 3)
+- Menghapus kelas dengan siswa akan mengubah status menjadi "inactive" (soft delete)
 
 **Catatan Semester:** semester ditangani secara lokal oleh masing-masing modul (absensi, penilaian) — tidak dikelola di Settings Academic.
 
@@ -146,7 +156,44 @@ Complete when: all configurable behavior managed through Settings; no operationa
 ### Final Principle
 Settings is not a preferences page — it is the centralized configuration engine of Twosraku. Every configurable behavior should be managed through this module while maintaining security, consistency, auditability, and long-term scalability.
 
-### Changelog v2.0 (2026-07-03)
+### Database Architecture
+
+**Relasi Data Akademik:**
+
+```
+┌─────────────┐     ┌──────────────────┐     ┌─────────────┐
+│  students   │────▶│ student_classes   │◀────│   classes   │
+│             │     │                  │     │             │
+│ id          │     │ student_id       │     │ id          │
+│ full_name   │     │ class_id         │     │ name (TKJ 1)│
+│ gender      │     │ academic_year_id │     │ major_id    │
+│ ...         │     │ attendance_num   │     │ status      │
+└─────────────┘     └────────┬─────────┘     └─────────────┘
+                               │
+                               ▼
+                    ┌──────────────────┐
+                    │ academic_years   │
+                    │                  │
+                    │ name: 2025/2026  │
+                    │ is_active: true  │
+                    └──────────────────┘
+```
+
+**Catatan:** Siswa terhubung ke kelas dan tahun ajaran melalui tabel `student_classes`. Ini memungkinkan:
+- 1 siswa bisa memiliki multiple enrollment (naik kelas setiap tahun)
+- Kelas tetap ada untuk angkatan baru
+- Tahun ajaran menentukan konteks data siswa
+
+### Changelog
+
+**v2.2 (2026-07-31):**
+1. Tahun Ajaran sekarang diambil dari database (`academic_years`) bukan hardcoded
+2. Kelas tidak lagi terikat tahun ajaran (`academic_year_id` dihapus dari `classes`)
+3. Kolom `room_number` dihapus dari `classes`
+4. Hubungan siswa-kelas-ta dikelola melalui `student_classes`
+5. CRUD operations Tahun Ajaran dari database
+
+**v2.1 (2026-07-05):**
 **Perubahan dari v1.0:**
 1. Academic Settings diperluas dengan tab baru: Jurusan (Majors) — kelola jurusan/program keahlian; Kelas (Classes) — kelola kelas yang terdiri dari nama + jurusan + tahun ajaran.
 2. Integrasi dengan Buku Induk: kelas yang dibuat di Settings Academic muncul di dropdown "Kelas" saat tambah/edit siswa.
@@ -155,5 +202,5 @@ Settings is not a preferences page — it is the centralized configuration engin
 **Catatan:** Tingkat (grade) tidak lagi disimpan di tabel terpisah — informasi tingkat diambil dari nama kelas.
 
 ---
-Last Updated: 2026-07-05 | Version: 2.1
+Last Updated: 2026-07-31 | Version: 2.2
 # End of Settings Module (Compact)

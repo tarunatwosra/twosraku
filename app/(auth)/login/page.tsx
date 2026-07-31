@@ -78,7 +78,16 @@ export default function LoginPage() {
       })
 
       if (result.success) {
-        router.push("/")
+        // Check for stored redirect URL (from ProtectedRoute)
+        const storedRedirect = sessionStorage.getItem("redirectUrl")
+        const redirectTo = storedRedirect || "/"
+
+        // Clear the stored redirect URL
+        if (storedRedirect) {
+          sessionStorage.removeItem("redirectUrl")
+        }
+
+        router.push(redirectTo)
       } else {
         setValidationErrors({ general: result.error || "Login gagal" })
       }
