@@ -208,16 +208,18 @@ function parseAddressFromDb(address: string | null): ParsedAddress {
 
 /**
  * Format 8 field address menjadi 1 string untuk disimpan ke database
+ * Format: "KLECO WETAN RT 08 RW 03, SIDOHARJO, SIDOHARJO, SRAGEN, JAWA TENGAH"
+ * Village + RT + RW digabung tanpa koma di antara ketiganya
  */
 function formatAddressForDb(data: Partial<RegistrationFormData>): string {
   const parts: string[] = []
 
-  // Street/Village name (tanpa prefix)
-  if (data.address_street) {
-    parts.push(data.address_street)
-  }
+  // Village + RT + RW digabung jadi 1 part (tanpa koma di antaranya)
+  // Contoh: "KLECO WETAN RT 08 RW 03"
+  const villageAndRtRw: string[] = []
+
   if (data.address_village) {
-    parts.push(data.address_village)
+    villageAndRtRw.push(data.address_village)
   }
 
   // RT RW (tanpa / di antaranya)
@@ -225,15 +227,19 @@ function formatAddressForDb(data: Partial<RegistrationFormData>): string {
     const rt = data.address_rt ? `RT ${data.address_rt}` : ""
     const rw = data.address_rw ? `RW ${data.address_rw}` : ""
     if (rt && rw) {
-      parts.push(`${rt} ${rw}`)
+      villageAndRtRw.push(`${rt} ${rw}`)
     } else if (rt) {
-      parts.push(rt)
+      villageAndRtRw.push(rt)
     } else if (rw) {
-      parts.push(rw)
+      villageAndRtRw.push(rw)
     }
   }
 
-  // Sisanya tanpa prefix
+  if (villageAndRtRw.length > 0) {
+    parts.push(villageAndRtRw.join(" "))
+  }
+
+  // Sisanya tanpa prefix, dipisah dengan koma
   if (data.address_neighborhood) {
     parts.push(data.address_neighborhood)
   }
