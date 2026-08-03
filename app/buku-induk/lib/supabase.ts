@@ -99,14 +99,16 @@ export async function fetchStudents(
     )
   }
 
-  // Jika ada filter kelas/jurusan/tingkat, filter siswa yang match
+  // Jika ada filter kelas/jurusan, filter siswa berdasarkan student_classes
   // SISWA YANG TIDAK PUNYA RECORD DI student_classes AKAN TETAP MUNCUL
-  // (kecuali jika ada filter kelas aktif)
-  if (academicYearId && studentIds.length > 0) {
-    // Filter berdasarkan student_ids yang punya record di student_classes
+  // (kecuali jika ada filter kelas aktif yang spesifik)
+  // Jika tidak ada filter kelas/jurusan, tampilkan semua siswa
+  const hasClassFilters = filters.class_id || filters.major_id
+  if (academicYearId && hasClassFilters) {
+    // Filter berdasarkan student_ids yang punya record di student_classes dengan filter kelas
     studentsQuery = studentsQuery.in("id", studentIds)
   }
-  // Jika academicYearId diberikan tapi studentIds.length === 0,
+  // Jika academicYearId diberikan tapi tidak ada filter kelas/jurusan,
   // tetap tampilkan semua siswa (tidak ada siswa yang match filter kelas)
 
   // Sorting
