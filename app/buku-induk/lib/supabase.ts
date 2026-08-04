@@ -893,6 +893,9 @@ export async function permanentlyDeleteStudent(
 // AUTO-ARCHIVE STUDENTS
 // ============================================
 
+/** Minimal student info for archive operations - only includes selected fields */
+export type StudentArchiveInfo = Pick<Student, "id" | "student_number" | "full_name">
+
 /**
  * Ambil daftar siswa yang perlu diarsipkan berdasarkan academic year aktif
  * Siswa yang perlu diarsipkan:
@@ -905,7 +908,7 @@ export async function permanentlyDeleteStudent(
  */
 export async function getStudentsToArchive(
   academicYearId: string
-): Promise<Student[]> {
+): Promise<StudentArchiveInfo[]> {
   try {
     // Ambil semua academic year IDs yang aktif
     const { data: activeAcademicYears } = await supabase
