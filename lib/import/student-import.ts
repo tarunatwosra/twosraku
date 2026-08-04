@@ -207,37 +207,24 @@ export const COLUMN_MAPPING: Record<string, keyof ImportRow> = {
 
 /**
  * Convert Excel serial number to YYYY-MM-DD format (for database)
- * Excel serial date: 1 = Jan 1, 1900 (with leap year bug)
+ *
+ * Excel serial date: Jan 1, 1900 = serial 1 (in 1900 date system)
+ * We use local time noon to avoid midnight crossing issues in different timezones.
  */
 function excelSerialToDate(serial: number): string {
-  // Excel serial date epoch: Dec 30, 1899 is day 0
-  // Excel incorrectly treats 1900 as a leap year, so we subtract 1 for dates after Feb 28, 1900
+  // Excel 1900 system: Jan 1, 1900 = serial 1
+  // Use noon to avoid midnight crossing (timezone issues)
+  const epoch = new Date(1900, 0, 1, 12, 0, 0) // Jan 1, 1900 noon LOCAL
   const msPerDay = 24 * 60 * 60 * 1000
-  const excelEpoch = new Date(1899, 11, 30).getTime()
-  const date = new Date(excelEpoch + serial * msPerDay)
+  const targetDate = new Date(epoch.getTime() + (serial - 1) * msPerDay)
 
-  const day = date.getDate()
-  const month = date.getMonth() + 1
-  const year = date.getFullYear()
+  // Extract date components using local methods
+  const year = targetDate.getFullYear()
+  const month = targetDate.getMonth() + 1
+  const day = targetDate.getDate()
 
   // Return as YYYY-MM-DD for database compatibility
   return `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`
-}
-
-/**
- * Convert date to DD/MM/YYYY format (for display)
- */
-function excelSerialToDisplayDate(serial: number): string {
-  const msPerDay = 24 * 60 * 60 * 1000
-  const excelEpoch = new Date(1899, 11, 30).getTime()
-  const date = new Date(excelEpoch + serial * msPerDay)
-
-  const day = date.getDate()
-  const month = date.getMonth() + 1
-  const year = date.getFullYear()
-
-  // Return as DD/MM/YYYY for display
-  return `${day.toString().padStart(2, "0")}/${month.toString().padStart(2, "0")}/${year}`
 }
 
 /**
@@ -252,28 +239,54 @@ function isExcelSerialDate(value: unknown): boolean {
 }
 
 /**
- * Parse and format date from various formats
- * Handles: DD/MM/YYYY, YYYY-MM-DD, Excel serial numbers
- * Returns YYYY-MM-DD for database compatibility
+ * Normalize date value to YYYY-MM-DD format
+ * Handles: Date objects, Excel serial numbers
+ *
+ * CRITICAL: Date objects from XLSX may have incorrect timezone conversion.
+ * We always extract the serial number and use our own conversion function.
+ * This ensures consistent behavior regardless of how XLSX interprets dates.
  */
-function parseAndFormatDate(value: string | number | unknown): string | null {
-  if (value === null || value === undefined || value === "") return null
+function normalizeDateValue(value: unknown): string {
+  if (value === null || value === undefined || value === "") return ""
 
-  // If it's an Excel serial number
-  if (typeof value === "number" && isExcelSerialDate(value)) {
-    return excelSerialToDate(value)
+  // If it's a number (Excel serial date)
+  if (typeof value === "number") {
+    if (isExcelSerialDate(value)) {
+      return excelSerialToDate(value)
+    }
+    return String(value)
   }
 
-  // If it's a string that looks like an Excel serial
-  const strValue = String(value).trim()
-  const numValue = parseInt(strValue)
-  if (!isNaN(numValue) && isExcelSerialDate(numValue)) {
-    return excelSerialToDate(numValue)
+  // If it's a Date object (from XLSX with cellDates: true or some edge cases)
+  // XLSX converts Excel dates to Date objects, but may apply wrong timezone
+  // To be safe, we extract the serial number from the Date and convert ourselves
+  if (value instanceof Date) {
+    if (!isNaN(value.getTime())) {
+      // Calculate Excel serial from Date object
+      // Excel epoch: Jan 1, 1900 = serial 1
+      // Use noon to avoid midnight crossing issues
+      const excelEpoch = new Date(1900, 0, 1, 12, 0, 0)
+      const msPerDay = 24 * 60 * 60 * 1000
+      const days = Math.round((value.getTime() - excelEpoch.getTime()) / msPerDay) + 1
+
+      // Validate it's a reasonable serial
+      if (days > 25569 && days < 73050) {
+        return excelSerialToDate(days)
+      }
+
+      // Fallback: use local date components
+      const year = value.getFullYear()
+      const month = value.getMonth() + 1
+      const day = value.getDate()
+      if (year >= 1900 && year <= 2100 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+        return `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`
+      }
+    }
+    return ""
   }
 
-  // Try parsing as DD/MM/YYYY or YYYY-MM-DD
-  const parsed = parseDate(strValue)
-  return parsed
+  // For other types, convert to string
+  return String(value)
 }
 
 // ============================================
@@ -294,10 +307,11 @@ export function parseFile(
       try {
         const data = e.target?.result
 
-        // Read with cellDates: true to get dates as Date objects
+        // Read file WITHOUT cellDates to get raw Excel serial numbers
+        // This gives us full control over date conversion and avoids XLSX timezone issues
         const workbook = XLSX.read(data, {
           type: "array",
-          cellDates: true,
+          cellDates: false, // Read dates as serial numbers to avoid XLSX Date object issues
           cellNF: true,
         })
 
@@ -320,14 +334,6 @@ export function parseFile(
         const dateHeaderPatterns = /tanggal|tgl|birth|date|lahir/i
         const isDateColumn = (header: string): boolean => {
           return dateHeaderPatterns.test(header)
-        }
-
-        // Helper to convert Date to YYYY-MM-DD
-        const dateToYYYYMMDD = (date: Date): string => {
-          const year = date.getFullYear()
-          const month = date.getMonth() + 1
-          const day = date.getDate()
-          return `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`
         }
 
         // Helper to check if a number could be an Excel serial date
@@ -355,39 +361,42 @@ export function parseFile(
 
             // Handle different cell types
             if (cell.t === "d") {
-              // It's a Date object
-              const date = cell.v as Date
-              if (date instanceof Date && !isNaN(date.getTime())) {
-                row[header] = dateToYYYYMMDD(date)
-              } else {
-                row[header] = String(cell.v || "").trim()
-              }
+              // It's a Date object - normalize to YYYY-MM-DD
+              const normalizedDate = normalizeDateValue(cell.v)
+              row[header] = normalizedDate
             } else if (cell.t === "n") {
               // It's a number - check if it could be a date
               const numVal = cell.v as number
               if (isLikelySerialDate(numVal, header)) {
-                // Convert Excel serial to date
-                const msPerDay = 24 * 60 * 60 * 1000
-                const excelEpoch = new Date(1899, 11, 30).getTime()
-                const date = new Date(excelEpoch + numVal * msPerDay)
-                if (!isNaN(date.getTime())) {
-                  row[header] = dateToYYYYMMDD(date)
-                } else {
-                  row[header] = String(cell.v || "").trim()
-                }
+                // Convert Excel serial to date using consistent function
+                const convertedDate = excelSerialToDate(numVal)
+                row[header] = convertedDate
               } else {
                 // Regular number
                 row[header] = String(cell.v || "").trim()
               }
             } else if (cell.t === "s") {
-              // It's a string
-              row[header] = String(cell.v || "").trim()
+              // It's a string - check if it could be a date string (DD/MM/YYYY or YYYY-MM-DD)
+              const strVal = String(cell.v || "").trim()
+              if (isDateColumn(header) && strVal) {
+                // Try to parse as date string
+                const parsedDate = parseDate(strVal)
+                row[header] = parsedDate || strVal
+              } else {
+                row[header] = strVal
+              }
             } else if (cell.t === "b") {
               // It's a boolean
               row[header] = String(cell.v || "").trim()
             } else {
-              // Fallback - try to parse as string
-              row[header] = String(cell.v || "").trim()
+              // Fallback - try to parse as string, potentially a date
+              const fallbackVal = String(cell.v || "").trim()
+              if (isDateColumn(header) && fallbackVal) {
+                const parsedDate = parseDate(fallbackVal)
+                row[header] = parsedDate || fallbackVal
+              } else {
+                row[header] = fallbackVal
+              }
             }
           }
           rows.push(row)
@@ -428,7 +437,17 @@ function convertRow(
 
     if (fieldName) {
       // Convert value to string and trim
-      const stringValue = String(value || "").trim()
+      let stringValue = String(value || "").trim()
+
+      // For date fields, ensure format is YYYY-MM-DD
+      if (fieldName === "birth_date" && stringValue) {
+        // If it's in DD/MM/YYYY format, convert to YYYY-MM-DD
+        const parsedDate = parseDate(stringValue)
+        if (parsedDate) {
+          stringValue = parsedDate
+        }
+      }
+
       ;(row as Record<string, string>)[fieldName] = stringValue
     }
   }
@@ -537,11 +556,8 @@ function parseDate(dateStr: string): string | null {
 
     // Validasi range
     if (dayNum >= 1 && dayNum <= 31 && monthNum >= 1 && monthNum <= 12 && yearNum >= 1900 && yearNum <= 2100) {
-      // Buat tanggal untuk validasi
-      const date = new Date(yearNum, monthNum - 1, dayNum)
-      if (!isNaN(date.getTime())) {
-        return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
-      }
+      // Format langsung dari parsed values untuk menghindari timezone issues
+      return `${yearNum}-${monthNum.toString().padStart(2, "0")}-${dayNum.toString().padStart(2, "0")}`
     }
   }
 
@@ -555,20 +571,16 @@ function parseDate(dateStr: string): string | null {
 
     // Validasi range
     if (monthNum >= 1 && monthNum <= 12 && dayNum >= 1 && dayNum <= 31) {
-      const date = new Date(yearNum, monthNum - 1, dayNum)
-      if (!isNaN(date.getTime())) {
-        return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
-      }
+      // Format langsung dari parsed values untuk menghindari timezone issues
+      return `${yearNum}-${monthNum.toString().padStart(2, "0")}-${dayNum.toString().padStart(2, "0")}`
     }
   }
 
-  // Try Excel serial date
+  // Try Excel serial date (string that looks like a number)
   const excelDate = parseInt(trimmed)
   if (!isNaN(excelDate) && excelDate > 25569 && excelDate < 50000) {
-    const date = new Date((excelDate - 25569) * 86400 * 1000)
-    if (!isNaN(date.getTime())) {
-      return date.toISOString().split("T")[0]
-    }
+    // Use excelSerialToDate for consistency and timezone-safe conversion
+    return excelSerialToDate(excelDate)
   }
 
   return null
@@ -900,7 +912,17 @@ export function convertRowWithMapping(
 
   for (const mapping of fieldMapping) {
     if (mapping.targetField && rawRow[mapping.sourceColumn] !== undefined) {
-      const value = String(rawRow[mapping.sourceColumn] || "").trim()
+      let value = String(rawRow[mapping.sourceColumn] || "").trim()
+
+      // For date fields, ensure format is YYYY-MM-DD
+      if (mapping.targetField === "birth_date" && value) {
+        // Parse date to ensure correct format
+        const parsedDate = parseDate(value)
+        if (parsedDate) {
+          value = parsedDate
+        }
+      }
+
       ;(row as Record<string, string>)[mapping.targetField] = value
     }
   }

@@ -58,6 +58,27 @@ function getStatusLabel(isActive: boolean): string {
 
 function formatDate(date: string | null): string {
   if (!date) return "-"
+
+  // Parse YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss format correctly
+  // new Date("YYYY-MM-DD") parses as UTC, causing off-by-one errors
+  // We need to parse it as local time
+  const dateStr = date.split("T")[0] // Get just the date part
+  const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  if (match) {
+    const [, year, month, day] = match
+    const localDate = new Date(
+      parseInt(year),
+      parseInt(month) - 1,
+      parseInt(day)
+    )
+    return localDate.toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    })
+  }
+
+  // Fallback for other formats
   return new Date(date).toLocaleDateString("id-ID", {
     day: "numeric",
     month: "long",
@@ -67,6 +88,17 @@ function formatDate(date: string | null): string {
 
 function formatAge(birthDate: string | null): string {
   if (!birthDate) return "-"
+  // Parse YYYY-MM-DD format correctly
+  const dateStr = birthDate.split("T")[0]
+  const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  if (match) {
+    const [, year, month, day] = match
+    const birth = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
+    const today = new Date()
+    const age = Math.floor((today.getTime() - birth.getTime()) / (365.25 * 24 * 60 * 60 * 1000))
+    return `${age} tahun`
+  }
+  // Fallback
   const birth = new Date(birthDate)
   const today = new Date()
   const age = Math.floor((today.getTime() - birth.getTime()) / (365.25 * 24 * 60 * 60 * 1000))

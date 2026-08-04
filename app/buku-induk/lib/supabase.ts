@@ -99,17 +99,26 @@ export async function fetchStudents(
     )
   }
 
-  // Jika ada filter kelas/jurusan, filter siswa berdasarkan student_classes
-  // SISWA YANG TIDAK PUNYA RECORD DI student_classes AKAN TETAP MUNCUL
-  // (kecuali jika ada filter kelas aktif yang spesifik)
-  // Jika tidak ada filter kelas/jurusan, tampilkan semua siswa
-  const hasClassFilters = filters.class_id || filters.major_id
-  if (academicYearId && hasClassFilters) {
-    // Filter berdasarkan student_ids yang punya record di student_classes dengan filter kelas
-    studentsQuery = studentsQuery.in("id", studentIds)
+  // Jika academic year dipilih, hanya tampilkan siswa yang punya enrollment di tahun tersebut
+  // SISWA YANG TIDAK PUNYA RECORD DI student_classes untuk academic year aktif TIDAK AKAN MUNCUL
+  // (mereka dianggap "pending" dan akan muncul setelah registrasi)
+  if (academicYearId) {
+    if (studentIds.length > 0) {
+      // Filter berdasarkan student_ids yang punya record di student_classes aktif
+      studentsQuery = studentsQuery.in("id", studentIds)
+    } else {
+      // Tidak ada siswa yang punya enrollment di academic year ini
+      return {
+        data: [],
+        pagination: {
+          page,
+          pageSize: perPage,
+          total: 0,
+          totalPages: 0,
+        },
+      }
+    }
   }
-  // Jika academicYearId diberikan tapi tidak ada filter kelas/jurusan,
-  // tetap tampilkan semua siswa (tidak ada siswa yang match filter kelas)
 
   // Sorting
   const sortField = options.sortField || "full_name"
@@ -666,11 +675,14 @@ interface FetchArchivedResult {
 
 /**
  * Ambil daftar siswa yang diarsipkan
+ * Siswa yang muncul diarsipkan:
+ * - Memiliki enrollment di academic year tapi BUKAN yang aktif
+ * - Tidak memiliki enrollment (masih pending registrasi) - TIDAK ditampilkan
  */
 export async function fetchArchivedStudents(
-  options: FetchArchivedOptions = {}
+  options: FetchArchivedOptions & { academicYearId?: string } = {}
 ): Promise<FetchArchivedResult> {
-  const { page = 1, perPage = 25, search } = options
+  const { page = 1, perPage = 25, search, academicYearId } = options
 
   // Build query untuk students - ambil yang tidak aktif
   let studentsQuery = supabase
@@ -697,32 +709,64 @@ export async function fetchArchivedStudents(
 
   if (sError) throw sError
 
-  // Fetch student classes for each student
-  const studentsWithClass = await Promise.all(
-    (students || []).map(async (student) => {
-      const { data: studentClasses } = await supabase
-        .from("student_classes")
-        .select(`
+  // Get all active academic year IDs
+  const { data: activeAcademicYears } = await supabase
+    .from("academic_years")
+    .select("id")
+    .eq("is_active", true)
+
+  const activeYearIds = (activeAcademicYears || []).map((ay) => ay.id)
+
+  // Fetch student classes for each student and filter
+  const studentsWithClassPromises = (students || []).map(async (student) => {
+    const { data: studentClasses } = await supabase
+      .from("student_classes")
+      .select(`
+        *,
+        classes (
           *,
-          classes (
-            *,
-            majors (*)
-          )
-        `)
-        .eq("student_id", student.id)
+          majors (*)
+        )
+      `)
+      .eq("student_id", student.id)
 
-      const { data: parents } = await supabase
-        .from("parents")
-        .select("*")
-        .eq("student_id", student.id)
+    const { data: parents } = await supabase
+      .from("parents")
+      .select("*")
+      .eq("student_id", student.id)
 
-      return {
-        ...student,
-        student_classes: studentClasses || [],
-        parents: parents || [],
-      } as StudentWithClass
-    })
-  )
+    return {
+      ...student,
+      student_classes: studentClasses || [],
+      parents: parents || [],
+    } as StudentWithClass
+  })
+
+  let studentsWithClass = await Promise.all(studentsWithClassPromises)
+
+  // Filter: HANYA tampilkan siswa yang:
+  // 1. Punya enrollment student_classes
+  // 2. Enrollment-nya ADA di academic years yang ADA
+  // 3. Enrollment-nya BUKAN di academic year aktif
+  studentsWithClass = studentsWithClass.filter((student) => {
+    // Jika tidak punya enrollment student_classes sama sekali, jangan tampilkan
+    if (!student.student_classes || student.student_classes.length === 0) {
+      return false
+    }
+
+    // Cek apakah punya enrollment di academic year aktif
+    const hasActiveYearEnrollment = student.student_classes.some(
+      (sc) => activeYearIds.includes(sc.academic_year_id) && sc.status === "active"
+    )
+
+    // Jika punya enrollment di academic year aktif, jangan tampilkan di arsip
+    if (hasActiveYearEnrollment) {
+      return false
+    }
+
+    // Sisanya (enrollment ada tapi bukan di academic year aktif) → tampilkan di arsip
+    return true
+  })
 
   return {
     data: studentsWithClass,
@@ -842,5 +886,140 @@ export async function permanentlyDeleteStudent(
   } catch (err) {
     console.error("Error permanently deleting student:", err)
     return { success: false, error: "Terjadi kesalahan saat menghapus siswa" }
+  }
+}
+
+// ============================================
+// AUTO-ARCHIVE STUDENTS
+// ============================================
+
+/**
+ * Ambil daftar siswa yang perlu diarsipkan berdasarkan academic year aktif
+ * Siswa yang perlu diarsipkan:
+ * - Punya enrollment di student_classes
+ * - enrollment-nya ADA di academic years yang ADA
+ * - enrollment-nya BUKAN di academic year aktif
+ *
+ * Siswa TANPA enrollment (belum ada academic year) TIDAK diarsipkan
+ * karena mereka masih "pending" dan akan muncul setelah registrasi
+ */
+export async function getStudentsToArchive(
+  academicYearId: string
+): Promise<Student[]> {
+  try {
+    // Ambil semua academic year IDs yang aktif
+    const { data: activeAcademicYears } = await supabase
+      .from("academic_years")
+      .select("id")
+      .eq("is_active", true)
+
+    const activeYearIds = (activeAcademicYears || []).map((ay) => ay.id)
+
+    // Ambil semua student_ids yang punya enrollment di academic year AKTIF
+    const { data: enrolledInActiveYear } = await supabase
+      .from("student_classes")
+      .select("student_id")
+      .in("academic_year_id", activeYearIds)
+      .eq("status", "active")
+
+    const enrolledInActiveIds = (enrolledInActiveYear || []).map((sc) => sc.student_id)
+
+    // Ambil semua student_ids yang punya enrollment di APAPUN
+    const { data: allEnrollments } = await supabase
+      .from("student_classes")
+      .select("student_id")
+
+    const allEnrolledIds = [...new Set((allEnrollments || []).map((sc) => sc.student_id))]
+
+    // Ambil semua siswa aktif
+    const { data: activeStudents } = await supabase
+      .from("students")
+      .select("id, student_number, full_name")
+      .eq("is_active", true)
+
+    // Filter siswa yang perlu diarsipkan:
+    // 1. Punya enrollment di student_classes (allEnrolledIds includes student.id)
+    // 2. Enrollment-nya BUKAN di academic year aktif (!enrolledInActiveIds includes student.id)
+    // 3. Enrollment-nya ADA di academic years yang ADA (berarti enrollment-nya di academic year non-aktif)
+    const studentsToArchive = (activeStudents || []).filter((student) => {
+      // Jika tidak punya enrollment sama sekali, jangan arsipkan
+      if (!allEnrolledIds.includes(student.id)) {
+        return false
+      }
+      // Jika punya enrollment di academic year aktif, jangan arsipkan
+      if (enrolledInActiveIds.includes(student.id)) {
+        return false
+      }
+      // Sisanya: punya enrollment tapi bukan di academic year aktif → arsipkan
+      return true
+    })
+
+    return studentsToArchive
+  } catch (err) {
+    console.error("Error getting students to archive:", err)
+    return []
+  }
+}
+
+/**
+ * Archive siswa yang tidak memiliki enrollment di academic year aktif
+ * Siswa yang diarsipkan:
+ * 1. Tidak memiliki enrollment di academic year aktif
+ * 2. Academic year enrollment-nya berbeda dengan academic year aktif
+ */
+export async function archiveStudentsWithoutAcademicYear(
+  academicYearId: string
+): Promise<{ success: boolean; archived: number; error?: string }> {
+  try {
+    // Ambil siswa yang perlu diarsipkan
+    const studentsToArchive = await getStudentsToArchive(academicYearId)
+
+    if (studentsToArchive.length === 0) {
+      return { success: true, archived: 0 }
+    }
+
+    // Update satu per satu untuk menghindari masalah batch update
+    let archivedCount = 0
+    const errors: string[] = []
+
+    for (const student of studentsToArchive) {
+      try {
+        const { error } = await supabase
+          .from("students")
+          .update({
+            is_active: false,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", student.id)
+
+        if (error) {
+          console.error(`Error archiving student ${student.id}:`, error)
+          errors.push(`${student.full_name}: ${error.message}`)
+        } else {
+          archivedCount++
+        }
+      } catch (err) {
+        console.error(`Exception archiving student ${student.id}:`, err)
+        errors.push(`${student.full_name}: ${err instanceof Error ? err.message : "Unknown error"}`)
+      }
+    }
+
+    if (errors.length > 0 && archivedCount === 0) {
+      return {
+        success: false,
+        archived: 0,
+        error: `Failed to archive students: ${errors.join("; ")}`,
+      }
+    }
+
+    console.log(`Archived ${archivedCount} students without academic year enrollment`)
+    return { success: true, archived: archivedCount }
+  } catch (err) {
+    console.error("Error in archiveStudentsWithoutAcademicYear:", err)
+    return {
+      success: false,
+      archived: 0,
+      error: err instanceof Error ? err.message : "Terjadi kesalahan",
+    }
   }
 }

@@ -18,6 +18,7 @@ import {
 } from "lucide-react"
 import { AppShell } from "@/components/layout"
 import { Button, Card, Badge, Avatar } from "@/components/ui"
+import { useAcademicYear } from "@/hooks"
 import { fetchArchivedStudents, restoreStudent, permanentlyDeleteStudent } from "../lib/supabase"
 import type { StudentWithClass } from "@/types/database"
 import { cn } from "@/lib/utils"
@@ -81,6 +82,7 @@ function ActionMenu({ student, onRestore, onDelete }: { student: StudentWithClas
 }
 
 export default function ArchivedStudentsPage() {
+  const { academicYear } = useAcademicYear()
   const [page, setPage] = useState(1)
   const [perPage] = useState(25)
   const [search, setSearch] = useState("")
@@ -104,7 +106,12 @@ export default function ArchivedStudentsPage() {
     try {
       setLoading(true)
       setError(null)
-      const result = await fetchArchivedStudents({ page, perPage, search: debouncedSearch || undefined })
+      const result = await fetchArchivedStudents({
+        page,
+        perPage,
+        search: debouncedSearch || undefined,
+        academicYearId: academicYear?.id,
+      })
       setStudents(result.data)
       setTotalCount(result.pagination.total)
       setTotalPages(result.pagination.totalPages)
@@ -114,7 +121,7 @@ export default function ArchivedStudentsPage() {
     } finally {
       setLoading(false)
     }
-  }, [page, perPage, debouncedSearch])
+  }, [page, perPage, debouncedSearch, academicYear?.id])
 
   useEffect(() => { fetchData() }, [fetchData])
 
@@ -254,7 +261,9 @@ export default function ArchivedStudentsPage() {
               </div>
               <div>
                 <h1 className="text-[26px] font-bold text-[var(--text-primary)]">Siswa Diarsipkan</h1>
-                <p className="text-[14px] text-[var(--text-muted)] mt-0.5">Kelola siswa yang telah diarsipkan</p>
+                <p className="text-[14px] text-[var(--text-muted)] mt-0.5">
+                  {academicYear ? `Tahun ajaran ${academicYear.name}` : "Semua tahun ajaran"} - Siswa dengan enrollment di tahun ajaran non-aktif
+                </p>
               </div>
             </div>
           </div>
@@ -433,7 +442,18 @@ export default function ArchivedStudentsPage() {
                             <p className="text-[14px] font-semibold text-[var(--text-primary)]">{student.full_name}</p>
                             <p className="text-[12px] text-[var(--text-muted)] mt-0.5">
                               {student.birth_place || "-"},{" "}
-                              {student.birth_date ? new Date(student.birth_date).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "-"}
+                              {student.birth_date
+                                ? (() => {
+                                    const dateStr = student.birth_date.split("T")[0]
+                                    const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+                                    if (match) {
+                                      const [, year, month, day] = match
+                                      const localDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
+                                      return localDate.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
+                                    }
+                                    return new Date(student.birth_date).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
+                                  })()
+                                : "-"}
                             </p>
                           </div>
                         </div>

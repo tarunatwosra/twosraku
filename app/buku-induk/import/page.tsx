@@ -88,7 +88,11 @@ function formatDate(dateStr: string | null): string {
   const ddmmyyyyMatch = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)
   if (ddmmyyyyMatch) {
     const [, day, month, year] = ddmmyyyyMatch
-    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
+    // Use explicit construction to avoid timezone issues
+    const dayNum = parseInt(day)
+    const monthNum = parseInt(month)
+    const yearNum = parseInt(year)
+    const date = new Date(yearNum, monthNum - 1, dayNum)
     return date.toLocaleDateString("id-ID", {
       day: "numeric",
       month: "short",
@@ -96,9 +100,16 @@ function formatDate(dateStr: string | null): string {
     })
   }
 
-  // Try parsing as YYYY-MM-DD (ISO format)
-  const date = new Date(dateStr)
-  if (!isNaN(date.getTime())) {
+  // Try YYYY-MM-DD - explicit parsing to avoid timezone
+  const isoMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  if (isoMatch) {
+    const [, year, month, day] = isoMatch
+    const dayNum = parseInt(day)
+    const monthNum = parseInt(month)
+    const yearNum = parseInt(year)
+    // Use explicit construction
+    const date = new Date(yearNum, monthNum - 1, dayNum)
+    console.log("[formatDate] YYYY-MM-DD explicit:", yearNum, monthNum, dayNum, "result:", date.toLocaleDateString("id-ID"))
     return date.toLocaleDateString("id-ID", {
       day: "numeric",
       month: "short",
@@ -106,7 +117,8 @@ function formatDate(dateStr: string | null): string {
     })
   }
 
-  // Return as-is if can't parse
+  // Final fallback for other formats
+  console.log("[formatDate] unparsed:", dateStr)
   return dateStr
 }
 

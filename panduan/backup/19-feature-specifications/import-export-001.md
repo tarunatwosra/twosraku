@@ -1,7 +1,5 @@
 # Import & Export Module — Compact
-Version: 1.2 | Updated: 2026-08-03
-
-> **Note:** Format tanggal Excel yang didukung adalah **DD/MM/YYYY** (format Indonesia).
+Version: 1.1 | Updated: 2026-07-10
 
 **Purpose:** Import & Export is Twosraku's centralized data exchange engine. Instead of each module implementing its own import/export, all data exchange goes through one unified engine providing consistent validation, mapping, preview, conflict resolution, export formatting, and history tracking. Operations should be reliable, secure, reproducible, and auditable.
 
@@ -54,16 +52,6 @@ Version: 1.2 | Updated: 2026-08-03
 ### Supported Formats
 - **Import:** Excel (.xlsx), CSV. Future: JSON, XML, API.
 - **Export:** Excel (.xlsx), CSV, PDF, Print. Future: JSON, XML.
-
-### Date Handling (v1.2)
-- **Excel Date Format:** DD/MM/YYYY (Indonesian format)
-- **Database Format:** YYYY-MM-DD (ISO format for PostgreSQL compatibility)
-- **Conversion Logic:**
-  - Excel serial dates are converted using `excelSerialToDate()` with epoch 1899-12-30
-  - Date objects from XLSX are normalized via `normalizeDateValue()`
-  - String dates (DD/MM/YYYY) are parsed via `parseDate()` function
-  - All dates are converted to YYYY-MM-DD before database insertion
-- **File:** `lib/import/student-import.ts`
 
 ### Import Workflow
 Select Module → Download Template (optional) → Upload File → Validate File → Field Mapping → Preview → Conflict Detection → Confirmation → Import → Summary.

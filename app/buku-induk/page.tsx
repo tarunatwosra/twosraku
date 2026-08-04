@@ -29,7 +29,7 @@ import { QuickViewModal } from "@/components/buku-induk/QuickViewModal"
 import { ExportButton } from "@/components/buku-induk/ExportButton"
 import { ColumnConfigButton, DEFAULT_COLUMNS, type ColumnConfig } from "@/components/buku-induk/ColumnConfig"
 import { useStudents, useStudentStats, useAcademicYear, useMajors, useClasses } from "@/hooks"
-import { fetchStudents, fetchStudentStats, bulkArchiveStudents } from "./lib/supabase"
+import { fetchStudents, fetchStudentStats, bulkArchiveStudents, archiveStudentsWithoutAcademicYear } from "./lib/supabase"
 import type { StudentWithClass, StudentFilters } from "@/types/database"
 import { cn } from "@/lib/utils"
 
@@ -277,6 +277,27 @@ export default function BukuIndukPage() {
   useEffect(() => {
     fetchStats()
   }, [fetchStats])
+
+  // Auto-archive students who don't have enrollment for active academic year
+  useEffect(() => {
+    async function autoArchive() {
+      if (academicYear?.id) {
+        try {
+          const result = await archiveStudentsWithoutAcademicYear(academicYear.id)
+          if (result.archived > 0) {
+            console.log(`Auto-archived ${result.archived} students without academic year enrollment`)
+            // Refresh data after archiving
+            fetchData()
+            fetchStats()
+          }
+        } catch (err) {
+          console.error("Error auto-archiving students:", err)
+        }
+      }
+    }
+    autoArchive()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [academicYear?.id])
 
   // Reset page when filters change
   useEffect(() => {
@@ -834,14 +855,30 @@ export default function BukuIndukPage() {
                             <p className="text-[12px] text-[var(--text-muted)] mt-0.5">
                               {student.birth_place || "-"},{" "}
                               {student.birth_date
-                                ? new Date(student.birth_date).toLocaleDateString(
-                                    "id-ID",
-                                    {
+                                ? (() => {
+                                    // Parse YYYY-MM-DD format correctly to avoid timezone off-by-one
+                                    const dateStr = student.birth_date.split("T")[0]
+                                    const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+                                    if (match) {
+                                      const [, year, month, day] = match
+                                      const localDate = new Date(
+                                        parseInt(year),
+                                        parseInt(month) - 1,
+                                        parseInt(day)
+                                      )
+                                      return localDate.toLocaleDateString("id-ID", {
+                                        day: "numeric",
+                                        month: "short",
+                                        year: "numeric",
+                                      })
+                                    }
+                                    // Fallback
+                                    return new Date(student.birth_date).toLocaleDateString("id-ID", {
                                       day: "numeric",
                                       month: "short",
                                       year: "numeric",
-                                    }
-                                  )
+                                    })
+                                  })()
                                 : "-"}
                             </p>
                           </div>

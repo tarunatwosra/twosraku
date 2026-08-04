@@ -28,6 +28,18 @@ Berisi catatan semua perubahan yang dilakukan pada file-file panduan. Setiap kal
 
 <!-- Changelog entries will be added below this line -->
 
+## 2026-08-03 (Import Date Fix)
+
+### import-export.md (19-feature-specifications/)
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-08-03 |
+| Perubahan | FIX: Perbaikan parsing tanggal Excel yang mundur 1 hari saat import siswa. Root cause: inkonsistensi parsing tanggal di lib/import/student-import.ts. Perbaikan: (1) Gunakan fungsi excelSerialToDate secara konsisten di parseFile. (2) Tambah fungsi normalizeDateValue untuk normalisasi Date object dari XLSX. (3) Tambah konversi tanggal di convertRow untuk field birth_date. (4) Handle date strings (DD/MM/YYYY) dan serial numbers dengan benar. |
+| Backup | import-export-001.md |
+| Catatan | Files: lib/import/student-import.ts |
+
+---
+
 ## 2026-07-31 (Registrasi Bug Fix)
 
 ### student-registry.md (19-feature-specifications/)
