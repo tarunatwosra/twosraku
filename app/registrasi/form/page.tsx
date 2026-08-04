@@ -358,6 +358,65 @@ function validateStep(step: RegistrationStep, data: Partial<RegistrationFormData
 }
 
 // ============================================
+// AUTOSAVE CONFIGURATION
+// ============================================
+
+const AUTOSAVE_KEY = "registration_form_autosave"
+const AUTOSAVE_DEBOUNCE_MS = 2000 // Simpan setiap 2 detik setelah berhenti mengetik
+
+interface AutosaveData {
+  formData: Partial<RegistrationFormData>
+  currentStep: RegistrationStep
+  savedAt: number // timestamp
+}
+
+/**
+ * Simpan form data ke localStorage
+ */
+function saveFormToLocal(data: AutosaveData): void {
+  if (typeof window === "undefined") return
+  try {
+    localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(data))
+  } catch (err) {
+    console.error("Error saving form to localStorage:", err)
+  }
+}
+
+/**
+ * Ambil form data dari localStorage
+ */
+function getFormFromLocal(): AutosaveData | null {
+  if (typeof window === "undefined") return null
+  try {
+    const data = localStorage.getItem(AUTOSAVE_KEY)
+    if (!data) return null
+    const parsed = JSON.parse(data) as AutosaveData
+    // Cek apakah data masih valid (kurang dari 24 jam)
+    const maxAge = 24 * 60 * 60 * 1000 // 24 jam
+    if (Date.now() - parsed.savedAt > maxAge) {
+      localStorage.removeItem(AUTOSAVE_KEY)
+      return null
+    }
+    return parsed
+  } catch {
+    localStorage.removeItem(AUTOSAVE_KEY)
+    return null
+  }
+}
+
+/**
+ * Hapus form data dari localStorage
+ */
+function clearFormFromLocal(): void {
+  if (typeof window === "undefined") return
+  try {
+    localStorage.removeItem(AUTOSAVE_KEY)
+  } catch (err) {
+    console.error("Error clearing form from localStorage:", err)
+  }
+}
+
+// ============================================
 // MAIN PAGE COMPONENT
 // ============================================
 
@@ -382,12 +441,60 @@ export default function RegistrationFormPage({
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [isComplete, setIsComplete] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [lastSaved, setLastSaved] = useState<Date | null>(null) // Untuk indikator auto-save
+  const [showRestorePrompt, setShowRestorePrompt] = useState(false) // Prompt restore data
 
   // Academic year & Classes data
   const [academicYear, setAcademicYear] = useState<AcademicYear | null>(null)
   const [availableClasses, setAvailableClasses] = useState<
     Array<{ id: string; name: string; major_name: string; major_code: string }>
   >([])
+
+  // ============================================
+  // AUTOSAVE EFFECT
+  // ============================================
+
+  // Check for saved data on mount
+  useEffect(() => {
+    const savedData = getFormFromLocal()
+    if (savedData) {
+      setShowRestorePrompt(true)
+    }
+  }, [])
+
+  // Auto-save effect - debounced save
+  useEffect(() => {
+    if (isLoading || !studentId) return
+
+    const timer = setTimeout(() => {
+      const dataToSave: AutosaveData = {
+        formData,
+        currentStep,
+        savedAt: Date.now(),
+      }
+      saveFormToLocal(dataToSave)
+      setLastSaved(new Date())
+    }, AUTOSAVE_DEBOUNCE_MS)
+
+    return () => clearTimeout(timer)
+  }, [formData, currentStep, isLoading, studentId])
+
+  // Function to restore saved data
+  const handleRestoreData = () => {
+    const savedData = getFormFromLocal()
+    if (savedData) {
+      setFormData(savedData.formData)
+      setCurrentStep(savedData.currentStep)
+      setLastSaved(new Date(savedData.savedAt))
+    }
+    setShowRestorePrompt(false)
+  }
+
+  // Function to discard saved data
+  const handleDiscardData = () => {
+    clearFormFromLocal()
+    setShowRestorePrompt(false)
+  }
 
   // Load student data and academic year/classes
   useEffect(() => {
@@ -637,6 +744,7 @@ export default function RegistrationFormPage({
       if (result.success) {
         setIsComplete(true)
         clearRegistrationSession()
+        clearFormFromLocal() // Hapus data auto-save setelah sukses
       } else {
         setSubmitError(result.error || "Terjadi kesalahan saat menyimpan data")
       }
@@ -705,6 +813,47 @@ export default function RegistrationFormPage({
         <ArrowLeft className="w-4 h-4" />
         Kembali
       </Link>
+
+      {/* Restore Prompt - Jika ada data tersimpan */}
+      {showRestorePrompt && (
+        <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-2xl">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+              <span className="text-lg">💾</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-amber-800 mb-1">
+                Data Tersimpan Ditemukan
+              </h3>
+              <p className="text-sm text-amber-700 mb-3">
+                Ada data yang tersimpan dari sebelumnya. Apakah ingin melanjutkan mengisi?
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleRestoreData}
+                  className="px-4 py-2 bg-amber-500 text-white rounded-xl text-sm font-medium hover:bg-amber-600 transition-colors"
+                >
+                  Lanjutkan
+                </button>
+                <button
+                  onClick={handleDiscardData}
+                  className="px-4 py-2 bg-white border border-amber-300 text-amber-700 rounded-xl text-sm font-medium hover:bg-amber-50 transition-colors"
+                >
+                  Mulai Baru
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Auto-save indicator */}
+      {lastSaved && !showRestorePrompt && (
+        <div className="mb-4 flex items-center gap-2 text-xs text-[var(--text-muted)]">
+          <CheckCircle className="w-3.5 h-3.5 text-green-500" />
+          <span>Data tersimpan {lastSaved.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
+        </div>
+      )}
 
       {/* Progress Bar - Modern Glassmorphic Style */}
       <div className="mb-6">
