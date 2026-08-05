@@ -10,11 +10,13 @@ import { getStoredRedirectUrl } from "@/hooks/useAuthRedirect";
 interface MobileShellProps {
   children: React.ReactNode;
   showBottomNav?: boolean;
+  showHeaderGreeting?: boolean;
 }
 
 export function MobileShell({
   children,
   showBottomNav = true,
+  showHeaderGreeting = true,
 }: MobileShellProps) {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
