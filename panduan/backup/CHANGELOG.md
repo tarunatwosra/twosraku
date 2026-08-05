@@ -28,6 +28,18 @@ Berisi catatan semua perubahan yang dilakukan pada file-file panduan. Setiap kal
 
 <!-- Changelog entries will be added below this line -->
 
+## 2026-08-05
+
+### student-registry.md (19-feature-specifications/)
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-08-05 |
+| Perubahan | Progress bar baru dengan komponen terpisah `RegistrationProgressBar` - gradient animated, pulse effect, shine overlay, glow effect, custom SVG icons |
+| Backup | student-registry-001.md |
+| Catatan | - |
+
+---
+
 ## 2026-08-05 (Rekap Presensi Mobile)
 
 ### attendance.md (19-feature-specifications/)

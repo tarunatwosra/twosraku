@@ -1,11 +1,34 @@
 # Student Registry Module (Buku Induk) — Compact
-Version: 2.4 | Updated: 2026-07-31
+Version: 2.8 | Updated: 2026-08-05
 
 **Purpose:** Student Registry adalah modul data master Twosraku — single source of truth untuk identitas siswa. Menyimpan & mengelola semua informasi siswa yang dibutuhkan seluruh sistem; setiap modul operasional bergantung pada data ini.
 
 **Scope**
 - Mengelola: Identitas Siswa, Informasi Akademik, Informasi Pribadi, Data Fisik & Kesehatan, Informasi Orang Tua/Wali, Kontak, Status Aktif, Riwayat.
 - Tidak dikelola di sini: Absensi, Penilaian, Poin Karakter, dan modul operasional lain (masing-masing di modulnya sendiri).
+
+**Catatan Perubahan v2.8:**
+- Registrasi Mandiri: Progress bar baru dengan komponen terpisah `RegistrationProgressBar` di `components/registrasi/progress-bar.tsx`
+- Registrasi Mandiri: Progress bar lebih modern dengan gradient animated, pulse effect, shine overlay, dan glow effect
+- Registrasi Mandiri: Step indicators dengan connecting line, custom SVG icons, dan visual states (active/completed/pending)
+- Registrasi Mandiri: Backdrop blur container untuk progress bar section
+
+**Catatan Perubahan v2.7:**
+- Registrasi Mandiri: Tambah input No. Absen (diisi manual oleh siswa)
+- Registrasi Mandiri: Status otomatis aktif saat registrasi
+- Registrasi Mandiri: Golongan darah menggunakan dropdown (A, B, AB, O, Tidak Tahu)
+- Registrasi Mandiri: UI progress bar lebih menarik dengan animasi dan gradient
+- Hapus field `is_homeroom` dari tabel `student_classes` (tidak relevan)
+
+**Catatan Perubahan v2.6:**
+- Registrasi Mandiri: Fix - kelas dan academic year sekarang tersimpan ke database (student_classes)
+
+**Catatan Perubahan v2.5:**
+- Hapus kolom students: enrollment_year (tahun ajaran sekarang dikelola via academic_years + student_classes)
+- Registrasi Mandiri: Progress bar dan step indicator lebih elegan dengan animasi
+- Registrasi Mandiri: NIS auto-fill dari database di bagian akademik
+- Registrasi Mandiri: Pilihan kelas dari database dengan dropdown select
+- Registrasi Mandiri: Academic year aktif (read-only) menggantikan enrollment_year
 
 **Catatan Perubahan v2.4:**
 - Hapus kolom students: national_id (NIK), nationality (kewarganegaraan), email, graduation_year (tahun lulus), transfer_date, transfer_reason
@@ -16,6 +39,7 @@ Version: 2.4 | Updated: 2026-07-31
 
 **Status Siswa:** sistem `is_active` (boolean). `true` = Aktif (masih bersekolah), `false` = Tidak Aktif (lulus/pindah/arsip).
 **Lifecycle:** Aktif → Tidak Aktif → (opsional: Restore) → Aktif. Siswa aktif tampil di daftar utama; siswa tidak aktif tampil di halaman khusus; data historis tetap tersimpan.
+**Registrasi:** Status siswa otomatis设置为 aktif saat registrasi mandiri selesai.
 
 **Navigasi:** Main Navigation → Student Registry (Buku Induk). Sub Pages: Student List, Student Detail, Create Student, Edit Student, Student History, Import Students, Export Students, Inactive Students.
 
@@ -41,10 +65,12 @@ Version: 2.4 | Updated: 2026-07-31
 ### 2. Data Akademik
 | Field | Tipe | Required | Deskripsi |
 |-------|------|----------|-----------|
-| Tahun Ajaran | Auto | - | Otomatis dari sistem |
-| Angkatan | Number | - | Contoh: 2024, 2026 |
-| Kelas | Select | - | Pilihan kelas (tidak terikat tahun ajaran) |
-| Status | Select | ✅ | Aktif / Tidak Aktif |
+| NIS | Auto | ✅ | Auto-filled dari database (read-only) |
+| NISN | Text | - | Nomor Induk Sekolah Nasional (10 digit) |
+| Tahun Ajaran | Auto | - | Otomatis dari academic year aktif (read-only) |
+| Kelas | Select | - | Pilihan kelas dari database (dropdown) |
+| No. Absen | Number | - | Nomor absensi siswa (diisi manual) |
+| Status | Auto | ✅ | Otomatis aktif saat registrasi (read-only) |
 
 **Catatan:** Data Kelas diambil dari **Settings Academic → Tab Kelas**. Pastikan kelas sudah dibuat di Settings sebelum menambahkan siswa. Siswa terhubung ke kelas melalui `student_classes` yang menyimpan tahun ajaran.
 
@@ -212,12 +238,11 @@ NIS harus unik (tidak boleh duplikat) · NISN harus unik jika diisi · siswa tid
 | phone | varchar(20) | |
 | photo_url | text | |
 | is_active | boolean | DEFAULT true |
-| enrollment_year | integer | |
 | notes | text | |
 | created_at | timestamptz | |
 | updated_at | timestamptz | |
 
-**Catatan:** Kolom national_id, nationality, email, graduation_year, transfer_date, transfer_reason dihapus.
+**Catatan:** Kolom enrollment_year, national_id, nationality, email, graduation_year, transfer_date, transfer_reason dihapus.
 
 ### Tabel `classes`
 | Field | Type | Constraints |
@@ -296,6 +321,11 @@ Skeleton table saat load daftar; skeleton detail saat load detail; spinner pada 
 
 ## Catatan Migration
 
+### v2.5 (2026-07-31)
+**Perubahan:**
+- Hapus kolom dari `students`: enrollment_year (tidak lagi digunakan)
+- Tahun ajaran sekarang dikelola via `academic_years` (is_active = true) dan `student_classes`
+
 ### v2.4 (2026-07-31)
 **Perubahan:**
 - Hapus kolom dari `students`: national_id, nationality, email, graduation_year, transfer_date, transfer_reason
@@ -313,5 +343,5 @@ Selesai jika: menyimpan semua data master siswa; mendukung lifecycle aktif/tidak
 Student Registry adalah fondasi Twosraku. Setiap modul operasional bergantung pada akurasi dan konsistensi data yang dikelola di sini. Melindungi integritas data siswa lebih penting daripada menambahkan fitur baru.
 
 ---
-Last Updated: 2026-07-31 | Version: 2.4
+Last Updated: 2026-08-05 | Version: 2.8
 # End of Student Registry Module (Compact)

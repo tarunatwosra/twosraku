@@ -11,14 +11,10 @@ import {
   Loader2,
   CheckCircle,
   AlertCircle,
-  User,
-  MapPin,
   GraduationCap,
-  Users,
-  Heart,
-  StickyNote,
 } from "lucide-react"
 import { Button, Input, Select } from "@/components/ui"
+import { RegistrationProgressBar } from "@/components/registrasi/progress-bar"
 import {
   verifyStudent,
   submitRegistration,
@@ -91,15 +87,6 @@ const GUARDIAN_RELATION_OPTIONS = [
 ]
 
 // Step icons with consistent styling
-const STEP_ICONS: Record<string, React.ReactNode> = {
-  [RegistrationStepEnum.PERSONAL]: <User className="w-5 h-5" />,
-  [RegistrationStepEnum.ADDRESS]: <MapPin className="w-5 h-5" />,
-  [RegistrationStepEnum.ACADEMIC]: <GraduationCap className="w-5 h-5" />,
-  [RegistrationStepEnum.PARENTS]: <Users className="w-5 h-5" />,
-  [RegistrationStepEnum.HEALTH]: <Heart className="w-5 h-5" />,
-  [RegistrationStepEnum.OTHER]: <StickyNote className="w-5 h-5" />,
-}
-
 const STEPS: Array<{ key: RegistrationStep; label: string }> = [
   { key: RegistrationStepEnum.PERSONAL, label: "Data Diri" },
   { key: RegistrationStepEnum.ADDRESS, label: "Alamat" },
@@ -805,14 +792,25 @@ export default function RegistrationFormPage({
 
   return (
     <div className="max-w-lg mx-auto px-4 py-6">
-      {/* Back Button */}
-      <Link
-        href="/registrasi/verify"
-        className="inline-flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] mb-4 transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Kembali
-      </Link>
+      {/* Back Button + Auto-save indicator row */}
+      <div className="flex items-center justify-between mb-4">
+        {/* Back Button */}
+        <Link
+          href="/registrasi/verify"
+          className="inline-flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Kembali
+        </Link>
+
+        {/* Auto-save indicator */}
+        {lastSaved && !showRestorePrompt && (
+          <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
+            <CheckCircle className="w-3.5 h-3.5 text-green-500" />
+            <span>Data tersimpan {lastSaved.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
+          </div>
+        )}
+      </div>
 
       {/* Restore Prompt - Jika ada data tersimpan */}
       {showRestorePrompt && (
@@ -847,126 +845,17 @@ export default function RegistrationFormPage({
         </div>
       )}
 
-      {/* Auto-save indicator */}
-      {lastSaved && !showRestorePrompt && (
-        <div className="mb-4 flex items-center gap-2 text-xs text-[var(--text-muted)]">
-          <CheckCircle className="w-3.5 h-3.5 text-green-500" />
-          <span>Data tersimpan {lastSaved.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
-        </div>
-      )}
-
-      {/* Progress Bar - Modern Glassmorphic Style */}
-      <div className="mb-6">
-        {/* Step Counter */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <span className="text-lg font-bold text-[var(--primary)]">{currentStepIndex + 1}</span>
-            <span className="text-sm text-[var(--text-muted)]">dari {STEPS.length}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="px-3 py-1 text-xs font-medium text-[var(--primary)] bg-[var(--primary)]/10 rounded-full border border-[var(--primary)]/20">
-              {STEPS[currentStepIndex].label}
-            </span>
-          </div>
-        </div>
-
-        {/* Progress Track with Gradient Fill */}
-        <div className="relative h-1.5 bg-[var(--border-default)] rounded-full overflow-hidden">
-          {/* Background glow */}
-          <div
-            className="absolute inset-0 opacity-20"
-            style={{
-              background: `linear-gradient(90deg, var(--primary), var(--primary))`,
-              filter: 'blur(8px)',
-              transform: `scaleX(${progress / 100})`,
-              transformOrigin: 'left',
-            }}
-          />
-          {/* Main progress bar */}
-          <div
-            className="absolute inset-y-0 left-0 rounded-full transition-all duration-500 ease-out"
-            style={{
-              width: `${progress}%`,
-              background: `linear-gradient(90deg, var(--primary) 0%, #6366F1 100%)`,
-            }}
-          />
-          {/* Animated shine */}
-          <div
-            className="absolute inset-y-0 left-0 rounded-full animate-shine"
-            style={{
-              width: `${Math.min(progress + 10, 100)}%`,
-              background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)',
-              transform: 'translateX(-100%)',
-            }}
-          />
-        </div>
-
-        {/* Step Labels */}
-        <div className="flex justify-between mt-2">
-          <span className="text-[10px] text-[var(--text-muted)]">
-            {STEPS[currentStepIndex].label}
-          </span>
-          <span className="text-[10px] text-[var(--text-muted)]">
-            {Math.round(progress)}% Complete
-          </span>
-        </div>
-      </div>
-
-      {/* Step Indicators - Modern Pill Navigation */}
-      <div className="flex gap-1.5 mb-6 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
-        {STEPS.map((step, index) => {
-          const isActive = step.key === currentStep
-          const isCompleted = index < currentStepIndex
-          const isPending = index > currentStepIndex
-
-          return (
-            <button
-              key={step.key}
-              onClick={() => {
-                setCurrentStep(step.key)
-                setErrors({})
-              }}
-              className={cn(
-                "flex-shrink-0 flex flex-col items-center justify-center gap-1 py-2.5 px-3 rounded-xl transition-all duration-300 min-w-[70px]",
-                isActive && "bg-gradient-to-br from-[var(--primary)] to-indigo-500 text-white shadow-lg shadow-[var(--primary)]/30 -translate-y-0.5",
-                isCompleted && "bg-[var(--primary)]/10 text-[var(--primary)] hover:bg-[var(--primary)]/20",
-                isPending && "bg-[var(--surface-secondary)] text-[var(--text-muted)] hover:bg-[var(--surface-hover)]"
-              )}
-            >
-              {/* Step number / Check icon */}
-              <div className={cn(
-                "w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-all duration-300",
-                isActive && "bg-white/20 text-white ring-2 ring-white/30",
-                isCompleted && "bg-[var(--primary)] text-white",
-                isPending && "bg-[var(--border-default)] text-[var(--text-muted)]"
-              )}>
-                {isCompleted ? (
-                  <CheckCircle className="w-4 h-4" />
-                ) : (
-                  <span>{index + 1}</span>
-                )}
-              </div>
-
-              {/* Icon */}
-              <div className={cn(
-                "transition-transform duration-300",
-                isActive && "scale-110"
-              )}>
-                {STEP_ICONS[step.key]}
-              </div>
-
-              {/* Label */}
-              <span className={cn(
-                "text-[9px] font-medium text-center leading-tight truncate max-w-full",
-                isActive && "text-white/90",
-                isCompleted && "text-[var(--primary)]",
-                isPending && "text-[var(--text-muted)]"
-              )}>
-                {step.label}
-              </span>
-            </button>
-          )
-        })}
+      {/* Modern Progress Bar */}
+      <div className="mb-6 bg-white/60 backdrop-blur-sm rounded-3xl p-4 shadow-sm border border-[var(--border-light)]">
+        <RegistrationProgressBar
+          steps={STEPS}
+          currentStep={currentStep}
+          progress={progress}
+          onStepClick={(step) => {
+            setCurrentStep(step)
+            setErrors({})
+          }}
+        />
       </div>
 
       {/* Form Card */}
@@ -974,7 +863,7 @@ export default function RegistrationFormPage({
         {/* Step Header */}
         <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[var(--border-light)]">
           <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)]">
-            {STEP_ICONS[currentStep]}
+            <GraduationCap className="w-5 h-5" />
           </div>
           <div>
             <h2 className="font-semibold text-[var(--text-primary)]">
