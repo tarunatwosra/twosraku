@@ -12,13 +12,14 @@ import {
   BarChart3,
   HelpCircle,
   ChevronRight,
+  LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface MenuItem {
   label: string;
   href: string;
-  icon: typeof BookUser;
+  icon: LucideIcon;
   color: string;
 }
 
