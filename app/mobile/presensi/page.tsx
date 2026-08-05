@@ -16,20 +16,21 @@ import {
   ThermometerSun,
   FileText,
   ArrowRight,
+  Loader2,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import type { LucideIcon } from "lucide-react"
 
 type StatColor = "success" | "warning" | "info" | "danger"
 
-// Status Configuration
-const STATUS_CONFIG: { key: string; label: string; value: number; icon: any; color: StatColor }[] = [
-  { key: "hadir", label: "Hadir", value: 28, icon: CheckCircle2, color: "success" },
-  { key: "sakit", label: "Sakit", value: 1, icon: ThermometerSun, color: "warning" },
-  { key: "izin", label: "Izin", value: 0, icon: FileText, color: "info" },
-  { key: "alpa", label: "Alpa", value: 2, icon: AlertCircle, color: "danger" },
-]
+interface StatCardProps {
+  label: string
+  value: number
+  icon: LucideIcon
+  color: StatColor
+}
 
-function StatCard({ label, value, icon: Icon, color }: { label: string; value: number; icon: any; color: StatColor }) {
+function StatCard({ label, value, icon: Icon, color }: StatCardProps) {
   const colors = {
     success: "bg-[var(--success-soft)] text-[var(--success)]",
     warning: "bg-[var(--warning-soft)] text-[var(--warning)]",
@@ -52,17 +53,23 @@ function StatCard({ label, value, icon: Icon, color }: { label: string; value: n
 
 function AbsensiContent() {
   const router = useRouter()
-  const { classes, date, setDate } = useAttendance()
+  const {
+    classes,
+    loadingClasses,
+    date,
+    setDate,
+    summary,
+    loading,
+    setClass,
+    classId,
+  } = useAttendance()
 
-  const [selectedDate, setSelectedDate] = useState(date)
+  // Local state for controlled inputs
+  const [selectedDate, setSelectedDate] = useState<string>(date)
   const [selectedClassId, setSelectedClassId] = useState<string>("")
-  const [selectedClassName, setSelectedClassName] = useState<string>("")
 
-  // Set initial class
-  if (classes.length > 0 && !selectedClassId) {
-    setSelectedClassId(classes[0].id)
-    setSelectedClassName(classes[0].name)
-  }
+  // Use the hook's classId as the source of truth
+  const activeClassId = classId || selectedClassId || classes[0]?.id || ""
 
   // Navigate date
   const navigateDate = useCallback((direction: "prev" | "next") => {
@@ -72,6 +79,19 @@ function AbsensiContent() {
     setSelectedDate(newDate)
     setDate(newDate)
   }, [selectedDate, setDate])
+
+  // Handle date change from date picker
+  const handleDateChange = useCallback((newDate: string) => {
+    setSelectedDate(newDate)
+    setDate(newDate)
+  }, [setDate])
+
+  // Handle class change
+  const handleClassChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newClassId = e.target.value
+    setSelectedClassId(newClassId)
+    setClass(newClassId)
+  }, [setClass])
 
   // Format date for display
   const formatDate = (dateStr: string) => {
@@ -89,23 +109,33 @@ function AbsensiContent() {
 
   // Handle take attendance - redirect to mobile input page
   const handleTakeAttendance = () => {
-    if (selectedClassId) {
-      router.push(`/mobile/presensi/input?class=${selectedClassId}&date=${selectedDate}`)
-    }
-  }
-
-  // Handle class change
-  const handleClassChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const classId = e.target.value
-    setSelectedClassId(classId)
-    const classInfo = classes.find((c) => c.id === classId)
-    if (classInfo) {
-      setSelectedClassName(classInfo.name)
+    if (activeClassId) {
+      router.push(`/mobile/presensi/input?class=${activeClassId}&date=${selectedDate}`)
     }
   }
 
   // Check if weekend
   const isWeekend = new Date(selectedDate).getDay() === 0 || new Date(selectedDate).getDay() === 6
+
+  // Calculate percentage for display
+  const percentage = summary.totalStudents > 0
+    ? Math.round((summary.present / summary.totalStudents) * 100)
+    : 0
+
+  // Get selected class name
+  const selectedClassName = classes.find((c) => c.id === activeClassId)?.name || ""
+
+  // Loading state
+  if (loadingClasses) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-10 h-10 animate-spin text-[var(--primary)]" />
+          <p className="text-[var(--text-secondary)]">Memuat kelas...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <>
@@ -126,8 +156,7 @@ function AbsensiContent() {
                 input.type = "date"
                 input.value = selectedDate
                 input.onchange = (e) => {
-                  setSelectedDate((e.target as HTMLInputElement).value)
-                  setDate((e.target as HTMLInputElement).value)
+                  handleDateChange((e.target as HTMLInputElement).value)
                 }
                 input.click()
               }}
@@ -164,7 +193,7 @@ function AbsensiContent() {
                 Pilih Kelas
               </label>
               <select
-                value={selectedClassId}
+                value={activeClassId}
                 onChange={handleClassChange}
                 className="w-full h-11 px-3 bg-[var(--surface-secondary)] rounded-lg text-[14px] font-semibold text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] appearance-none cursor-pointer"
                 style={{
@@ -182,40 +211,64 @@ function AbsensiContent() {
               </select>
             </div>
           </div>
+          {selectedClassName && (
+            <p className="text-xs text-[var(--text-muted)] mt-2 px-1">
+              {classes.find((c) => c.id === activeClassId)?.major}
+            </p>
+          )}
         </Card>
 
-        {/* Stats Section */}
-        <div>
-          <h2 className="text-xs font-medium text-[var(--text-secondary)] mb-2 px-1">
-            Statistik Kehadiran
-          </h2>
-          <div className="grid grid-cols-2 gap-2">
-            {STATUS_CONFIG.map((stat) => (
-              <StatCard
-                key={stat.key}
-                label={stat.label}
-                value={stat.value}
-                icon={stat.icon}
-                color={stat.color}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Percentage Card */}
-        <Card className="p-4 bg-gradient-to-r from-[var(--success-soft)] to-[var(--success)]/10">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-sm">
-                <CheckCircle2 className="w-6 h-6 text-[var(--success)]" />
-              </div>
-              <div>
-                <p className="text-xs text-[var(--success)] font-medium">Kehadiran</p>
-                <p className="text-2xl font-bold text-[var(--success)]">96%</p>
-              </div>
+        {/* Stats Section - Loading */}
+        {loading ? (
+          <div className="space-y-4">
+            <div className="h-4 w-32 bg-[var(--surface-secondary)] rounded animate-pulse" />
+            <div className="grid grid-cols-2 gap-2">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-24 bg-[var(--surface-secondary)] rounded-2xl animate-pulse" />
+              ))}
             </div>
           </div>
-        </Card>
+        ) : (
+          <>
+            {/* Stats Section */}
+            <div>
+              <h2 className="text-xs font-medium text-[var(--text-secondary)] mb-2 px-1">
+                Statistik Kehadiran
+              </h2>
+              <div className="grid grid-cols-2 gap-2">
+                <StatCard label="Hadir" value={summary.present} icon={CheckCircle2} color="success" />
+                <StatCard label="Sakit" value={summary.sick} icon={ThermometerSun} color="warning" />
+                <StatCard label="Izin" value={summary.permission} icon={FileText} color="info" />
+                <StatCard label="Alpa" value={summary.absent} icon={AlertCircle} color="danger" />
+              </div>
+            </div>
+
+            {/* Percentage Card */}
+            <Card className="p-4 bg-gradient-to-r from-[var(--success-soft)] to-[var(--success)]/10">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-sm">
+                    <CheckCircle2 className="w-6 h-6 text-[var(--success)]" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-[var(--success)] font-medium">Kehadiran</p>
+                    <p className="text-2xl font-bold text-[var(--success)]">{percentage}%</p>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Total Students Info */}
+            <Card className="p-3 bg-[var(--surface-secondary)]">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-[var(--text-muted)]">Total Siswa</span>
+                <span className="text-sm font-semibold text-[var(--text-primary)]">
+                  {summary.totalStudents} siswa
+                </span>
+              </div>
+            </Card>
+          </>
+        )}
 
         {/* Weekend Warning */}
         {isWeekend && (
@@ -234,16 +287,23 @@ function AbsensiContent() {
       <div className="fixed bottom-[72px] left-0 right-0 bg-gradient-to-t from-[var(--background-primary)] via-[var(--background-primary)] to-transparent pt-6 px-4 pb-3">
         <Button
           onClick={handleTakeAttendance}
-          disabled={isWeekend}
+          disabled={isWeekend || loadingClasses || classes.length === 0}
           className={cn(
             "w-full h-12 text-[14px] font-semibold shadow-lg transition-all active:scale-[0.98]",
-            isWeekend
+            isWeekend || loadingClasses || classes.length === 0
               ? "bg-[var(--surface-secondary)] text-[var(--text-muted)]"
               : "bg-[var(--primary)] hover:bg-[var(--primary-hover)]"
           )}
         >
           {isWeekend ? (
             "Weekend - Tidak Ada Sekolah"
+          ) : loadingClasses ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              Memuat...
+            </>
+          ) : classes.length === 0 ? (
+            "Tidak Ada Kelas"
           ) : (
             <>
               Ambil Absensi

@@ -2,7 +2,6 @@
 
 import { MobileShell } from "@/components/layout/mobile-shell";
 import { MobileKPICard } from "@/components/dashboard/mobile-kpi-card";
-import { MobileQuickActions } from "@/components/dashboard/mobile-quick-actions";
 import { MobileScheduleCard } from "@/components/dashboard/mobile-schedule-card";
 import { MobileAnnouncementsCard } from "@/components/dashboard/mobile-announcements-card";
 import { MobileActivityCard } from "@/components/dashboard/mobile-activity-card";
@@ -13,6 +12,7 @@ import {
   Wallet,
   GraduationCap,
   AlertCircle,
+  Sun,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -32,10 +32,50 @@ export default function MobileDashboardPage() {
   // Sample pending attendance
   const pendingAttendance = 3;
 
+  // Get greeting based on time
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Selamat Pagi";
+    if (hour < 15) return "Selamat Siang";
+    if (hour < 18) return "Selamat Sore";
+    return "Selamat Malam";
+  };
+
+  // Get short date format
+  const getShortDate = () => {
+    return new Date().toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "short",
+    });
+  };
+
   return (
-    <MobileShell showHeaderGreeting={true}>
+    <MobileShell showHeaderGreeting={false}>
+      {/* Greeting Card */}
+      <Card className="mb-4 bg-gradient-to-r from-[var(--primary)] to-[var(--primary-hover)] border-2 border-[var(--primary)] shadow-[var(--shadow-md)]" padding="md">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-[14px] bg-white/20 flex items-center justify-center flex-shrink-0">
+            <Sun className="w-6 h-6 text-white" />
+          </div>
+          <div className="flex-1">
+            <p className="text-[14px] font-bold text-white">
+              {getGreeting()}, Administrator
+            </p>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="text-[12px] text-white/80">
+                {getShortDate()}
+              </span>
+              <span className="text-[12px] text-white/80">•</span>
+              <span className="text-[12px] text-white/80 font-medium">
+                2025/2026
+              </span>
+            </div>
+          </div>
+        </div>
+      </Card>
+
       {/* KPI Cards - 2 Column Grid */}
-      <div className="grid grid-cols-2 gap-3 mb-4 mt-3">
+      <div className="grid grid-cols-2 gap-3 mb-4">
         <MobileKPICard
           title="Total Siswa"
           value={stats.totalStudents.toLocaleString("id-ID")}
@@ -87,9 +127,6 @@ export default function MobileDashboardPage() {
           </div>
         </Card>
       )}
-
-      {/* Quick Actions */}
-      <MobileQuickActions className="mb-4" />
 
       {/* Today's Schedule */}
       <div className="mb-4">

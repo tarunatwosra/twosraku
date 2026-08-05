@@ -381,24 +381,30 @@ export async function submitRegistration(
   parentsData: RegistrationParentData[]
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    // Helper function to truncate strings to max length
+    const truncate = (val: string | null | undefined, max: number): string | null => {
+      if (!val) return null
+      return val.slice(0, max)
+    }
+
     // Prepare student update data
     const studentUpdateData: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
       is_active: true, // Set status aktif secara otomatis saat registrasi
     }
 
-    // Personal data
-    if (formData.nisn !== undefined) studentUpdateData.nisn = formData.nisn || null
-    if (formData.student_number !== undefined) studentUpdateData.student_number = formData.student_number || null
-    if (formData.full_name !== undefined) studentUpdateData.full_name = formData.full_name
-    if (formData.nickname !== undefined) studentUpdateData.nickname = formData.nickname || null
-    if (formData.gender !== undefined) studentUpdateData.gender = formData.gender
-    if (formData.blood_type !== undefined) studentUpdateData.blood_type = formData.blood_type || null
-    if (formData.birth_place !== undefined) studentUpdateData.birth_place = formData.birth_place || null
+    // Personal data - with truncation safeguards
+    if (formData.nisn !== undefined) studentUpdateData.nisn = truncate(formData.nisn, 20) || null
+    if (formData.student_number !== undefined) studentUpdateData.student_number = truncate(formData.student_number, 20) || null
+    if (formData.full_name !== undefined) studentUpdateData.full_name = truncate(formData.full_name, 255)
+    if (formData.nickname !== undefined) studentUpdateData.nickname = truncate(formData.nickname, 100) || null
+    if (formData.gender !== undefined) studentUpdateData.gender = truncate(formData.gender, 10)
+    if (formData.blood_type !== undefined) studentUpdateData.blood_type = truncate(formData.blood_type, 5) || null
+    if (formData.birth_place !== undefined) studentUpdateData.birth_place = truncate(formData.birth_place, 100) || null
     if (formData.birth_date !== undefined) studentUpdateData.birth_date = formData.birth_date || null
-    if (formData.religion !== undefined) studentUpdateData.religion = formData.religion || null
-    if (formData.phone !== undefined) studentUpdateData.phone = formData.phone || null
-    if (formData.address !== undefined) studentUpdateData.address = formData.address || null
+    if (formData.religion !== undefined) studentUpdateData.religion = truncate(formData.religion, 50) || null
+    if (formData.phone !== undefined) studentUpdateData.phone = truncate(formData.phone, 20) || null
+    if (formData.address !== undefined) studentUpdateData.address = formData.address || null // TEXT field, no limit
     // Note: enrollment_year sudah dihapus dari schema, tahun ajaran dikelola via academic_years
 
     // Health data
@@ -406,19 +412,21 @@ export async function submitRegistration(
       studentUpdateData.height_cm = formData.height_cm ? parseFloat(formData.height_cm) : null
     if (formData.weight_kg !== undefined)
       studentUpdateData.weight_kg = formData.weight_kg ? parseFloat(formData.weight_kg) : null
-    if (formData.vision !== undefined) studentUpdateData.vision = formData.vision || "normal"
-    if (formData.hearing !== undefined) studentUpdateData.hearing = formData.hearing || "normal"
+    if (formData.vision !== undefined) studentUpdateData.vision = truncate(formData.vision, 20) || "normal"
+    if (formData.hearing !== undefined) studentUpdateData.hearing = truncate(formData.hearing, 20) || "normal"
     if (formData.teeth !== undefined)
-      studentUpdateData.teeth_condition = formData.teeth || "normal"
+      studentUpdateData.teeth_condition = truncate(formData.teeth, 20) || "normal"
     if (formData.physical_disability !== undefined)
-      studentUpdateData.physical_disability = formData.physical_disability || "none"
+      studentUpdateData.physical_disability = truncate(formData.physical_disability, 20) || "none"
     if (formData.illness_history !== undefined)
-      studentUpdateData.illness_history = formData.illness_history || null
-    if (formData.allergies !== undefined) studentUpdateData.allergies = formData.allergies || null
-    if (formData.health_notes !== undefined) studentUpdateData.health_notes = formData.health_notes || null
+      studentUpdateData.illness_history = formData.illness_history || null // TEXT field
+    if (formData.allergies !== undefined)
+      studentUpdateData.allergies = formData.allergies || null // TEXT field
+    if (formData.health_notes !== undefined)
+      studentUpdateData.health_notes = formData.health_notes || null // TEXT field
 
     // Other
-    if (formData.notes !== undefined) studentUpdateData.notes = formData.notes || null
+    if (formData.notes !== undefined) studentUpdateData.notes = formData.notes || null // TEXT field
 
     // Update student
     const { error: studentError } = await supabase
@@ -498,11 +506,17 @@ export async function submitRegistration(
         .filter((p) => p.full_name?.trim())
         .map((parent) => ({
           student_id: studentId,
-          type: parent.type,
-          full_name: parent.full_name,
-          phone: parent.phone || null,
-          occupation: parent.occupation || null,
-          guardian_relation: parent.type === "guardian" ? parent.guardian_relation : null,
+          // Ensure type is always valid (father, mother, guardian)
+          type: parent.type === "father" || parent.type === "mother" || parent.type === "guardian"
+            ? parent.type
+            : "guardian" as const,
+          full_name: parent.full_name.slice(0, 255), // Max 255 chars
+          phone: parent.phone?.slice(0, 20) || null, // Max 20 chars
+          occupation: parent.occupation?.slice(0, 100) || null, // Max 100 chars
+          // Truncate guardian_relation to max 50 chars
+          guardian_relation: parent.type === "guardian" && parent.guardian_relation
+            ? parent.guardian_relation.slice(0, 50)
+            : null,
           is_primary: parent.type === "father" || parent.type === "mother",
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),

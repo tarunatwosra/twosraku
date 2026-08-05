@@ -4,7 +4,7 @@ import { MobileShell } from "@/components/layout/mobile-shell";
 import { Card } from "@/components/ui";
 import Link from "next/link";
 import {
-  BookUser,
+  ClipboardCheck,
   FileText,
   Settings,
   Users,
@@ -23,7 +23,7 @@ interface MenuItem {
 }
 
 const menuItems: MenuItem[] = [
-  { label: "Buku Induk", href: "/buku-induk", icon: BookUser, color: "bg-[var(--primary-soft)] text-[var(--primary)]" },
+  { label: "Rekap Presensi", href: "/mobile/rekap", icon: ClipboardCheck, color: "bg-[var(--primary-soft)] text-[var(--primary)]" },
   { label: "Guru & Staff", href: "/guru-staff", icon: Users, color: "bg-[var(--success-soft)] text-[var(--success)]" },
   { label: "Unit Khusus", href: "/pasukan-khusus", icon: Shield, color: "bg-purple-50 text-purple-500" },
   { label: "Laporan", href: "/laporan", icon: FileText, color: "bg-[var(--warning-soft)] text-[var(--warning)]" },
@@ -34,16 +34,6 @@ const menuItems: MenuItem[] = [
 export default function MobileMorePage() {
   return (
     <MobileShell>
-      {/* Page Title */}
-      <div className="mb-4">
-        <h1 className="text-[18px] font-semibold text-[var(--text-primary)]">
-          Lainnya
-        </h1>
-        <p className="text-[13px] text-[var(--text-muted)] mt-0.5">
-          Menu dan fitur lainnya
-        </p>
-      </div>
-
       {/* Menu Grid */}
       <div className="grid grid-cols-2 gap-3 mb-4">
         {menuItems.map((item) => {

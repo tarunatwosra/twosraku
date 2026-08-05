@@ -8,16 +8,6 @@ import { cn } from "@/lib/utils";
 export default function MobilePenilaianPage() {
   return (
     <MobileShell>
-      {/* Page Title */}
-      <div className="mb-4">
-        <h1 className="text-[18px] font-semibold text-[var(--text-primary)]">
-          Penilaian
-        </h1>
-        <p className="text-[13px] text-[var(--text-muted)] mt-0.5">
-          Pusat penilaian dan rapor
-        </p>
-      </div>
-
       {/* Quick Stats */}
       <div className="grid grid-cols-2 gap-3 mb-4">
         <Card className="p-4" padding="md">

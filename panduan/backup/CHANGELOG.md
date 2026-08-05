@@ -28,6 +28,30 @@ Berisi catatan semua perubahan yang dilakukan pada file-file panduan. Setiap kal
 
 <!-- Changelog entries will be added below this line -->
 
+## 2026-08-05 (Rekap Presensi Mobile)
+
+### attendance.md (19-feature-specifications/)
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-08-05 |
+| Perubahan | FEATURE MOBILE: (1) Buat halaman Rekap Presensi mobile terpisah (`app/mobile/rekap/page.tsx`). (2) Ganti menu "Buku Induk" di mobile more dengan "Rekap Presensi". (3) Fitur mobile: view mode (daily/weekly/monthly), trend chart 7 hari, breakdown per kelas/hari. (4) Versi naik ke 3.1. |
+| Backup | attendance-004.md (v3.0) |
+| Catatan | Files: app/mobile/rekap/page.tsx (NEW), app/mobile/more/page.tsx (updated) |
+
+---
+
+## 2026-08-04 (Presensi Mobile Database Integration)
+
+### attendance.md (19-feature-specifications/)
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-08-04 |
+| Perubahan | INTEGRASI DATABASE MOBILE v3.0: (1) Buat lib/attendance.ts - data layer untuk operasi database presensi. (2) Modifikasi hooks/useAttendance.ts - ganti data hardcoded (DEMO_CLASSES, generateStudents) dengan fetch dari database (classes, students, student_classes). (3) Update halaman mobile presensi - statistik real-time dari database. (4) Hapus mock data di STATUS_CONFIG. |
+| Backup | attendance-001.md (v2.1), attendance-002.md (v2.0), attendance-003.md (v1.0) |
+| Catatan | Files: lib/attendance.ts (NEW), hooks/useAttendance.ts, app/mobile/presensi/page.tsx, app/mobile/presensi/input/page.tsx |
+
+---
+
 ## 2026-08-03 (Import Date Fix)
 
 ### import-export.md (19-feature-specifications/)

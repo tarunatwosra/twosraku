@@ -1,100 +1,25 @@
 "use client"
 
-import { useState, useCallback, useMemo } from "react"
+import { useState, useCallback, useMemo, useEffect } from "react"
 import {
   AttendanceRecord,
   AttendanceSummary,
   AttendanceStatus,
   DailyRecap,
 } from "@/types/attendance"
+import {
+  fetchAttendanceClasses,
+  buildAttendanceRecords,
+  saveAttendance,
+  getAttendanceStats,
+  getActiveAcademicYear,
+  getActiveSemester,
+} from "@/lib/attendance"
+import type { Class } from "@/types/database"
 
-// Generate realistic student names
-const STUDENT_NAMES = [
-  "Ahmad Fauzi Rahman", "Siti Aminah Zahra", "Budi Santoso", "Dewi Lestari",
-  "Rizki Ramadhan", "Putri Ayu Wulandari", "Dimas Prasetyo", "Nabila Safitri",
-  "Fajar Nugroho", "Maya Sari Dewi", "Bagus Setiawan", "Anisa Rahmawati",
-  "Galang Hendra", "Kartika Sari", "Indra Gunawan", "Rina Wati",
-  "Hendra Wijaya", "Sari Novita", "Rizky Aditya", "Dian Pertiwi",
-  "Agus Salim", "Fitri Handayani", "Wahyu Seto", "Lina Marlina",
-  "Yusuf Ibrahim", "Ranti Kusuma", "Denny Firmansyah", "Evi Susilowati",
-  "Galih Pramudya", "Nita Kusumawardani", "Riko Hermawan", "Dhea Ayu Lestari",
-]
-
-// Class list
-const DEMO_CLASSES = [
-  { id: "class-x-tkj-1", name: "X TKJ 1", grade: "X", major: "Teknik Komputer dan Jaringan" },
-  { id: "class-x-tkj-2", name: "X TKJ 2", grade: "X", major: "Teknik Komputer dan Jaringan" },
-  { id: "class-xi-tkj-1", name: "XI TKJ 1", grade: "XI", major: "Teknik Komputer dan Jaringan" },
-  { id: "class-xii-tkj-1", name: "XII TKJ 1", grade: "XII", major: "Teknik Komputer dan Jaringan" },
-  { id: "class-x-mm-1", name: "X MM 1", grade: "X", major: "Multimedia" },
-  { id: "class-xi-mm-1", name: "XI MM 1", grade: "XI", major: "Multimedia" },
-]
-
-// Generate students for a class
-const generateStudents = (classId: string): AttendanceRecord[] => {
-  const classInfo = DEMO_CLASSES.find((c) => c.id === classId)
-  const studentCount = 28 + Math.floor(Math.random() * 8) // 28-35 students
-  const students: AttendanceRecord[] = []
-
-  for (let i = 0; i < studentCount; i++) {
-    const num = String(i + 1).padStart(2, "0")
-    students.push({
-      id: `${classId}-${i}`,
-      student: {
-        id: `${classId}-${i}`,
-        name: STUDENT_NAMES[i % STUDENT_NAMES.length],
-        studentNumber: `2025${classId.replace("class-", "").replace("-", "")}${num}`,
-        entryYear: "2025",
-        attendanceNumber: num,
-        class: classInfo?.name || "Kelas",
-        major: classInfo?.major || "TKJ",
-        gender: (i % 2 === 0 ? "L" : "P") as "L" | "P",
-      },
-      status: "present" as AttendanceStatus,
-      notes: "",
-    })
-  }
-  return students
-}
-
-// Generate realistic attendance for a date
-const generateDailyAttendance = (classId: string, date: string): AttendanceRecord[] => {
-  const students = generateStudents(classId)
-  const dayOfWeek = new Date(date).getDay()
-
-  // Weekend = no school
-  if (dayOfWeek === 0 || dayOfWeek === 6) {
-    return students.map(s => ({ ...s, status: "present" as AttendanceStatus }))
-  }
-
-  // Random distribution based on day
-  students.forEach(student => {
-    const rand = Math.random() * 100
-
-    // Monday = higher absent rate
-    if (dayOfWeek === 1) {
-      if (rand < 3) student.status = "absent"
-      else if (rand < 6) student.status = "permission"
-      else if (rand < 8) student.status = "sick"
-      else student.status = "present"
-    }
-    // Friday = higher permission rate
-    else if (dayOfWeek === 5) {
-      if (rand < 1) student.status = "absent"
-      else if (rand < 5) student.status = "permission"
-      else if (rand < 7) student.status = "sick"
-      else student.status = "present"
-    }
-    // Normal days
-    else {
-      if (rand < 1.5) student.status = "absent"
-      else if (rand < 3.5) student.status = "permission"
-      else if (rand < 5.5) student.status = "sick"
-      else student.status = "present"
-    }
-  })
-
-  return students
+// Type untuk kelas dengan major
+interface ClassWithMajor extends Class {
+  major?: string
 }
 
 // Calculate summary from records
@@ -115,31 +40,127 @@ interface AttendanceState {
   date: string
   records: AttendanceRecord[]
   isSubmitted: boolean
-}
-
-const initialState: AttendanceState = {
-  classId: "class-x-tkj-1",
-  date: new Date().toISOString().split("T")[0],
-  records: generateDailyAttendance("class-x-tkj-1", new Date().toISOString().split("T")[0]),
-  isSubmitted: false,
+  academicYearId: string | null
+  semesterId: string | null
 }
 
 export function useAttendance() {
-  const [state, setState] = useState<AttendanceState>(initialState)
+  const [classes, setClasses] = useState<ClassWithMajor[]>([])
+  const [state, setState] = useState<AttendanceState>({
+    classId: "",
+    date: new Date().toISOString().split("T")[0],
+    records: [],
+    isSubmitted: false,
+    academicYearId: null,
+    semesterId: null,
+  })
   const [loading, setLoading] = useState(false)
+  const [loadingClasses, setLoadingClasses] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // Load active academic year on mount
+  useEffect(() => {
+    const loadAcademicYear = async () => {
+      const { data: year } = await getActiveAcademicYear()
+      if (year) {
+        setState((prev) => ({ ...prev, academicYearId: year.id }))
+      }
+
+      // Also get active semester
+      const { data: semester } = await getActiveSemester()
+      if (semester) {
+        setState((prev) => ({ ...prev, semesterId: semester.id }))
+      }
+    }
+    loadAcademicYear()
+  }, [])
+
+  // Load classes on mount and when academic year changes
+  useEffect(() => {
+    const loadClasses = async () => {
+      setLoadingClasses(true)
+      try {
+        const { data, error: classesError } = await fetchAttendanceClasses(
+          state.academicYearId || undefined
+        )
+
+        if (classesError) {
+          console.error("Error loading classes:", classesError)
+          setError(classesError)
+        } else {
+          // Transform to include major name
+          const transformedClasses = (data || []).map((cls) => ({
+            ...cls,
+            major: cls.majors?.name || "",
+          })) as ClassWithMajor[]
+
+          setClasses(transformedClasses)
+
+          // Set default class if not set
+          if (transformedClasses.length > 0 && !state.classId) {
+            setState((prev) => ({ ...prev, classId: transformedClasses[0].id }))
+          }
+        }
+      } catch {
+        console.error("Error loading classes")
+        setError("Gagal memuat daftar kelas")
+      } finally {
+        setLoadingClasses(false)
+      }
+    }
+    loadClasses()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.academicYearId]) // state.classId intentionally omitted - set only once on mount
+
+  // Load attendance records when class or date changes
+  const loadRecords = useCallback(async (classId: string, date: string, academicYearId: string | null) => {
+    if (!classId) return
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      const { data, error: recordsError } = await buildAttendanceRecords(
+        classId,
+        date,
+        academicYearId || undefined
+      )
+
+      if (recordsError) {
+        console.error("Error loading records:", recordsError)
+        setError(recordsError)
+        setState((prev) => ({ ...prev, records: [] }))
+      } else {
+        // Check if records have been submitted (have real IDs from database)
+        const isSubmitted = data.some((r) => r.id && !r.id.includes("-"))
+        setState((prev) => ({
+          ...prev,
+          records: data,
+          isSubmitted,
+        }))
+      }
+    } catch {
+      console.error("Error loading records")
+      setError("Gagal memuat data presensi")
+      setState((prev) => ({ ...prev, records: [] }))
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  // Load records when class or date changes
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadRecords(state.classId, state.date, state.academicYearId)
+  }, [state.classId, state.date, state.academicYearId, loadRecords])
 
   // Set class
   const setClass = useCallback((classId: string) => {
-    const classInfo = DEMO_CLASSES.find((c) => c.id === classId)
-    if (classInfo) {
-      setState((prev) => ({
-        ...prev,
-        classId,
-        records: generateDailyAttendance(classId, prev.date),
-        isSubmitted: false,
-      }))
-    }
+    setState((prev) => ({
+      ...prev,
+      classId,
+      isSubmitted: false,
+    }))
   }, [])
 
   // Set date
@@ -147,7 +168,6 @@ export function useAttendance() {
     setState((prev) => ({
       ...prev,
       date,
-      records: generateDailyAttendance(prev.classId, date),
       isSubmitted: false,
     }))
   }, [])
@@ -207,11 +227,30 @@ export function useAttendance() {
 
   // Submit attendance
   const submitAttendance = useCallback(async () => {
+    if (!state.classId || !state.academicYearId || !state.semesterId) {
+      return { success: false, error: "Data tahun ajaran atau semester belum tersedia" }
+    }
+
     setLoading(true)
     setError(null)
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      const recordsToSave = state.records.map((record) => ({
+        studentId: record.student.id,
+        classId: state.classId,
+        academicYearId: state.academicYearId!,
+        semesterId: state.semesterId!,
+        date: state.date,
+        status: record.status === "present" ? "present" as const : record.status,
+        notes: record.notes,
+      }))
+
+      const { success, error: saveError } = await saveAttendance(recordsToSave)
+
+      if (!success) {
+        setError(saveError || "Gagal menyimpan presensi")
+        return { success: false, error: saveError }
+      }
 
       setState((prev) => ({
         ...prev,
@@ -219,13 +258,15 @@ export function useAttendance() {
       }))
 
       return { success: true }
-    } catch (err) {
-      setError("Gagal menyimpan presensi")
-      return { success: false, error: "Gagal menyimpan presensi" }
+    } catch {
+      console.error("Error submitting attendance")
+      const errorMsg = "Gagal menyimpan presensi"
+      setError(errorMsg)
+      return { success: false, error: errorMsg }
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [state])
 
   // Calculate summary
   const summary = useMemo((): AttendanceSummary => {
@@ -234,9 +275,15 @@ export function useAttendance() {
 
   // Get class name
   const className = useMemo(() => {
-    const classInfo = DEMO_CLASSES.find((c) => c.id === state.classId)
+    const classInfo = classes.find((c) => c.id === state.classId)
     return classInfo?.name || "Kelas"
-  }, [state.classId])
+  }, [classes, state.classId])
+
+  // Get major name
+  const majorName = useMemo(() => {
+    const classInfo = classes.find((c) => c.id === state.classId)
+    return classInfo?.major || ""
+  }, [classes, state.classId])
 
   // Load attendance for a specific date/class
   const loadAttendance = useCallback(
@@ -245,36 +292,56 @@ export function useAttendance() {
       setError(null)
 
       try {
-        await new Promise((resolve) => setTimeout(resolve, 300))
+        const { data, error: recordsError } = await buildAttendanceRecords(
+          classId,
+          date,
+          state.academicYearId || undefined
+        )
 
-        const classInfo = DEMO_CLASSES.find((c) => c.id === classId)
-        if (classInfo) {
-          setState({
-            classId,
-            date,
-            records: generateDailyAttendance(classId, date),
-            isSubmitted: false,
-          })
+        if (recordsError) {
+          setError(recordsError)
+          return { success: false, error: recordsError }
         }
 
+        const isSubmitted = data.some((r) => r.id && !r.id.includes("-"))
+
+        setState((prev) => ({
+          ...prev,
+          classId,
+          date,
+          records: data,
+          isSubmitted,
+        }))
+
         return { success: true }
-      } catch (err) {
-        setError("Gagal memuat presensi")
-        return { success: false, error: "Gagal memuat presensi" }
+      } catch {
+        const errorMsg = "Gagal memuat presensi"
+        setError(errorMsg)
+        return { success: false, error: errorMsg }
       } finally {
         setLoading(false)
       }
     },
-    []
+    [state.academicYearId]
   )
 
   return {
     // State
-    ...state,
+    classId: state.classId,
+    date: state.date,
+    records: state.records,
+    isSubmitted: state.isSubmitted,
     className,
-    classes: DEMO_CLASSES,
+    majorName,
+    classes: classes.map((c) => ({
+      id: c.id,
+      name: c.name,
+      grade: c.name.split(" ")[0] || "",
+      major: c.major || "",
+    })),
     summary,
     loading,
+    loadingClasses,
     error,
 
     // Actions
@@ -286,10 +353,11 @@ export function useAttendance() {
     resetAttendance,
     submitAttendance,
     loadAttendance,
+    refetch: loadRecords,
   }
 }
 
-// Hook for attendance recap - Realistic data
+// Hook for attendance recap
 export function useAttendanceRecap() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -300,19 +368,29 @@ export function useAttendanceRecap() {
     setError(null)
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 300))
+      const { data: classes, error: classesError } = await fetchAttendanceClasses()
 
-      // Generate recap for all classes
-      const byClass = DEMO_CLASSES.map((cls) => {
-        const records = generateDailyAttendance(cls.id, date)
-        const summary = calculateSummary(records)
+      if (classesError) {
+        setError(classesError)
+        return null
+      }
+
+      const byClassPromises = classes.map(async (cls) => {
+        const { data: stats, error: statsError } = await getAttendanceStats(cls.id, date)
+
+        if (statsError) {
+          return null
+        }
 
         return {
           classId: cls.id,
           className: cls.name,
-          summary,
+          summary: stats,
         }
       })
+
+      const byClassResults = await Promise.all(byClassPromises)
+      const byClass = byClassResults.filter((r): r is NonNullable<typeof r> => r !== null)
 
       // Calculate totals
       const totalStudents = byClass.reduce((sum, r) => sum + r.summary.totalStudents, 0)
@@ -334,6 +412,7 @@ export function useAttendanceRecap() {
         byClass,
       }
     } catch (err) {
+      console.error("Error getting daily recap:", err)
       setError("Gagal memuat rekap")
       return null
     } finally {
@@ -347,8 +426,6 @@ export function useAttendanceRecap() {
     setError(null)
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 400))
-
       const start = new Date(startDate)
       const days: DailyRecap[] = []
 
@@ -358,35 +435,14 @@ export function useAttendanceRecap() {
         date.setDate(date.getDate() + i)
         const dateStr = date.toISOString().split("T")[0]
 
-        const byClass = DEMO_CLASSES.map((cls) => {
-          const records = generateDailyAttendance(cls.id, dateStr)
-          const summary = calculateSummary(records)
+        const dayRecap = await getDailyRecap(dateStr)
+        if (dayRecap) {
+          days.push(dayRecap)
+        }
+      }
 
-          return {
-            classId: cls.id,
-            className: cls.name,
-            summary,
-          }
-        })
-
-        const totalStudents = byClass.reduce((sum, r) => sum + r.summary.totalStudents, 0)
-        const totalPresent = byClass.reduce((sum, r) => sum + r.summary.present, 0)
-        const totalSick = byClass.reduce((sum, r) => sum + r.summary.sick, 0)
-        const totalPermission = byClass.reduce((sum, r) => sum + r.summary.permission, 0)
-        const totalAbsent = byClass.reduce((sum, r) => sum + r.summary.absent, 0)
-
-        days.push({
-          date: dateStr,
-          summary: {
-            totalStudents,
-            present: totalPresent,
-            sick: totalSick,
-            permission: totalPermission,
-            absent: totalAbsent,
-            percentage: totalStudents > 0 ? (totalPresent / totalStudents) * 100 : 0,
-          },
-          byClass,
-        })
+      if (days.length === 0) {
+        return null
       }
 
       // Weekly totals
@@ -411,12 +467,13 @@ export function useAttendanceRecap() {
         byDay: days,
       }
     } catch (err) {
+      console.error("Error getting weekly recap:", err)
       setError("Gagal memuat rekap mingguan")
       return null
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [getDailyRecap])
 
   // Get monthly recap
   const getMonthlyRecap = useCallback(async (year: number, month: number) => {
@@ -424,8 +481,6 @@ export function useAttendanceRecap() {
     setError(null)
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500))
-
       const daysInMonth = new Date(year, month, 0).getDate()
       const days: DailyRecap[] = []
 
@@ -438,36 +493,14 @@ export function useAttendanceRecap() {
         if (dayOfWeek === 0 || dayOfWeek === 6) continue
 
         const dateStr = date.toISOString().split("T")[0]
+        const dayRecap = await getDailyRecap(dateStr)
+        if (dayRecap) {
+          days.push(dayRecap)
+        }
+      }
 
-        const byClass = DEMO_CLASSES.map((cls) => {
-          const records = generateDailyAttendance(cls.id, dateStr)
-          const summary = calculateSummary(records)
-
-          return {
-            classId: cls.id,
-            className: cls.name,
-            summary,
-          }
-        })
-
-        const totalStudents = byClass.reduce((sum, r) => sum + r.summary.totalStudents, 0)
-        const totalPresent = byClass.reduce((sum, r) => sum + r.summary.present, 0)
-        const totalSick = byClass.reduce((sum, r) => sum + r.summary.sick, 0)
-        const totalPermission = byClass.reduce((sum, r) => sum + r.summary.permission, 0)
-        const totalAbsent = byClass.reduce((sum, r) => sum + r.summary.absent, 0)
-
-        days.push({
-          date: dateStr,
-          summary: {
-            totalStudents,
-            present: totalPresent,
-            sick: totalSick,
-            permission: totalPermission,
-            absent: totalAbsent,
-            percentage: totalStudents > 0 ? (totalPresent / totalStudents) * 100 : 0,
-          },
-          byClass,
-        })
+      if (days.length === 0) {
+        return null
       }
 
       // Monthly totals
@@ -491,12 +524,13 @@ export function useAttendanceRecap() {
         byDay: days,
       }
     } catch (err) {
+      console.error("Error getting monthly recap:", err)
       setError("Gagal memuat rekap bulanan")
       return null
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [getDailyRecap])
 
   // Get trend data (last 7 days)
   const getTrendData = useCallback(async (baseDate: string) => {
@@ -509,27 +543,28 @@ export function useAttendanceRecap() {
       const dateStr = date.toISOString().split("T")[0]
       const dayOfWeek = date.getDay()
 
-      // Skip weekends
+      // Skip weekends (or show 100% for display)
       if (dayOfWeek === 0 || dayOfWeek === 6) {
-        trend.push({ date: dateStr, percentage: 100, dayName: ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"][dayOfWeek] })
+        trend.push({
+          date: dateStr,
+          percentage: 100,
+          dayName: ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"][dayOfWeek],
+        })
         continue
       }
 
-      const records: AttendanceRecord[] = []
-      DEMO_CLASSES.forEach(cls => {
-        records.push(...generateDailyAttendance(cls.id, dateStr))
-      })
-
-      const summary = calculateSummary(records)
-      trend.push({
-        date: dateStr,
-        percentage: summary.percentage,
-        dayName: ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"][dayOfWeek]
-      })
+      const recap = await getDailyRecap(dateStr)
+      if (recap) {
+        trend.push({
+          date: dateStr,
+          percentage: recap.summary.percentage,
+          dayName: ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"][dayOfWeek],
+        })
+      }
     }
 
     return trend
-  }, [])
+  }, [getDailyRecap])
 
   return {
     loading,

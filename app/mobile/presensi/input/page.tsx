@@ -1,9 +1,8 @@
 "use client"
 
-import { useState, useEffect, useCallback, Suspense } from "react"
+import { useState, useCallback, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { MobileShell } from "@/components/layout/mobile-shell"
-import { Card } from "@/components/ui"
 import { Button } from "@/components/ui/button"
 import { useAttendance } from "@/hooks/useAttendance"
 import { ATTENDANCE_STATUS_CONFIG, type AttendanceStatus } from "@/types/attendance"
@@ -61,13 +60,12 @@ const STATUS_COLORS = {
 }
 
 // Summary Bar Component
-function SummaryBar({
-  summary,
-  className: cls
-}: {
+interface SummaryBarProps {
   summary: { present: number; sick: number; permission: number; absent: number; percentage: number }
   className?: string
-}) {
+}
+
+function SummaryBar({ summary, className: cls }: SummaryBarProps) {
   return (
     <div className={cn("bg-white border-b border-[var(--border-light)] px-4 py-3", cls)}>
       <div className="flex items-center justify-between gap-3">
@@ -92,7 +90,13 @@ function SummaryBar({
 }
 
 // Status Mini Pill Component
-function StatusMiniPill({ label, value, color }: { label: string; value: number; color: AttendanceStatus }) {
+interface StatusMiniPillProps {
+  label: string
+  value: number
+  color: AttendanceStatus
+}
+
+function StatusMiniPill({ label, value, color }: StatusMiniPillProps) {
   const colors = STATUS_COLORS[color]
 
   return (
@@ -107,7 +111,12 @@ function StatusMiniPill({ label, value, color }: { label: string; value: number;
 }
 
 // Avatar Fallback Component
-function StudentAvatar({ name, gender }: { name: string; gender: "L" | "P" }) {
+interface StudentAvatarProps {
+  name: string
+  gender: "L" | "P"
+}
+
+function StudentAvatar({ name, gender }: StudentAvatarProps) {
   const initials = name
     .split(" ")
     .map((n) => n[0])
@@ -129,24 +138,23 @@ function StudentAvatar({ name, gender }: { name: string; gender: "L" | "P" }) {
   )
 }
 
+// Student data type
+interface StudentData {
+  id: string
+  name: string
+  studentNumber: string
+  attendanceNumber?: string | number
+  gender: "L" | "P"
+}
+
 // Student List Item Component
-function StudentListItem({
-  student,
-  status,
-  onStatusChange,
-}: {
-  student: {
-    id: string;
-    name: string;
-    studentNumber: string;
-    gender: "L" | "P";
-    entryYear?: string | number;
-    class?: string;
-    attendanceNumber?: string | number;
-  }
+interface StudentListItemProps {
+  student: StudentData
   status: AttendanceStatus
   onStatusChange: (status: AttendanceStatus) => void
-}) {
+}
+
+function StudentListItem({ student, status, onStatusChange }: StudentListItemProps) {
   const statuses: AttendanceStatus[] = ["present", "sick", "permission", "absent"]
   const currentColors = STATUS_COLORS[status]
 
@@ -162,12 +170,12 @@ function StudentListItem({
       <div className="flex items-center gap-3 mb-3">
         <StudentAvatar name={student.name} gender={student.gender} />
         <div className="flex-1 min-w-0">
-          <h3 className="text-xs font-semibold text-[var(--text-primary)] leading-tight truncate">
+          <h3 className="!text-[15px] !font-bold !text-[var(--text-primary)] leading-tight truncate">
             {student.name}
           </h3>
           <div className="flex items-center justify-between mt-0.5">
             <span className="text-[10px] text-[var(--text-muted)]">
-              {student.entryYear ? `${student.entryYear} - ` : ""}{student.class?.replace(/^X |^XI |^XII /, "") || ""}{student.attendanceNumber ? ` - ${student.attendanceNumber}` : ""}
+              {student.attendanceNumber ? `No. ${student.attendanceNumber}` : student.studentNumber}
             </span>
             <span className="text-[10px] text-[var(--text-muted)]">
               {student.gender === "L" ? "Laki-laki" : "Perempuan"}
@@ -206,15 +214,13 @@ function StudentListItem({
 }
 
 // Filter Tabs Component
-function FilterTabs({
-  activeFilter,
-  onFilterChange,
-  counts,
-}: {
+interface FilterTabsProps {
   activeFilter: FilterTab
   onFilterChange: (filter: FilterTab) => void
   counts: { all: number; sick: number; permission: number; absent: number }
-}) {
+}
+
+function FilterTabs({ activeFilter, onFilterChange, counts }: FilterTabsProps) {
   const tabs: { key: FilterTab; label: string; color?: AttendanceStatus }[] = [
     { key: "all", label: "Semua" },
     { key: "sick", label: "Sakit", color: "sick" },
@@ -258,17 +264,14 @@ function FilterTabs({
 }
 
 // Header Component
-function PageHeader({
-  date,
-  onPrev,
-  onNext,
-  onDateChange,
-}: {
+interface PageHeaderProps {
   date: string
   onPrev: () => void
   onNext: () => void
   onDateChange: (date: string) => void
-}) {
+}
+
+function PageHeader({ date, onPrev, onNext, onDateChange }: PageHeaderProps) {
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr)
     const dayName = d.toLocaleDateString("id-ID", { weekday: "long" })
@@ -334,14 +337,17 @@ function AbsensiInputContent() {
 
   const [isSaving, setIsSaving] = useState(false)
   const [activeFilter, setActiveFilter] = useState<FilterTab>("all")
+  const [initialized, setInitialized] = useState(false)
 
-  // Get params from URL
-  useEffect(() => {
-    const classParam = searchParams.get("class")
-    const dateParam = searchParams.get("date")
-    if (classParam) setClass(classParam)
-    if (dateParam) setDate(dateParam)
-  }, [searchParams, setClass, setDate])
+  // Initialize from URL params - use useState initializer instead of useEffect
+  const initialClass = searchParams.get("class") || classId || ""
+  const initialDate = searchParams.get("date") || date
+
+  // Set initial class on mount
+  if (initialClass && !initialized) {
+    setClass(initialClass)
+    setInitialized(true)
+  }
 
   // Filter records based on active tab
   const filteredRecords = records.filter((r) => {
@@ -364,6 +370,11 @@ function AbsensiInputContent() {
     setDate(d.toISOString().split("T")[0])
   }, [date, setDate])
 
+  // Handle date change
+  const handleDateChange = useCallback((newDate: string) => {
+    setDate(newDate)
+  }, [setDate])
+
   // Handle submit - redirect to mobile presensi
   const handleSubmit = async () => {
     setIsSaving(true)
@@ -375,19 +386,22 @@ function AbsensiInputContent() {
   }
 
   // Handle class change
-  const handleClassChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleClassChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     setClass(e.target.value)
     setActiveFilter("all")
-  }
+  }, [setClass])
+
+  // Active class ID
+  const activeClassId = classId || initialClass
 
   return (
     <div className="pb-28">
       {/* Header */}
       <PageHeader
-        date={date}
+        date={initialDate}
         onPrev={() => navigateDate("prev")}
         onNext={() => navigateDate("next")}
-        onDateChange={setDate}
+        onDateChange={handleDateChange}
       />
 
       {/* Class Selector Bar */}
@@ -397,7 +411,7 @@ function AbsensiInputContent() {
             <Users className="w-5 h-5 text-[var(--primary)]" />
           </div>
           <select
-            value={classId}
+            value={activeClassId}
             onChange={handleClassChange}
             className="flex-1 h-11 px-4 bg-[var(--surface-secondary)] rounded-xl text-[15px] font-semibold text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] appearance-none cursor-pointer"
             style={{
@@ -471,12 +485,12 @@ function AbsensiInputContent() {
       <div className="fixed bottom-[72px] left-0 right-0 bg-gradient-to-t from-white via-white to-transparent pt-6 px-4 pb-3">
         <Button
           onClick={handleSubmit}
-          disabled={isSaving || isSubmitted}
+          disabled={isSaving || isSubmitted || loading}
           isLoading={isSaving}
           className="w-full h-12 text-[14px] font-semibold shadow-lg bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-all active:scale-[0.98]"
         >
           <Save className="w-4 h-4" />
-          {isSubmitted ? "✓ Tersimpan" : "Simpan Absensi"}
+          {isSubmitted ? "✓ Tersimpan" : loading ? "Memuat..." : "Simpan Absensi"}
         </Button>
       </div>
     </div>

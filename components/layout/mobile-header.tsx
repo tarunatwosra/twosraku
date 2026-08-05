@@ -1,47 +1,52 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useSettings } from "@/hooks/useSettings";
 import { GraduationCap, Bell } from "lucide-react";
-import { cn } from "@/lib/utils";
 
-interface MobileHeaderProps {
-  showGreeting?: boolean;
-}
+// Page title mapping for mobile routes
+const PAGE_TITLES: Record<string, string> = {
+  "/mobile": "Dashboard Twosraku",
+  "/mobile/buku-induk": "Buku Induk Taruna",
+  "/mobile/presensi": "Presensi Taruna",
+  "/mobile/presensi/input": "Input Presensi",
+  "/mobile/penilaian": "Penilaian",
+  "/mobile/rekap": "Rekap Presensi",
+  "/mobile/more": "Menu",
+};
 
-export function MobileHeader({ showGreeting = false }: MobileHeaderProps) {
+export function MobileHeader() {
+  const pathname = usePathname();
   const { settings } = useSettings();
 
-  // Get current greeting based on time
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Selamat Pagi";
-    if (hour < 15) return "Selamat Siang";
-    if (hour < 18) return "Selamat Sore";
-    return "Selamat Malam";
+  // Get page title from pathname or default to school name
+  const getPageTitle = () => {
+    // Check exact match first
+    if (PAGE_TITLES[pathname]) {
+      return PAGE_TITLES[pathname];
+    }
+    // Check partial match for nested routes
+    for (const [path, title] of Object.entries(PAGE_TITLES)) {
+      if (pathname.startsWith(path + "/") || pathname === path) {
+        return title;
+      }
+    }
+    // Default to school name if no match
+    return settings.school.name;
   };
 
-  // Get short date format
-  const getShortDate = () => {
-    return new Date().toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "short",
-    });
-  };
-
-  const academicYear = settings.academic.academicYears.find(
-    (y) => y.id === settings.academic.activeAcademicYear
-  );
+  const pageTitle = getPageTitle();
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-[200] glass border-b border-[var(--border-light)]/60">
+    <header className="fixed top-0 left-0 right-0 z-[200] bg-white/50 backdrop-blur-sm border-b border-[var(--border-light)]/60">
       <div className="px-4 h-14 flex items-center justify-between">
         {/* Left - Logo & Title */}
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-[12px] bg-[var(--primary)] flex items-center justify-center">
             <GraduationCap className="w-4 h-4 text-white" />
           </div>
-          <span className="text-[13px] font-semibold text-[var(--text-primary)]">
-            {settings.school.name}
+          <span className="text-[16px] font-bold text-[var(--text-primary)] uppercase tracking-wide">
+            {pageTitle}
           </span>
         </div>
 
@@ -55,24 +60,6 @@ export function MobileHeader({ showGreeting = false }: MobileHeaderProps) {
           <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-[var(--danger)] rounded-full" />
         </button>
       </div>
-
-      {/* Greeting Section - Only show if showGreeting is true */}
-      {showGreeting && (
-        <div className="px-4 pb-3">
-          <p className="text-[14px] text-[var(--text-secondary)]">
-            {getGreeting()}, <span className="font-semibold text-[var(--text-primary)]">Administrator</span>
-          </p>
-          <div className="flex items-center gap-2 mt-0.5">
-            <span className="text-[12px] text-[var(--text-muted)]">
-              {getShortDate()}
-            </span>
-            <span className="text-[12px] text-[var(--text-muted)]">•</span>
-            <span className="text-[12px] text-[var(--primary)] font-medium">
-              {academicYear?.name || "2025/2026"}
-            </span>
-          </div>
-        </div>
-      )}
     </header>
   );
 }

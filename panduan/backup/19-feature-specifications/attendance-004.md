@@ -1,6 +1,6 @@
 # Attendance Module (Presensi)
-Version: 3.1
-Updated: 2026-08-05
+Version: 3.0
+Updated: 2026-08-04
 
 **Purpose:** Modul Presensi adalah modul operasional untuk mencatat, memantau, dan melaporkan kehadiran siswa. Menyediakan catatan akurat untuk setiap siswa dan menjadi sumber utama untuk laporan kehadiran, statistik dashboard, dan pemantauan karakter.
 
@@ -23,9 +23,7 @@ Updated: 2026-08-05
 
 **Dependencies:** Student Registry, Academic Calendar, Class, Settings (Tahun Ajaran & Semester). Kehadiran tidak bisa ada tanpa siswa aktif.
 
-**Navigasi:**
-- Main Navigation → Presensi. Sub-pages: Input Presensi, Rekap, Laporan.
-- Mobile: Bottom Nav → Presensi (Input), Menu Lainnya → Rekap Presensi
+**Navigasi:** Main Navigation → Presensi. Sub-pages: Input Presensi, Rekap, Laporan.
 
 ---
 
@@ -451,15 +449,12 @@ const handlePrint = () => {
 app/presensi/
 ├── page.tsx                    # Halaman utama
 ├── input/page.tsx             # Input presensi
-├── rekap/page.tsx             # Rekapitulasi (Desktop)
+├── rekap/page.tsx             # Rekapitulasi
 └── kelas/[id]/page.tsx        # Detail kelas
 
 app/mobile/presensi/
 ├── page.tsx                   # Halaman utama mobile
 └── input/page.tsx            # Input presensi mobile
-
-app/mobile/rekap/
-└── page.tsx                   # Rekapitulasi Mobile (BARU)
 
 lib/
 └── attendance.ts              # Data layer - database operations

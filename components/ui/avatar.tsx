@@ -1,6 +1,7 @@
 "use client";
 
 import { forwardRef, type HTMLAttributes } from "react";
+import { User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface AvatarProps extends HTMLAttributes<HTMLDivElement> {
@@ -10,11 +11,12 @@ export interface AvatarProps extends HTMLAttributes<HTMLDivElement> {
   size?: "xs" | "sm" | "md" | "lg" | "xl";
   status?: "online" | "offline" | "away" | "busy";
   ring?: boolean;
+  showIcon?: boolean;
 }
 
 const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
   (
-    { className, src, alt = "", fallback, size = "md", status, ring = true, ...props },
+    { className, src, alt = "", fallback, size = "md", status, ring = true, showIcon = false, ...props },
     ref
   ) => {
     const sizes = {
@@ -23,6 +25,14 @@ const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
       md: "w-10 h-10 text-sm",
       lg: "w-14 h-14 text-lg",
       xl: "w-20 h-20 text-2xl",
+    };
+
+    const iconSizes = {
+      xs: "w-3 h-3",
+      sm: "w-4 h-4",
+      md: "w-5 h-5",
+      lg: "w-7 h-7",
+      xl: "w-10 h-10",
     };
 
     const ringSizes = {
@@ -96,6 +106,8 @@ const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
               alt={alt}
               className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
             />
+          ) : showIcon ? (
+            <User className={cn("text-[var(--primary)]", iconSizes[size])} />
           ) : (
             <span className="select-none">{getFallbackText()}</span>
           )}

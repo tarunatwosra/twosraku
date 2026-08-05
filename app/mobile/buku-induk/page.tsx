@@ -140,12 +140,15 @@ function StudentDetailModal({ student, isOpen, onClose }: StudentDetailModalProp
       />
 
       {/* Modal Panel */}
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-b from-white to-slate-50 rounded-t-[28px] max-h-[92vh] flex flex-col shadow-[0_-4px_30px_rgba(0,0,0,0.15)]">
+      <div
+        className="absolute left-0 right-0 bottom-0 bg-gradient-to-b from-white to-slate-50 rounded-t-[28px] flex flex-col shadow-[0_-4px_30px_rgba(0,0,0,0.15)]"
+        style={{ top: "calc(66px + env(safe-area-inset-top))" }}
+      >
         {/* Drag Handle Area */}
-        <div className="flex-none pt-[env(safe-area-inset-top,12px)] px-5 pb-2">
+        <div className="flex-none px-5 pb-2 pt-4">
           <div className="flex items-center justify-between">
             <div className="flex-1 flex justify-center">
-              <div className="w-10 h-1 bg-slate-300 rounded-full mt-2" />
+              <div className="w-10 h-1 bg-slate-300 rounded-full" />
             </div>
             <button
               onClick={onClose}
@@ -163,6 +166,7 @@ function StudentDetailModal({ student, isOpen, onClose }: StudentDetailModalProp
               src={undefined}
               fallback={student.full_name}
               size="md"
+              showIcon
               className={cn(
                 "w-12 h-12 rounded-2xl text-base font-bold shadow-lg flex-shrink-0",
                 student.gender === "male"
@@ -367,10 +371,7 @@ function StudentDetailModal({ student, isOpen, onClose }: StudentDetailModalProp
               <HealthBadge label="Penglihatan" value={student.vision || "-"} />
               <HealthBadge label="Pendengaran" value={student.hearing || "-"} />
               <HealthBadge label="Gigi & Mulut" value={student.teeth_condition || "-"} />
-            </div>
-            <div className="mt-3 pt-3 border-t border-slate-100">
-              <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wide">Cacat Tubuh</p>
-              <p className="text-[12px] text-[var(--text-primary)] mt-0.5">{student.physical_disability || "-"}</p>
+              <HealthBadge label="Cacat Tubuh" value={student.physical_disability || "-"} />
             </div>
             {(student.illness_history || student.allergies || (student.health_notes && student.health_notes !== "-")) && (
               <div className="mt-3 space-y-2">
@@ -616,16 +617,6 @@ export default function MobileBukuIndukPage() {
 
   return (
     <MobileShell>
-      {/* Page Title */}
-      <div className="mb-4">
-        <h1 className="text-[20px] font-bold text-[var(--text-primary)]">
-          Buku Induk
-        </h1>
-        <p className="text-[13px] text-[var(--text-muted)] mt-0.5">
-          {loading ? "Memuat..." : `${students.length} siswa`}
-        </p>
-      </div>
-
       {/* Search Bar */}
       <div className="relative mb-3">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
@@ -699,6 +690,7 @@ export default function MobileBukuIndukPage() {
                     src={undefined}
                     fallback={student.full_name}
                     size="sm"
+                    showIcon
                     className={cn(
                       "w-11 h-11 rounded-xl text-sm font-bold flex-shrink-0",
                       student.gender === "male"
@@ -718,6 +710,10 @@ export default function MobileBukuIndukPage() {
                       <span className="text-[11px] text-[var(--text-muted)]">•</span>
                       <span className="text-[11px] text-[var(--text-muted)]">
                         {student.class_name}
+                      </span>
+                      <span className="text-[11px] text-[var(--text-muted)]">•</span>
+                      <span className="text-[11px] text-[var(--text-muted)]">
+                        {student.gender === "male" ? "♂ Laki-laki" : "♀ Perempuan"}
                       </span>
                     </div>
                   </div>
