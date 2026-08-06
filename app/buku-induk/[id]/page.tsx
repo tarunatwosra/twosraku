@@ -22,6 +22,14 @@ import {
   Heart,
   Award,
   FileText,
+  Activity,
+  Stethoscope,
+  Ruler,
+  Scale,
+  Eye,
+  Ear,
+  FileWarning,
+  AlertTriangle,
 } from "lucide-react"
 import { AppShell } from "@/components/layout"
 import { Card, Button, Badge, Avatar } from "@/components/ui"
@@ -308,18 +316,35 @@ function InfoItem({
 
 function PersonalInfoSection({ student }: { student: StudentWithClass }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <InfoItem label="NIS" value={student.student_number} />
-      {student.nisn && <InfoItem label="NISN" value={student.nisn} />}
-      <InfoItem label="Nama Lengkap" value={student.full_name} />
-      {student.nickname && <InfoItem label="Nama Panggilan" value={student.nickname} />}
-      <InfoItem label="Jenis Kelamin" value={GENDER_LABELS[student.gender]} />
-      {student.birth_place && <InfoItem label="Tempat Lahir" value={student.birth_place} />}
-      <InfoItem label="Tanggal Lahir" value={`${formatDate(student.birth_date)} (${formatAge(student.birth_date)})`} />
-      {student.religion && <InfoItem label="Agama" value={student.religion} />}
-      {student.blood_type && <InfoItem label="Golongan Darah" value={student.blood_type} />}
-      <InfoItem label="Alamat" value={student.address} fullWidth icon={<MapPin className="w-3 h-3" />} />
-      <InfoItem label="No. Telepon" value={student.phone} icon={<Phone className="w-3 h-3" />} />
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <InfoItem label="NIS" value={student.student_number} />
+        {student.nisn && <InfoItem label="NISN" value={student.nisn} />}
+        <InfoItem label="Nama Lengkap" value={student.full_name} />
+        {student.nickname && <InfoItem label="Nama Panggilan" value={student.nickname} />}
+        <InfoItem label="Jenis Kelamin" value={GENDER_LABELS[student.gender]} />
+        {student.birth_place && <InfoItem label="Tempat Lahir" value={student.birth_place} />}
+        <InfoItem label="Tanggal Lahir" value={`${formatDate(student.birth_date)} (${formatAge(student.birth_date)})`} />
+        {student.religion && <InfoItem label="Agama" value={student.religion} />}
+        {student.blood_type && <InfoItem label="Golongan Darah" value={student.blood_type} />}
+        <InfoItem label="Alamat" value={student.address} fullWidth icon={<MapPin className="w-3 h-3" />} />
+        <InfoItem label="No. Telepon" value={student.phone} icon={<Phone className="w-3 h-3" />} />
+      </div>
+
+      {/* Catatan Lainnya */}
+      {student.notes && (
+        <div className="border-t border-[var(--border-light)] pt-6">
+          <h4 className="text-[14px] font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+            <FileText className="w-4 h-4 text-[var(--text-muted)]" />
+            Catatan Lainnya
+          </h4>
+          <div className="p-4 bg-amber-50 rounded-xl border border-amber-200">
+            <p className="text-[14px] text-[var(--text-primary)] leading-relaxed whitespace-pre-wrap">
+              {student.notes}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -553,6 +578,145 @@ function GuardianSection({ student }: { student: StudentWithClass }) {
   )
 }
 
+function HealthInfoSection({ student }: { student: StudentWithClass }) {
+  // Helper function for health badges
+  const HealthBadge = ({ label, value, icon }: { label: string; value: string | null; icon: React.ReactNode }) => {
+    const isNormal = value === "Normal" || value === "Tidak Ada" || value === "-" || !value
+    return (
+      <Card variant="soft" padding="md" className="text-center">
+        <div className={cn(
+          "w-10 h-10 rounded-xl mx-auto mb-2 flex items-center justify-center",
+          isNormal ? "bg-emerald-50" : "bg-amber-50"
+        )}>
+          <span className={cn(isNormal ? "text-emerald-600" : "text-amber-600")}>
+            {icon}
+          </span>
+        </div>
+        <p className="text-[11px] text-[var(--text-muted)] uppercase tracking-wide mb-1">{label}</p>
+        <p className={cn(
+          "text-[14px] font-semibold",
+          isNormal ? "text-emerald-700" : "text-amber-700"
+        )}>
+          {value || "-"}
+        </p>
+      </Card>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Physical Measurements */}
+      <Card variant="elevated" padding="lg">
+        <h3 className="text-[16px] font-semibold text-[var(--text-primary)] mb-5 flex items-center gap-2">
+          <Ruler className="w-5 h-5 text-[var(--primary)]" />
+          Pengukuran Fisik
+        </h3>
+        <div className="grid grid-cols-3 gap-4">
+          <InfoItem label="Tinggi Badan" value={student.height_cm ? `${student.height_cm} cm` : "-"} />
+          <InfoItem label="Berat Badan" value={student.weight_kg ? `${student.weight_kg} kg` : "-"} />
+          <InfoItem label="Golongan Darah" value={student.blood_type || "-"} />
+        </div>
+      </Card>
+
+      {/* Health Conditions Grid */}
+      <Card variant="elevated" padding="lg">
+        <h3 className="text-[16px] font-semibold text-[var(--text-primary)] mb-5 flex items-center gap-2">
+          <Stethoscope className="w-5 h-5 text-[var(--primary)]" />
+          Kondisi Kesehatan
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <HealthBadge
+            label="Penglihatan"
+            value={student.vision || "-"}
+            icon={<Eye className="w-5 h-5" />}
+          />
+          <HealthBadge
+            label="Pendengaran"
+            value={student.hearing || "-"}
+            icon={<Ear className="w-5 h-5" />}
+          />
+          <HealthBadge
+            label="Gigi & Mulut"
+            value={student.teeth_condition || "-"}
+            icon={<Activity className="w-5 h-5" />}
+          />
+          <HealthBadge
+            label="Cacat Tubuh"
+            value={student.physical_disability || "-"}
+            icon={<FileWarning className="w-5 h-5" />}
+          />
+        </div>
+      </Card>
+
+      {/* Medical History & Notes */}
+      {(student.illness_history || student.allergies || student.health_notes) && (
+        <Card variant="elevated" padding="lg">
+          <h3 className="text-[16px] font-semibold text-[var(--text-primary)] mb-5 flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-amber-500" />
+            Riwayat & Catatan Kesehatan
+          </h3>
+          <div className="space-y-4">
+            {student.illness_history && (
+              <div className="p-4 bg-amber-50 rounded-xl border border-amber-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-600" />
+                  <p className="text-[13px] font-semibold text-amber-800">Riwayat Sakit</p>
+                </div>
+                <p className="text-[14px] text-[var(--text-primary)] leading-relaxed">
+                  {student.illness_history}
+                </p>
+              </div>
+            )}
+            {student.allergies && (
+              <div className="p-4 bg-red-50 rounded-xl border border-red-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertTriangle className="w-4 h-4 text-red-600" />
+                  <p className="text-[13px] font-semibold text-red-800">Alergi</p>
+                </div>
+                <p className="text-[14px] text-[var(--text-primary)] leading-relaxed">
+                  {student.allergies}
+                </p>
+              </div>
+            )}
+            {student.health_notes && (
+              <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <FileText className="w-4 h-4 text-blue-600" />
+                  <p className="text-[13px] font-semibold text-blue-800">Catatan Kesehatan</p>
+                </div>
+                <p className="text-[14px] text-[var(--text-primary)] leading-relaxed">
+                  {student.health_notes}
+                </p>
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
+
+      {/* Empty State */}
+      {!student.height_cm && !student.weight_kg && !student.vision && !student.hearing &&
+       !student.teeth_condition && !student.physical_disability && !student.illness_history &&
+       !student.allergies && !student.health_notes && (
+        <Card variant="soft" padding="lg" className="text-center py-12">
+          <div className="w-16 h-16 rounded-2xl bg-[var(--surface-primary)] flex items-center justify-center mx-auto mb-4">
+            <Heart className="w-8 h-8 text-slate-400" />
+          </div>
+          <h3 className="text-[16px] font-semibold text-[var(--text-primary)] mb-2">
+            Data Kesehatan Belum Tersedia
+          </h3>
+          <p className="text-[13px] text-[var(--text-muted)] mb-4">
+            Belum ada data kesehatan yang diisi untuk siswa ini
+          </p>
+          <Button variant="outline" size="sm">
+            <Pencil className="w-4 h-4" />
+            Tambah Data Kesehatan
+          </Button>
+        </Card>
+      )}
+    </div>
+  )
+}
+
 function ActivitySection({ student }: { student: StudentWithClass }) {
   const generateTimeline = () => {
     const items = []
@@ -737,6 +901,7 @@ export default function StudentDetailPage() {
   const tabs = [
     { id: "personal-academic", label: "Data Pribadi & Akademik", icon: <User className="w-4 h-4" /> },
     { id: "parents-guardian", label: "Data Orang Tua & Wali", icon: <Heart className="w-4 h-4" /> },
+    { id: "health", label: "Data Kesehatan", icon: <Activity className="w-4 h-4" /> },
     { id: "documents", label: "Dokumen", icon: <FileText className="w-4 h-4" /> },
     { id: "attendance", label: "Absensi", icon: <Calendar className="w-4 h-4" /> },
     { id: "assessment", label: "Penilaian", icon: <Award className="w-4 h-4" /> },
@@ -885,6 +1050,9 @@ export default function StudentDetailPage() {
             <div className="border-t border-[var(--border-light)] my-6" />
             <GuardianSection student={student} />
           </Card>
+        )}
+        {activeTab === "health" && (
+          <HealthInfoSection student={student} />
         )}
         {activeTab === "documents" && <DocumentsTab studentId={student.id} />}
         {activeTab === "attendance" && (

@@ -1,11 +1,21 @@
 # Student Registry Module (Buku Induk) — Compact
-Version: 2.8 | Updated: 2026-08-05
+Version: 3.0 | Updated: 2026-08-06
 
 **Purpose:** Student Registry adalah modul data master Twosraku — single source of truth untuk identitas siswa. Menyimpan & mengelola semua informasi siswa yang dibutuhkan seluruh sistem; setiap modul operasional bergantung pada data ini.
 
 **Scope**
 - Mengelola: Identitas Siswa, Informasi Akademik, Informasi Pribadi, Data Fisik & Kesehatan, Informasi Orang Tua/Wali, Kontak, Status Aktif, Riwayat.
 - Tidak dikelola di sini: Absensi, Penilaian, Poin Karakter, dan modul operasional lain (masing-masing di modulnya sendiri).
+
+**Catatan Perubahan v3.0:**
+- Desktop Detail Siswa: Tambahkan tab "Data Kesehatan" baru dengan section Pengukuran Fisik, Kondisi Kesehatan, dan Riwayat & Catatan Kesehatan
+- Desktop Detail Siswa: Tambahkan "Catatan Lainnya" di tab "Data Pribadi & Akademik"
+- Desktop Detail Siswa: Tab sekarang terdiri dari: Data Pribadi & Akademik, Data Orang Tua & Wali, Data Kesehatan, Dokumen, Absensi, Penilaian, Karakter, Aktivitas
+
+**Catatan Perubahan v2.9:**
+- Registrasi Mandiri: Tambah fitur "Lihat Data Diri" di halaman utama registrasi mobile
+- Registrasi Mandiri: Siswa bisa melihat data diri dengan input NIS + Tanggal Lahir
+- Registrasi Mandiri: Data ditampilkan dalam bottom sheet modal dengan 5 section (Data Diri, Akademik, Orang Tua/Wali, Kesehatan, Lainnya)
 
 **Catatan Perubahan v2.8:**
 - Registrasi Mandiri: Progress bar baru dengan komponen terpisah `RegistrationProgressBar` di `components/registrasi/progress-bar.tsx`
@@ -111,7 +121,15 @@ Version: 2.8 | Updated: 2026-08-05
 **1. Daftar Siswa (`/buku-induk`)** — pencarian realtime (nama, NIS); filter: jenis kelamin, status aktif, jurusan, tingkat, kelas; sorting: nama, NIS, tanggal daftar; pagination; pilih massal + arsipkan; quick view modal; export data; konfigurasi kolom.
 
 **2. Detail Siswa (`/buku-induk/[id]`)**
-- Tab: Overview, Data Pribadi & Akademik, Data Orang Tua & Wali, Dokumen, Absensi (ringkasan), Penilaian (ringkasan), Karakter (ringkasan), Aktivitas (timeline).
+- Tab: Data Pribadi & Akademik, Data Orang Tua & Wali, **Data Kesehatan**, Dokumen, Absensi (ringkasan), Penilaian (ringkasan), Karakter (ringkasan), Aktivitas (timeline).
+- Tab "Data Pribadi & Akademik" mencakup:
+  - Data Diri: NIS, NISN, Nama Lengkap, Nama Panggilan, Jenis Kelamin, Tempat Lahir, Tanggal Lahir, Agama, Golongan Darah, Alamat, No. Telepon
+  - Data Akademik: NIS, Tahun Ajaran, Status, Kelas, No. Absen, Riwayat Kelas
+  - **Catatan Lainnya**: Notes/keterangan tambahan siswa
+- Tab "Data Kesehatan" mencakup:
+  - Pengukuran Fisik: Tinggi Badan, Berat Badan, Golongan Darah
+  - Kondisi Kesehatan: Penglihatan, Pendengaran, Gigi & Mulut, Cacat Tubuh
+  - Riwayat & Catatan Kesehatan: Riwayat Sakit, Alergi, Catatan Kesehatan
 - Aksi: Edit data, Cetak kartu siswa, Download data, Lihat riwayat, Arsipkan (toggle aktif/nonaktif).
 
 **3. Tambah Siswa (`/buku-induk/new`)** — form multi-section (5 section di atas); validasi real-time; pengecekan NIS duplikat; auto-assign ke kelas jika dipilih; redirect ke detail setelah berhasil.
@@ -343,5 +361,5 @@ Selesai jika: menyimpan semua data master siswa; mendukung lifecycle aktif/tidak
 Student Registry adalah fondasi Twosraku. Setiap modul operasional bergantung pada akurasi dan konsistensi data yang dikelola di sini. Melindungi integritas data siswa lebih penting daripada menambahkan fitur baru.
 
 ---
-Last Updated: 2026-08-05 | Version: 2.8
+Last Updated: 2026-08-06 | Version: 3.0
 # End of Student Registry Module (Compact)

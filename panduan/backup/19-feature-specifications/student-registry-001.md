@@ -1,11 +1,16 @@
 # Student Registry Module (Buku Induk) — Compact
-Version: 2.8 | Updated: 2026-08-05
+Version: 2.9 | Updated: 2026-08-06
 
 **Purpose:** Student Registry adalah modul data master Twosraku — single source of truth untuk identitas siswa. Menyimpan & mengelola semua informasi siswa yang dibutuhkan seluruh sistem; setiap modul operasional bergantung pada data ini.
 
 **Scope**
 - Mengelola: Identitas Siswa, Informasi Akademik, Informasi Pribadi, Data Fisik & Kesehatan, Informasi Orang Tua/Wali, Kontak, Status Aktif, Riwayat.
 - Tidak dikelola di sini: Absensi, Penilaian, Poin Karakter, dan modul operasional lain (masing-masing di modulnya sendiri).
+
+**Catatan Perubahan v2.9:**
+- Registrasi Mandiri: Tambah fitur "Lihat Data Diri" di halaman utama registrasi mobile
+- Registrasi Mandiri: Siswa bisa melihat data diri dengan input NIS + Tanggal Lahir
+- Registrasi Mandiri: Data ditampilkan dalam bottom sheet modal dengan 5 section (Data Diri, Akademik, Orang Tua/Wali, Kesehatan, Lainnya)
 
 **Catatan Perubahan v2.8:**
 - Registrasi Mandiri: Progress bar baru dengan komponen terpisah `RegistrationProgressBar` di `components/registrasi/progress-bar.tsx`
@@ -343,5 +348,5 @@ Selesai jika: menyimpan semua data master siswa; mendukung lifecycle aktif/tidak
 Student Registry adalah fondasi Twosraku. Setiap modul operasional bergantung pada akurasi dan konsistensi data yang dikelola di sini. Melindungi integritas data siswa lebih penting daripada menambahkan fitur baru.
 
 ---
-Last Updated: 2026-08-05 | Version: 2.8
+Last Updated: 2026-08-06 | Version: 2.9
 # End of Student Registry Module (Compact)

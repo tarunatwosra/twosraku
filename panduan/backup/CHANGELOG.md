@@ -28,6 +28,30 @@ Berisi catatan semua perubahan yang dilakukan pada file-file panduan. Setiap kal
 
 <!-- Changelog entries will be added below this line -->
 
+## 2026-08-06
+
+### student-registry.md (19-feature-specifications/)
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-08-06 |
+| Perubahan | Desktop Detail Siswa v3.0: (1) Tambah tab "Data Kesehatan" baru dengan section Pengukuran Fisik, Kondisi Kesehatan, dan Riwayat & Catatan Kesehatan. (2) Tambah "Catatan Lainnya" di tab "Data Pribadi & Akademik". (3) Tab sekarang: Data Pribadi & Akademik, Data Orang Tua & Wali, Data Kesehatan, Dokumen, Absensi, Penilaian, Karakter, Aktivitas. |
+| Backup | student-registry-001.md |
+| Catatan | Files: app/buku-induk/[id]/page.tsx |
+
+---
+
+## 2026-08-06
+
+### student-registry.md (19-feature-specifications/)
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-08-06 |
+| Perubahan | Fitur "Lihat Data Diri" di halaman registrasi mobile: input NIS + Tanggal Lahir, tampilkan data di bottom sheet modal |
+| Backup | - |
+| Catatan | Fitur baru, tidak ada backup |
+
+---
+
 ## 2026-08-05
 
 ### student-registry.md (19-feature-specifications/)

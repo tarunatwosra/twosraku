@@ -1,5 +1,5 @@
 # Student Registry Module (Buku Induk) — Compact
-Version: 2.3 | Updated: 2026-07-10
+Version: 2.8 | Updated: 2026-08-05
 
 **Purpose:** Student Registry adalah modul data master Twosraku — single source of truth untuk identitas siswa. Menyimpan & mengelola semua informasi siswa yang dibutuhkan seluruh sistem; setiap modul operasional bergantung pada data ini.
 
@@ -7,10 +7,39 @@ Version: 2.3 | Updated: 2026-07-10
 - Mengelola: Identitas Siswa, Informasi Akademik, Informasi Pribadi, Data Fisik & Kesehatan, Informasi Orang Tua/Wali, Kontak, Status Aktif, Riwayat.
 - Tidak dikelola di sini: Absensi, Penilaian, Poin Karakter, dan modul operasional lain (masing-masing di modulnya sendiri).
 
+**Catatan Perubahan v2.8:**
+- Registrasi Mandiri: Progress bar baru dengan komponen terpisah `RegistrationProgressBar` di `components/registrasi/progress-bar.tsx`
+- Registrasi Mandiri: Progress bar lebih modern dengan gradient animated, pulse effect, shine overlay, dan glow effect
+- Registrasi Mandiri: Step indicators dengan connecting line, custom SVG icons, dan visual states (active/completed/pending)
+- Registrasi Mandiri: Backdrop blur container untuk progress bar section
+
+**Catatan Perubahan v2.7:**
+- Registrasi Mandiri: Tambah input No. Absen (diisi manual oleh siswa)
+- Registrasi Mandiri: Status otomatis aktif saat registrasi
+- Registrasi Mandiri: Golongan darah menggunakan dropdown (A, B, AB, O, Tidak Tahu)
+- Registrasi Mandiri: UI progress bar lebih menarik dengan animasi dan gradient
+- Hapus field `is_homeroom` dari tabel `student_classes` (tidak relevan)
+
+**Catatan Perubahan v2.6:**
+- Registrasi Mandiri: Fix - kelas dan academic year sekarang tersimpan ke database (student_classes)
+
+**Catatan Perubahan v2.5:**
+- Hapus kolom students: enrollment_year (tahun ajaran sekarang dikelola via academic_years + student_classes)
+- Registrasi Mandiri: Progress bar dan step indicator lebih elegan dengan animasi
+- Registrasi Mandiri: NIS auto-fill dari database di bagian akademik
+- Registrasi Mandiri: Pilihan kelas dari database dengan dropdown select
+- Registrasi Mandiri: Academic year aktif (read-only) menggantikan enrollment_year
+
+**Catatan Perubahan v2.4:**
+- Hapus kolom students: national_id (NIK), nationality (kewarganegaraan), email, graduation_year (tahun lulus), transfer_date, transfer_reason
+- Classes tidak lagi terikat tahun ajaran (students terhubung via student_classes)
+- Classes tidak lagi memiliki room_number
+
 **Tujuan Utama:** satu database siswa terpusat · mencegah duplikat identitas · menjaga rekam historis · mendukung pelaporan · mendukung integrasi dengan semua modul.
 
 **Status Siswa:** sistem `is_active` (boolean). `true` = Aktif (masih bersekolah), `false` = Tidak Aktif (lulus/pindah/arsip).
 **Lifecycle:** Aktif → Tidak Aktif → (opsional: Restore) → Aktif. Siswa aktif tampil di daftar utama; siswa tidak aktif tampil di halaman khusus; data historis tetap tersimpan.
+**Registrasi:** Status siswa otomatis设置为 aktif saat registrasi mandiri selesai.
 
 **Navigasi:** Main Navigation → Student Registry (Buku Induk). Sub Pages: Student List, Student Detail, Create Student, Edit Student, Student History, Import Students, Export Students, Inactive Students.
 
@@ -36,12 +65,14 @@ Version: 2.3 | Updated: 2026-07-10
 ### 2. Data Akademik
 | Field | Tipe | Required | Deskripsi |
 |-------|------|----------|-----------|
-| Tahun Ajaran | Auto | - | Otomatis dari sistem |
-| Angkatan | Number | - | Contoh: 2024, 2026 |
-| Kelas | Select | - | Pilihan kelas berdasarkan tahun ajaran |
-| Status | Select | ✅ | Aktif / Tidak Aktif |
+| NIS | Auto | ✅ | Auto-filled dari database (read-only) |
+| NISN | Text | - | Nomor Induk Sekolah Nasional (10 digit) |
+| Tahun Ajaran | Auto | - | Otomatis dari academic year aktif (read-only) |
+| Kelas | Select | - | Pilihan kelas dari database (dropdown) |
+| No. Absen | Number | - | Nomor absensi siswa (diisi manual) |
+| Status | Auto | ✅ | Otomatis aktif saat registrasi (read-only) |
 
-**Catatan:** Data Kelas diambil dari **Settings Academic → Tab Kelas**. Pastikan kelas sudah dibuat di Settings sebelum menambahkan siswa.
+**Catatan:** Data Kelas diambil dari **Settings Academic → Tab Kelas**. Pastikan kelas sudah dibuat di Settings sebelum menambahkan siswa. Siswa terhubung ke kelas melalui `student_classes` yang menyimpan tahun ajaran.
 
 ### 3. Data Orang Tua/Wali
 | Field | Tipe | Required | Deskripsi |
@@ -114,8 +145,8 @@ Fitur import siswa memungkinkan import data dari file Excel/CSV dengan fitur val
 
 ### Field Mapping
 Mendukung mapping otomatis dan manual untuk kolom-kolom berikut:
-- **Data Diri:** NIS, Nama Lengkap, Nama Panggilan, Jenis Kelamin, Tempat Lahir, Tanggal Lahir, Agama, Kewarganegaraan, Golongan Darah
-- **Kontak:** Alamat, No. Telepon, Email, NIK, NISN
+- **Data Diri:** NIS, Nama Lengkap, Nama Panggilan, Jenis Kelamin, Tempat Lahir, Tanggal Lahir, Agama, Golongan Darah
+- **Kontak:** Alamat, No. Telepon, NISN
 - **Akademik:** Tahun Masuk
 - **Data Orang Tua:** Nama Ayah, No. HP Ayah, Nama Ibu, No. HP Ibu, Nama Wali, No. HP Wali, Hubungan Wali
 - **Kesehatan:** Tinggi Badan, Berat Badan, Penglihatan, Pendengaran, Kondisi Gigi, Cacat Tubuh, Riwayat Sakit, Alergi, Catatan Kesehatan
@@ -167,7 +198,7 @@ Template download mencakup 25+ kolom untuk import data lengkap.
 ---
 
 ## Aturan Bisnis
-NIS harus unik (tidak boleh duplikat) · NISN harus unik jika diisi · NIK harus unik jika diisi · siswa tidak bisa di dua kelas aktif sekaligus · siswa tidak aktif tetap menyimpan data historis · siswa tidak aktif tidak bisa menerima absensi baru.
+NIS harus unik (tidak boleh duplikat) · NISN harus unik jika diisi · siswa tidak bisa di dua kelas aktif sekaligus dalam tahun ajaran yang sama · siswa tidak aktif tetap menyimpan data historis · siswa tidak aktif tidak bisa menerima absensi baru.
 
 ## Validasi
 - **Required:** NIS, Nama Lengkap, Jenis Kelamin, Tanggal Lahir, Status.
@@ -187,14 +218,12 @@ NIS harus unik (tidak boleh duplikat) · NISN harus unik jika diisi · NIK harus
 | id | uuid | PK |
 | student_number | varchar(20) | NOT NULL, UNIQUE |
 | nisn | varchar(20) | UNIQUE |
-| national_id | varchar(20) | UNIQUE |
 | full_name | varchar(255) | NOT NULL |
 | nickname | varchar(100) | |
 | gender | varchar(10) | NOT NULL |
 | birth_place | varchar(100) | |
 | birth_date | date | |
 | religion | varchar(50) | |
-| nationality | varchar(50) | DEFAULT 'Indonesia' |
 | blood_type | varchar(5) | |
 | height_cm | decimal(5,2) | |
 | weight_kg | decimal(5,2) | |
@@ -207,16 +236,41 @@ NIS harus unik (tidak boleh duplikat) · NISN harus unik jika diisi · NIK harus
 | health_notes | text | |
 | address | text | |
 | phone | varchar(20) | |
-| email | varchar(255) | |
 | photo_url | text | |
 | is_active | boolean | DEFAULT true |
-| enrollment_year | integer | |
-| graduation_year | integer | |
-| transfer_date | date | |
-| transfer_reason | text | |
 | notes | text | |
 | created_at | timestamptz | |
 | updated_at | timestamptz | |
+
+**Catatan:** Kolom enrollment_year, national_id, nationality, email, graduation_year, transfer_date, transfer_reason dihapus.
+
+### Tabel `classes`
+| Field | Type | Constraints |
+|-------|------|-------------|
+| id | uuid | PK |
+| name | varchar(50) | NOT NULL |
+| major_id | uuid | FK → majors.id |
+| status | varchar(20) | DEFAULT 'active' |
+| created_at | timestamptz | |
+| updated_at | timestamptz | |
+
+**Catatan:** Classes tidak lagi memiliki academic_year_id dan room_number. Hubungan siswa-kelas dikelola via `student_classes`.
+
+### Tabel `student_classes`
+| Field | Type | Constraints |
+|-------|------|-------------|
+| id | uuid | PK |
+| student_id | uuid | FK → students.id |
+| class_id | uuid | FK → classes.id |
+| academic_year_id | uuid | FK → academic_years.id |
+| attendance_number | integer | |
+| status | varchar(20) | DEFAULT 'active' |
+| start_date | date | |
+| end_date | date | |
+| created_at | timestamptz | |
+| updated_at | timestamptz | |
+
+**Unique Constraint:** (student_id, class_id, academic_year_id)
 
 ### Tabel `parents`
 | Field | Type | Constraints |
@@ -257,7 +311,7 @@ NIS duplikat → "NIS sudah terdaftar" · NISN duplikat → "NISN sudah terdafta
 Skeleton table saat load daftar; skeleton detail saat load detail; spinner pada tombol aksi; progress indicator pada import.
 
 ## Empty States
-| Kondisi | Pesan | Aksi |
+| Kondisi | Pesan | aksi |
 |---------|--------|------|
 | Belum ada siswa | "Belum ada data siswa" | Tambah Siswa |
 | Tidak ada hasil search | "Tidak ada siswa yang cocok" | Reset filter |
@@ -265,7 +319,20 @@ Skeleton table saat load daftar; skeleton detail saat load detail; spinner pada 
 
 ---
 
-## Catatan Migration v2.0
+## Catatan Migration
+
+### v2.5 (2026-07-31)
+**Perubahan:**
+- Hapus kolom dari `students`: enrollment_year (tidak lagi digunakan)
+- Tahun ajaran sekarang dikelola via `academic_years` (is_active = true) dan `student_classes`
+
+### v2.4 (2026-07-31)
+**Perubahan:**
+- Hapus kolom dari `students`: national_id, nationality, email, graduation_year, transfer_date, transfer_reason
+- Hapus kolom dari `classes`: academic_year_id, room_number
+- Classes tidak lagi terikat tahun ajaran
+
+### v2.0
 **Perubahan dari v1.0:** field `status` (varchar) dihapus → digantikan `is_active` (boolean); nilai status (prospective/active/transferred/graduated/archived) disederhanakan jadi Aktif/Tidak Aktif; ditambahkan field kesehatan baru (vision, hearing, teeth_condition, physical_disability, illness_history, allergies, health_notes); ditambahkan nisn; ditambahkan guardian_relation di tabel parents.
 **SQL Migration:** jalankan file `database/migrations/001_update_students_table.sql`
 
@@ -276,5 +343,5 @@ Selesai jika: menyimpan semua data master siswa; mendukung lifecycle aktif/tidak
 Student Registry adalah fondasi Twosraku. Setiap modul operasional bergantung pada akurasi dan konsistensi data yang dikelola di sini. Melindungi integritas data siswa lebih penting daripada menambahkan fitur baru.
 
 ---
-Last Updated: 2026-07-10 | Version: 2.3
+Last Updated: 2026-08-05 | Version: 2.8
 # End of Student Registry Module (Compact)
