@@ -296,7 +296,7 @@ CREATE TABLE IF NOT EXISTS attendances (
     verified_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(student_id, date)
+    UNIQUE(student_id, class_id, date)
 );
 
 CREATE INDEX idx_attendances_date ON attendances(date);

@@ -321,7 +321,6 @@ export default function MobileRecapPresensiPage() {
   const fetchWeeklyData = useCallback(async (date: string) => {
     if (!academicYear?.id) return null
 
-    setLoading(true)
     try {
       const targetDate = new Date(date)
       const dayOfWeek = targetDate.getDay()
@@ -405,8 +404,6 @@ export default function MobileRecapPresensiPage() {
     } catch (err) {
       console.error("Error fetching weekly data:", err)
       return null
-    } finally {
-      setLoading(false)
     }
   }, [academicYear?.id])
 
@@ -414,7 +411,6 @@ export default function MobileRecapPresensiPage() {
   const fetchMonthlyData = useCallback(async (date: string) => {
     if (!academicYear?.id) return null
 
-    setLoading(true)
     try {
       const targetDate = new Date(date)
       const year = targetDate.getFullYear()
@@ -494,8 +490,6 @@ export default function MobileRecapPresensiPage() {
     } catch (err) {
       console.error("Error fetching monthly data:", err)
       return null
-    } finally {
-      setLoading(false)
     }
   }, [academicYear?.id])
 
@@ -567,47 +561,49 @@ export default function MobileRecapPresensiPage() {
   // Load data based on view mode
   useEffect(() => {
     const loadData = async () => {
-      if (viewMode === "daily") {
-        const data = await fetchDailyRecap(selectedDate)
-        if (data) setDailyRecap(data)
-        setWeeklyData(null)
-        setMonthlyData(null)
-      } else if (viewMode === "weekly") {
-        setDailyRecap(null)
-        const data = await fetchWeeklyData(selectedDate)
-        if (data) setWeeklyData(data)
-        setMonthlyData(null)
-      } else if (viewMode === "monthly") {
-        setDailyRecap(null)
-        setWeeklyData(null)
-        const data = await fetchMonthlyData(selectedDate)
-        if (data) setMonthlyData(data)
-      }
+      setLoading(true)
+      try {
+        if (viewMode === "daily") {
+          const data = await fetchDailyRecap(selectedDate)
+          if (data) setDailyRecap(data)
+          setWeeklyData(null)
+          setMonthlyData(null)
+        } else if (viewMode === "weekly") {
+          setDailyRecap(null)
+          const data = await fetchWeeklyData(selectedDate)
+          if (data) setWeeklyData(data)
+          setMonthlyData(null)
+        } else if (viewMode === "monthly") {
+          setDailyRecap(null)
+          setWeeklyData(null)
+          const data = await fetchMonthlyData(selectedDate)
+          if (data) setMonthlyData(data)
+        }
 
-      // Load trend data
-      const trends: TrendData[] = []
-      const targetDate = new Date(selectedDate)
-      for (let i = 6; i >= 0; i--) {
-        const currentDate = new Date(targetDate)
-        currentDate.setDate(targetDate.getDate() - i)
-        const dayOfWeek = currentDate.getDay()
-        if (dayOfWeek === 0 || dayOfWeek === 6) continue
+        // Load trend data
+        const trends: TrendData[] = []
+        const targetDate = new Date(selectedDate)
+        for (let i = 6; i >= 0; i--) {
+          const currentDate = new Date(targetDate)
+          currentDate.setDate(targetDate.getDate() - i)
+          const dayOfWeek = currentDate.getDay()
+          if (dayOfWeek === 0 || dayOfWeek === 6) continue
 
-        // Get attendance for this day
-        if (!academicYear?.id) continue
-        const { data: attendances } = await supabase
-          .from("attendances")
-          .select("status")
-          .eq("date", currentDate.toISOString().split("T")[0])
-          .eq("student_classes.academic_year_id", academicYear.id)
+          // Get attendance for this day
+          if (!academicYear?.id) continue
+          const { data: attendances } = await supabase
+            .from("attendances")
+            .select("status")
+            .eq("date", currentDate.toISOString().split("T")[0])
+            .eq("student_classes.academic_year_id", academicYear.id)
 
-        const { data: studentClasses } = await supabase
-          .from("student_classes")
-          .select("student_id")
-          .eq("academic_year_id", academicYear.id)
-          .eq("status", "active")
+          const { data: studentClasses } = await supabase
+            .from("student_classes")
+            .select("student_id")
+            .eq("academic_year_id", academicYear.id)
+            .eq("status", "active")
 
-        const totalStudents = studentClasses?.length || 0
+          const totalStudents = studentClasses?.length || 0
         const present = (attendances || []).filter((a: any) => a.status === "present").length
         const percentage = totalStudents > 0 ? (present / totalStudents) * 100 : 0
 
@@ -618,10 +614,15 @@ export default function MobileRecapPresensiPage() {
         })
       }
       setTrendData(trends)
+      } catch (err) {
+        console.error("Error loading data:", err)
+      } finally {
+        setLoading(false)
+      }
     }
 
     loadData()
-  }, [selectedDate, viewMode, fetchDailyRecap, academicYear?.id])
+  }, [selectedDate, viewMode, fetchDailyRecap, fetchWeeklyData, fetchMonthlyData, academicYear?.id])
 
   // Handle class selection
   const handleClassClick = (classId: string) => {

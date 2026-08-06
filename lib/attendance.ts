@@ -259,6 +259,7 @@ export async function saveAttendance(
     }))
 
     // Use upsert with conflict handling
+    // Note: database UNIQUE index is on (student_id, class_id, date) - migration 009
     const { error: upsertError } = await supabase
       .from("attendances")
       .upsert(recordsToUpsert, {
