@@ -6,6 +6,7 @@ import { MobileShell } from "@/components/layout/mobile-shell"
 import { Button } from "@/components/ui/button"
 import { useAttendance } from "@/hooks/useAttendance"
 import { ATTENDANCE_STATUS_CONFIG, type AttendanceStatus } from "@/types/attendance"
+import { formatLocalDate } from "@/lib/utils"
 import {
   ChevronLeft,
   ChevronRight,
@@ -365,9 +366,9 @@ function AbsensiInputContent() {
 
   // Navigate date
   const navigateDate = useCallback((direction: "prev" | "next") => {
-    const d = new Date(date)
+    const d = new Date(date + "T00:00:00")
     d.setDate(d.getDate() + (direction === "next" ? 1 : -1))
-    setDate(d.toISOString().split("T")[0])
+    setDate(formatLocalDate(d))
   }, [date, setDate])
 
   // Handle date change

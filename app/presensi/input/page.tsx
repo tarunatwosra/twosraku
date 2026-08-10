@@ -23,7 +23,7 @@ import {
   ChevronRight,
   Loader2,
 } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn, formatLocalDate } from "@/lib/utils"
 
 type FilterTab = "all" | "sick" | "permission" | "absent"
 
@@ -104,9 +104,9 @@ function AttendanceInputContent() {
 
   // Navigate date
   const navigateDate = (direction: "prev" | "next") => {
-    const d = new Date(date)
+    const d = new Date(date + "T00:00:00")
     d.setDate(d.getDate() + (direction === "next" ? 1 : -1))
-    setDate(d.toISOString().split("T")[0])
+    setDate(formatLocalDate(d))
   }
 
   // Handle submit

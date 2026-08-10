@@ -20,7 +20,7 @@ import {
   ChevronLeft,
   ChevronRight as ChevronRightIcon,
 } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn, formatLocalDate } from "@/lib/utils"
 
 export default function AttendancePage() {
   const router = useRouter()
@@ -34,7 +34,7 @@ export default function AttendancePage() {
   } = useAttendance()
   const { getDailyRecap } = useAttendanceRecap()
 
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0])
+  const [selectedDate, setSelectedDate] = useState(formatLocalDate())
   const [selectedClassId, setSelectedClassId] = useState("")
 
   // Set initial date from hook
@@ -67,9 +67,9 @@ export default function AttendancePage() {
 
   // Navigate date
   const navigateDate = (direction: "prev" | "next") => {
-    const d = new Date(selectedDate)
+    const d = new Date(selectedDate + "T00:00:00")
     d.setDate(d.getDate() + (direction === "next" ? 1 : -1))
-    setSelectedDate(d.toISOString().split("T")[0])
+    setSelectedDate(formatLocalDate(d))
   }
 
   // Format date for display

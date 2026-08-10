@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { supabase } from "@/lib/supabase"
 import type { DashboardStats, AttendanceStats, Activity } from "@/types/database"
+import { formatLocalDate } from "@/lib/utils"
 
 interface SpecialUnit {
   id: string
@@ -118,7 +119,7 @@ export function useDashboardStats(): UseDashboardStatsReturn {
         .in("role", ["teacher", "homeroom_teacher"])
 
       // Ambil presensi hari ini
-      const today = new Date().toISOString().split("T")[0]
+      const today = formatLocalDate()
       const { data: todayAttendances } = await supabase
         .from("attendances")
         .select("status")

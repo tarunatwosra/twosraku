@@ -1,6 +1,6 @@
 # Attendance Module (Presensi)
-Version: 2.1
-Updated: 2026-07-08
+Version: 3.3
+Updated: 2026-08-08
 
 **Purpose:** Modul Presensi adalah modul operasional untuk mencatat, memantau, dan melaporkan kehadiran siswa. Menyediakan catatan akurat untuk setiap siswa dan menjadi sumber utama untuk laporan kehadiran, statistik dashboard, dan pemantauan karakter.
 
@@ -9,6 +9,8 @@ Updated: 2026-07-08
 - Tidak mengelola di sini: Perilaku, Nilai, Disiplin (modul terpisah).
 
 **Tujuan Utama:** mencatat kehadiran dengan akurat; mencegah duplikat; menyediakan statistik kehadiran; mendukung pelaporan; berintegrasi dengan Dashboard dan Poin Karakter.
+
+**Data Source:** Semua data siswa dan kelas berasal dari database Supabase (classes, students, student_classes, attendances).
 
 **Supported Users**
 | Role | Access |
@@ -21,7 +23,9 @@ Updated: 2026-07-08
 
 **Dependencies:** Student Registry, Academic Calendar, Class, Settings (Tahun Ajaran & Semester). Kehadiran tidak bisa ada tanpa siswa aktif.
 
-**Navigasi:** Main Navigation → Presensi. Sub-pages: Input Presensi, Rekap, Laporan.
+**Navigasi:**
+- Main Navigation → Presensi. Sub-pages: Input Presensi, Rekap, Laporan.
+- Mobile: Bottom Nav → Presensi (Input), Menu Lainnya → Rekap Presensi
 
 ---
 
@@ -186,6 +190,86 @@ Updated: 2026-07-08
   <Card className="p-4">        ← Filter Tabs Card
   <Card className="p-0">        ← Attendance Table
 </div>
+```
+
+### 5. Rekapitulasi Mobile (`/mobile/rekap`)
+
+**Layout Structure:**
+```
+<div>
+  <Header: Judul + Deskripsi>
+  <Filters: Kelas (atas) > Tahun Ajaran > Semester > Bulan>
+  <Summary Card: Kelas + Bulan + TA + Semester + Total Siswa + Pills H/S/I/A>
+  <Student List: Card per siswa dengan persentase>
+  <Student Detail Modal: Riwayat presensi per tanggal>
+</div>
+```
+
+**Filters:**
+1. **Kelas** - Dropdown di posisi pertama (atas)
+2. **Tahun Ajaran** - Dropdown (format: 2026/2027)
+3. **Semester** - Dropdown (Ganjil Jul-Des | Genap Jan-Jun)
+4. **Bulan** - Dropdown (sesuai semester yang dipilih)
+
+**Features:**
+- Filter **Kelas** di atas filter lainnya
+- Filter **Tahun Ajaran** (3 tahun terakhir)
+- Filter **Semester** (Ganjil/Genap)
+- Filter **Bulan** (otomatis berubah sesuai semester)
+- Summary card dengan statistik H/S/I/A + info TA & Semester
+- Student cards dengan persentase dan breakdown
+- Student detail modal dengan riwayat presensi per tanggal
+- Grouping history berdasarkan bulan
+- Loading & empty states
+
+**Filter Logic:**
+```tsx
+// Semester Ganjil: Juli - Desember
+// Semester Genap: Januari - Juni
+
+const monthOptions = selectedSemester === "ganjil"
+  ? months 7-12  // Juli - Desember
+  : months 1-6   // Januari - Juni
+```
+
+**UI Colors (Mobile Consistent):**
+```tsx
+// Primary (untuk header, accent)
+bg-[var(--primary-soft)] text-[var(--primary)]
+
+// Success (Hadir)
+bg-[var(--success-soft)] text-[var(--success)]
+
+// Warning (Sakit)
+bg-[var(--warning-soft)] text-[var(--warning)]
+
+// Info (Izin)
+bg-[var(--info-soft)] text-[var(--info)]
+
+// Danger (Alpa)
+bg-[var(--danger-soft)] text-[var(--danger)]
+```
+
+**Status Colors Configuration:**
+```tsx
+const STATUS_COLORS = {
+  present: {
+    active: "bg-[var(--success)] text-white",
+    inactive: "bg-[var(--success-soft)] text-[var(--success)]",
+  },
+  sick: {
+    active: "bg-[var(--warning)] text-white",
+    inactive: "bg-[var(--warning-soft)] text-[var(--warning)]",
+  },
+  permission: {
+    active: "bg-[var(--info)] text-white",
+    inactive: "bg-[var(--info-soft)] text-[var(--info)]",
+  },
+  absent: {
+    active: "bg-[var(--danger)] text-white",
+    inactive: "bg-[var(--danger-soft)] text-[var(--danger)]",
+  },
+};
 ```
 
 ---
@@ -447,8 +531,18 @@ const handlePrint = () => {
 app/presensi/
 ├── page.tsx                    # Halaman utama
 ├── input/page.tsx             # Input presensi
-├── rekap/page.tsx             # Rekapitulasi
+├── rekap/page.tsx             # Rekapitulasi (Desktop)
 └── kelas/[id]/page.tsx        # Detail kelas
+
+app/mobile/presensi/
+├── page.tsx                   # Halaman utama mobile
+└── input/page.tsx            # Input presensi mobile
+
+app/mobile/rekap/
+└── page.tsx                   # Rekapitulasi Mobile (REFACTORED 2026-08-08)
+
+lib/
+└── attendance.ts              # Data layer - database operations
 
 hooks/
 └── useAttendance.ts           # Attendance hooks (useAttendance, useAttendanceRecap)
@@ -460,6 +554,36 @@ panduan/
 └── 19-feature-specifications/
     └── attendance.md          # Panduan ini
 ```
+
+---
+
+## Data Layer (lib/attendance.ts)
+
+Fungsi-fungsi untuk operasi database:
+
+| Function | Description |
+|----------|-------------|
+| `fetchAttendanceClasses()` | Ambil daftar kelas aktif |
+| `fetchStudentsByClass()` | Ambil siswa berdasarkan kelas & tahun ajaran |
+| `fetchAttendanceByDate()` | Ambil presensi tanggal tertentu |
+| `saveAttendance()` | Simpan/update presensi |
+| `getAttendanceStats()` | Hitung statistik kehadiran |
+| `buildAttendanceRecords()` | Bangun record presensi |
+| `getActiveAcademicYear()` | Ambil tahun ajaran aktif |
+| `getActiveSemester()` | Ambil semester aktif |
+
+---
+
+## Database Tables
+
+| Table | Usage |
+|-------|-------|
+| `classes` | Daftar kelas (filter: status='active') |
+| `students` | Data siswa (filter: is_active=true) |
+| `student_classes` | Relasi siswa-kelas + nomor absen |
+| `attendances` | Data presensi per siswa |
+| `academic_years` | Tahun ajaran (filter: is_active=true) |
+| `semesters` | Semester (filter: is_active=true) |
 
 ---
 
@@ -483,7 +607,9 @@ Selesai jika:
 
 Presensi adalah salah satu modul yang paling sering digunakan di Twosraku. Modul ini harus mengutamakan kecepatan, kesederhanaan, dan keandalan. Default Hadir meminimalkan input data - guru hanya perlu mengubah siswa yang tidak hadir.
 
+**Data Integration:** Semua data siswa dan kelas berasal dari database Supabase. Hook useAttendance menangani fetching, caching, dan state management. Data presensi disimpan ke tabel `attendances`.
+
 ---
 
-Last Updated: 2026-07-08 | Version: 2.1
+Last Updated: 2026-08-08 | Version: 3.3
 # End of Attendance Module

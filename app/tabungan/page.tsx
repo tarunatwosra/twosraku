@@ -22,7 +22,7 @@ import {
   Download,
   FileText,
 } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn, formatLocalDate } from "@/lib/utils"
 
 // Format currency
 const formatCurrency = (amount: number) => {
@@ -60,7 +60,7 @@ export default function SavingsPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth()
 
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0])
+  const [selectedDate, setSelectedDate] = useState(formatLocalDate())
 
   // Filter transactions
   const filteredTransactions = useMemo(() => {

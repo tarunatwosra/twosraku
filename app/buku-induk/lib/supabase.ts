@@ -858,7 +858,7 @@ export async function permanentlyDeleteStudent(
     await supabase.from("student_classes").delete().eq("student_id", id)
 
     // Attendance records
-    await supabase.from("attendance").delete().eq("student_id", id)
+    await supabase.from("attendances").delete().eq("student_id", id)
 
     // Assessment participants
     const { data: participants } = await supabase

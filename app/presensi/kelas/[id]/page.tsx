@@ -20,7 +20,7 @@ import {
   ThermometerSun,
   FileText,
 } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn, formatLocalDate } from "@/lib/utils"
 
 type FilterTab = "all" | "sick" | "permission" | "absent"
 
@@ -28,7 +28,7 @@ function ClassAttendanceContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const classId = searchParams.get("id") || "class-x-tkj-1"
-  const dateParam = searchParams.get("date") || new Date().toISOString().split("T")[0]
+  const dateParam = searchParams.get("date") || formatLocalDate()
 
   const { isAuthenticated, isLoading: authLoading } = useAuth()
   const {
@@ -81,9 +81,9 @@ function ClassAttendanceContent() {
 
   // Navigate date
   const navigateDate = (direction: "prev" | "next") => {
-    const d = new Date(dateParam)
+    const d = new Date(dateParam + "T00:00:00")
     d.setDate(d.getDate() + (direction === "next" ? 1 : -1))
-    router.push(`/presensi/kelas/${classId}?date=${d.toISOString().split("T")[0]}`)
+    router.push(`/presensi/kelas/${classId}?date=${formatLocalDate(d)}`)
   }
 
   // Toggle student selection

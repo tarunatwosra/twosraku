@@ -1,530 +1,126 @@
-# Attendance Module (Presensi)
-Version: 3.0
-Updated: 2026-08-04
+# Attendance Module (Presensi) — Compact
+Version: 1.0
 
-**Purpose:** Modul Presensi adalah modul operasional untuk mencatat, memantau, dan melaporkan kehadiran siswa. Menyediakan catatan akurat untuk setiap siswa dan menjadi sumber utama untuk laporan kehadiran, statistik dashboard, dan pemantauan karakter.
+**Purpose:** Attendance is the operational module for recording, monitoring, and reporting student attendance throughout the academic year. Provides accurate records for every student and is the primary source for attendance reports, dashboard statistics, and discipline monitoring.
 
 **Scope**
-- Mengelola: Presensi Harian, Rekapitulasi Kehadiran, Laporan Kehadiran, Statistik Kehadiran.
-- Tidak mengelola di sini: Perilaku, Nilai, Disiplin (modul terpisah).
+- Manages: Daily Attendance, Attendance Recap, Attendance Reports, Attendance History, Attendance Analytics. Attendance only records student presence.
+- Not managed here: Behavior, Grades, Discipline (separate modules).
 
-**Tujuan Utama:** mencatat kehadiran dengan akurat; mencegah duplikat; menyediakan statistik kehadiran; mendukung pelaporan; berintegrasi dengan Dashboard dan Poin Karakter.
-
-**Data Source:** Semua data siswa dan kelas berasal dari database Supabase (classes, students, student_classes, attendances).
+**Primary Objectives:** record attendance accurately; prevent duplicates; provide attendance statistics; support reporting; provide attendance history; integrate with Dashboard and Character Points.
 
 **Supported Users**
 | Role | Access |
 |---|---|
 | Administrator | Full Access |
 | Homeroom Teacher | Own Classes |
-| Teacher | Read Only |
+| Teacher | Own Subjects (optional) |
 | Staff | Read Only |
 | Principal | Read Only |
 
-**Dependencies:** Student Registry, Academic Calendar, Class, Settings (Tahun Ajaran & Semester). Kehadiran tidak bisa ada tanpa siswa aktif.
+**Dependencies:** Student Registry, Academic Calendar, Class, Academic Year, Semester. Attendance cannot exist without an active student.
 
-**Navigasi:** Main Navigation → Presensi. Sub-pages: Input Presensi, Rekap, Laporan.
+**Navigation:** Main Navigation → Attendance, with sub-pages: Attendance Input, Attendance Recap, Attendance Report, Attendance History, Attendance Settings.
 
----
+**Attendance Workflow:** Select Academic Year → Semester → Class → Date → Display Student List → Record Attendance → Save → Generate Statistics.
 
-## Alur Presensi (Simplified)
+**Attendance Status**
+| Code | Status | Meaning |
+|---|---|---|
+| H | Present | Student attends normally |
+| T | Late | Arrives after allowed time |
+| I | Permission | Has official permission |
+| S | Sick | Absent due to illness |
+| A | Absent | Absent without explanation |
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                    HALAMAN UTAMA                         │
-│   /presensi                                             │
-│                                                         │
-│   ┌─────────────────────────────────────────────────┐   │
-│   │  📅 Tanggal: [ 08 Juli 2026  ] ◀ ▶             │   │
-│   │  🏫 Kelas: [ X TKJ 1        ▼ ]                 │   │
-│   │  [ Ambil Presensi ]                              │   │
-│   └─────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────┐
-│              HALAMAN INPUT PRESENSI                      │
-│   /presensi/input                                      │
-│                                                         │
-│   Card Header: Navigasi Tanggal | Pilih Kelas | Submit │
-│   ───────────────────────────────────────────────────   │
-│   Card Summary: Total | Hadir | Sakit | Izin | Alpa    │
-│   ───────────────────────────────────────────────────   │
-│   Card Filter: [Semua] [Sakit] [Izin] [Alpa]         │
-│   ───────────────────────────────────────────────────   │
-│   Table: No | NIS | Nama | JK | Status Toggle          │
-│   ───────────────────────────────────────────────────   │
-│   Bulk Actions: [Sakit] [Ijin] [Alpa] | Select All   │
-└─────────────────────────────────────────────────────────┘
-```
+Schools may rename labels per internal policy.
 
----
+**Business Rules:** one attendance record per student per date (no duplicates); cannot record for future dates; cannot edit after academic period is locked; archived students can't receive attendance; transferred students can't receive attendance after transfer date; graduated students become read-only.
 
-## Attendance Status (HSIA)
+### Attendance Input Page
+- **Contains:** Academic Year, Semester, Class, Attendance Date, Student Table, Attendance Status, Notes, Save Button.
+- **Student Table columns:** Attendance Status, Student Number, Student Name, Gender, Photo (optional), Notes, Quick Actions. Default sort: class attendance number.
+- **Attendance Entry:** default status = Present; users only change students with a different status — minimizes data entry.
+- **Bulk Actions:** Mark All Present, Mark Selected Sick/Permission/Absent, Reset Attendance.
+- **Notes:** optional, for Late/Permission/special circumstances, max 255 characters.
 
-| Code | Status | Warna | Deskripsi |
-|------|--------|-------|-----------|
-| H | Hadir | Green `#22C55E` | Siswa hadir normal |
-| S | Sakit | Orange `#F59E0B` | Absen karena sakit |
-| I | Ijin | Cyan `#06B6D4` | Izin resmi |
-| A | Alpa | Red `#EF4444` | Alpha (absen tanpa keterangan) |
+### Attendance Recap
+Displays: Daily, Weekly, Monthly, Semester, Annual Recap.
 
-**Catatan:** Status Terlambat (T) dihapus dari alur. Default semua siswa = Hadir.
+### Attendance Statistics
+Displays: Attendance Percentage, Present/Late/Permission/Sick/Absent Count, Most Frequent Status.
+**Formula:** Attendance Percentage = Present Days / Total School Days × 100. Late may optionally count as Present per school policy.
 
----
+### Student Attendance Summary
+Per student: Attendance Percentage, Present, Late, Permission, Sick, Absent, Attendance Trend.
 
-## Halaman-halaman
+### Reports
+Daily/Weekly/Monthly/Semester/Annual Attendance, Student Attendance Report, Class Attendance Report, School Attendance Report.
 
-### 1. Halaman Utama (`/presensi`)
+### Search & Filters
+- **Search by:** Student Name, Student Number, Class, Major, Date.
+- **Filters:** Academic Year, Semester, Class, Major, Date Range, Attendance Status, Homeroom Teacher. Multiple filters supported.
 
-**Layout Structure:**
-```
-<div className="space-y-6">
-  <Card className="p-6">         ← Header Card (tanggal + kelas)
-  <div className="grid...">     ← Quick Actions Cards
-  <Card className="p-0">       ← Class List Table
-  <Card className="p-6">        ← Recent Activity
-</div>
-```
+### Import & Export
+- **Import:** Excel, CSV. Validates: Duplicate attendance, Student existence, Class consistency, Attendance date.
+- **Export:** Excel, CSV, PDF, Print. Respects active filters.
 
-**Components:**
-- Tanggal picker dengan navigasi ◀ ▶
-- Dropdown pilih kelas
-- Tombol "Ambil Presensi"
-- Quick stats cards (Rekapitulasi, Hadir, Alpa)
-- Statistik kehadiran per kelas dengan StatusBadge
+### Validation Rules
+- **Required:** Academic Year, Semester, Class, Attendance Date, Attendance Status, Student.
+- **Optional:** Notes.
 
-### 2. Input Presensi (`/presensi/input`)
+### Relationships
+One Student → Many Attendance Records → Attendance Summary → Dashboard → Reports.
 
-**Layout Structure:**
-```
-<div className="space-y-6">
-  <Card className="p-4">        ← Header Bar Card
-  <Card className="p-5">        ← Summary Pills Card
-  <Card className="p-4">        ← Filter Tabs Card
-  <Card className="p-0">        ← Attendance Table
-</div>
-```
+### Permissions
+| Role | Access |
+|---|---|
+| Administrator | Full Access |
+| Homeroom Teacher | Own Classes |
+| Teacher | Read |
+| Staff | Read |
+| Principal | Read |
 
-**Header Bar Components:**
-- Back link
-- Date navigation (◀ [date] ▶)
-- Class selector dropdown
-- Submit button
+### Dashboard Integration
+Displays: Attendance Today, Attendance Trend, Attendance Percentage, Attendance by Class, Attendance Distribution, Students Requiring Attention. Dashboard does not calculate attendance independently.
 
-**Summary Pills:**
-- Total Siswa dengan icon
-- StatPills: Hadir | Sakit | Izin | Alpa
-- Persentase kehadiran (large number)
+### Character Point Integration
+Excessive absences may trigger Character Point recommendations (e.g. Absent ≥ 3 times within one month → Suggested Character Review). Actual character points remain under manual approval.
 
-**Filter Tabs:**
-- Pill-style tabs: [Semua] [Sakit] [Izin] [Alpa]
-- Active state dengan warna sesuai status
-- Count badge per tab
+### Assessment Integration
+Attendance may display alongside assessment summaries. Does not affect grades automatically unless configured by school policy.
 
-**Bulk Actions:**
-- Tampilkan hanya jika ada siswa dipilih
-- [Tandai Sakit] [Tandai Izin] [Tandai Alpa]
-- [Pilih Semua] [Batal]
+### Notifications
+Attendance Not Submitted, Attendance Completed, Duplicate Attendance, Attendance Locked, Late Attendance Entry.
 
-**Attendance Table:**
-| Kolom | Styling |
-|-------|---------|
-| Checkbox | w-12, accent primary |
-| No | text-sm text-muted |
-| NIS | text-sm font-mono |
-| Nama | text-sm font-medium |
-| JK | text-center text-sm |
-| Status | 4 buttons H S I A |
+### Audit Log
+Records: Created/Updated/Locked/Deleted By & At. All modifications must be traceable.
 
-### 3. Rekapitulasi (`/presensi/rekap`)
+### Loading / Empty / Error States
+- **Loading:** Skeleton Table/Statistics/Charts — each widget loads independently.
+- **Empty:** No Students/Attendance/Reports/Search Results — provide a recommended next action.
+- **Error:** Duplicate Attendance, Student Not Found, Academic Period Locked, Permission Denied, Network Error — clear, non-technical messages.
 
-**Layout Structure:**
-```
-<div>
-  <Card className="p-4 mb-4">   ← Header Bar Card
-  <div className="space-y-6">
-    <div className="grid...">   ← Stats Grid (5 cards)
-    <Card className="p-0">    ← Recap Table
-    <Card className="p-6">    ← Trend Chart
-  </div>
-</div>
-```
+### Performance Requirements
+Support 100,000+ attendance records via server-side pagination/filtering/search, lazy loading, optimized indexing.
 
-**Header Bar:**
-- Date navigation
-- View Mode toggle (Harian | Mingguan | Bulanan)
-- Cetak & Export buttons
+### Accessibility
+Keyboard Navigation, Visible Focus, Accessible Tables, ARIA Labels, High Contrast, Reduced Motion.
 
-**View Modes:**
-- **Harian:** Rekap per kelas untuk tanggal tersebut
-- **Mingguan:** 7 hari, show/hide weekend
-- **Bulanan:** Semua hari efektif (scrollable table)
+### Responsive Behavior
+Desktop = Full Table; Tablet = Horizontal Scroll; Mobile = Card Layout. Attendance actions remain accessible on all devices.
 
-**Stats Grid (5 cards):**
-- Total Siswa
-- Hadir (dengan %)
-- Sakit
-- Izin
-- Alpa
+### Security
+Records cannot be permanently deleted by standard users (soft delete recommended); every modification logged; role-based permissions mandatory.
 
-**Recap Table:**
-- Header dengan title + percentage
-- Row per kelas dengan class icon
-- Action button untuk edit
+### Future Enhancements
+QR Code Attendance, RFID Attendance, Face Recognition, GPS Attendance, Teacher Mobile App, Offline Attendance, Automatic Attendance Reminder, Attendance Approval Workflow, Parent Notifications, AI Attendance Analysis.
 
-**Trend Chart:**
-- Bar chart 7 hari terakhir
-- Color coding: hijau ≥90%, kuning ≥75%, merah <75%
+### Definition of Done
+Complete when it: records attendance accurately; prevents duplicates; supports bulk input; provides comprehensive reports; integrates with Dashboard; supports responsive layouts; maintains audit history; follows the Design System.
 
-### 4. Detail Kelas (`/presensi/kelas/[id]`)
-
-**Layout Structure:** (sama dengan Input Presensi)
-
-```
-<div className="space-y-6">
-  <Card className="p-4">        ← Header Card (back + date + class)
-  <Card className="p-5">        ← Summary Pills Card
-  <Card className="p-4">        ← Filter Tabs Card
-  <Card className="p-0">        ← Attendance Table
-</div>
-```
+### Final Principle
+Attendance is one of the most frequently used modules in Twosraku. It must prioritize speed, simplicity, and reliability while ensuring every record is accurate, traceable, and immediately available for reporting and analytics.
 
 ---
-
-## UI Design Patterns & Standards
-
-### Card Wrappers
-
-**Standard Card:**
-```tsx
-<Card className="p-5">
-  {/* Content */}
-</Card>
-```
-
-**Header Card:**
-```tsx
-<Card className="p-4">
-  <div className="flex items-center justify-between gap-4">
-    {/* Content */}
-  </div>
-</Card>
-```
-
-**Table Card:**
-```tsx
-<Card className="overflow-hidden p-0">
-  <div className="overflow-x-auto">
-    <table className="w-full">
-      {/* Table content */}
-    </table>
-  </div>
-</Card>
-```
-
-### Spacing System
-
-| Element | Spacing |
-|---------|---------|
-| Section gap | `space-y-6` |
-| Card internal | `p-4` atau `p-5` |
-| Component gap | `gap-4` |
-| Divider | `h-10 w-px bg-[var(--border-light)]` |
-
-### Typography Hierarchy
-
-| Element | Classes |
-|---------|---------|
-| Section title | `text-lg font-semibold` |
-| Subtitle | `text-sm text-[var(--text-muted)]` |
-| Table header | `text-xs font-medium uppercase tracking-wide` |
-| Body text | `text-sm` |
-| Stat value | `text-xl font-bold` / `text-3xl font-bold` |
-
-### Navigation Buttons
-
-```tsx
-// Date navigation
-<Button variant="ghost" size="sm" className="w-9 h-9 p-0 rounded-lg">
-  <ChevronLeft className="w-5 h-5" />
-</Button>
-```
-
-### Status Badge (HSIA)
-
-```tsx
-// Success (Hadir)
-<div className="bg-[var(--success-soft)] text-[var(--success)]">
-  <span className="text-lg font-bold">{value}</span>
-  <span className="text-xs font-medium">Hadir</span>
-</div>
-
-// Warning (Sakit)
-// bg-[var(--warning-soft)] text-[var(--warning)]
-
-// Info (Izin)
-// bg-[var(--info-soft)] text-[var(--info)]
-
-// Danger (Alpa)
-// bg-[var(--danger-soft)] text-[var(--danger)]
-```
-
-### Status Toggle (Table)
-
-```tsx
-// Active state
-<div className="bg-[var(--success)] text-white">H</div>
-
-// Inactive state
-<div className="bg-[var(--success-soft)] text-[var(--success)] hover:bg-[var(--success)] hover:text-white">
-  H
-</div>
-
-// Row highlight berdasarkan status
-// Sakit: bg-[var(--warning-soft)]/30
-// Izin: bg-[var(--info-soft)]/30
-// Alpa: bg-[var(--danger-soft)]/30
-```
-
-### Filter Tabs
-
-```tsx
-<div className="flex items-center gap-2 p-1 bg-[var(--surface-secondary)] rounded-full">
-  <button className="px-4 py-2 rounded-full text-sm font-medium bg-white shadow-sm">
-    Semua
-  </button>
-  <button className="px-4 py-2 rounded-full text-sm font-medium text-[var(--text-muted)]">
-    Sakit
-  </button>
-</div>
-
-// Active with color
-<button className="px-4 py-2 rounded-full bg-[var(--warning)] text-white">
-  Sakit
-</button>
-```
-
----
-
-## Data Features
-
-### Realistic Dummy Data
-
-**Student Distribution per Day:**
-- Senin: Alpha lebih banyak (3-5%)
-- Jumat: Izin lebih banyak (3-5%)
-- Normal: Distribusi standar (Alpha 1-2%, Izin 2-3%, Sakit 2-4%)
-
-**Weekend Handling:**
-- Sabtu/Minggu = tidak ada sekolah
-- Skip di weekly & monthly recap
-
-### Print Feature
-
-```tsx
-const handlePrint = () => {
-  window.print()
-}
-```
-
-**Print CSS:**
-```css
-@media print {
-  body * { visibility: hidden; }
-  .print-area, .print-area * { visibility: visible; }
-}
-```
-
-### Export Feature
-
-**CSV Export:**
-- Daily: Header + Summary + Per-Kelas Table
-- Weekly: Header + Daily breakdown
-- Monthly: Header + Daily breakdown
-
-**Filename:** `presensi_{viewMode}_{date}.csv`
-
----
-
-## Business Rules
-
-| Rule | Description |
-|------|-------------|
-| No Duplicates | Satu record per siswa per tanggal |
-| No Future Date | Tidak bisa presensi untuk tanggal mendatang |
-| No Edit After Lock | Tidak bisa edit setelah periode ditutup |
-| Archived Student | Siswa tidak aktif tidak bisa di-presensi |
-| Default = Hadir | Semua siswa default Hadir |
-| Weekend Skip | Weekend tidak dihitung di weekly/monthly |
-
----
-
-## Performance Requirements
-
-- Support 100,000+ records via pagination
-- Server-side filtering/search
-- Lazy loading untuk tabel besar
-- Optimized indexing
-
----
-
-## Accessibility
-
-- Keyboard Navigation
-- Visible Focus
-- Accessible Tables
-- ARIA Labels
-- High Contrast
-- Reduced Motion
-
----
-
-## Responsive Behavior
-
-| Device | Layout |
-|---------|--------|
-| Desktop | Full Table |
-| Tablet | Horizontal Scroll |
-| Mobile | Card Layout |
-
----
-
-## Security
-
-- Soft delete (tidak hapus permanen)
-- Every modification logged
-- Role-based permissions mandatory
-
----
-
-## Integrasi
-
-### Dashboard
-- Kehadiran hari ini
-- Tren kehadiran
-- Persentase kehadiran
-- Distribusi per kelas
-
-### Poin Karakter
-- Alpha ≥ 3x per bulan → Suggested Character Review
-- Poin karakter tetap manual approval
-
----
-
-## Empty / Loading / Error States
-
-### Loading
-- Skeleton table rows (10 items)
-- Skeleton stat cards
-- Match layout dengan komponen
-
-### Empty
-- Icon centered (48-64px)
-- Title + description
-- Primary action button
-
-### Error
-- Clear, non-technical messages
-- Retry button
-
----
-
-## Keyboard Shortcuts (Enhancement)
-
-| Key | Action |
-|-----|--------|
-| 1 | Hadir |
-| 2 | Sakit |
-| 3 | Ijin |
-| 4 | Alpa |
-| A | Select All |
-| S | Save |
-
----
-
-## Files Structure
-
-```
-app/presensi/
-├── page.tsx                    # Halaman utama
-├── input/page.tsx             # Input presensi
-├── rekap/page.tsx             # Rekapitulasi
-└── kelas/[id]/page.tsx        # Detail kelas
-
-app/mobile/presensi/
-├── page.tsx                   # Halaman utama mobile
-└── input/page.tsx            # Input presensi mobile
-
-lib/
-└── attendance.ts              # Data layer - database operations
-
-hooks/
-└── useAttendance.ts           # Attendance hooks (useAttendance, useAttendanceRecap)
-
-types/
-└── attendance.ts             # TypeScript types
-
-panduan/
-└── 19-feature-specifications/
-    └── attendance.md          # Panduan ini
-```
-
----
-
-## Data Layer (lib/attendance.ts)
-
-Fungsi-fungsi untuk operasi database:
-
-| Function | Description |
-|----------|-------------|
-| `fetchAttendanceClasses()` | Ambil daftar kelas aktif |
-| `fetchStudentsByClass()` | Ambil siswa berdasarkan kelas & tahun ajaran |
-| `fetchAttendanceByDate()` | Ambil presensi tanggal tertentu |
-| `saveAttendance()` | Simpan/update presensi |
-| `getAttendanceStats()` | Hitung statistik kehadiran |
-| `buildAttendanceRecords()` | Bangun record presensi |
-| `getActiveAcademicYear()` | Ambil tahun ajaran aktif |
-| `getActiveSemester()` | Ambil semester aktif |
-
----
-
-## Database Tables
-
-| Table | Usage |
-|-------|-------|
-| `classes` | Daftar kelas (filter: status='active') |
-| `students` | Data siswa (filter: is_active=true) |
-| `student_classes` | Relasi siswa-kelas + nomor absen |
-| `attendances` | Data presensi per siswa |
-| `academic_years` | Tahun ajaran (filter: is_active=true) |
-| `semesters` | Semester (filter: is_active=true) |
-
----
-
-## Definition of Done
-
-Selesai jika:
-- [x] mencatat kehadiran dengan akurat
-- [x] default semua Hadir
-- [x] mendukung bulk actions
-- [x] filter tab berfungsi
-- [x] menyediakan laporan rekap (harian/mingguan/bulanan)
-- [x] fitur print & export
-- [x] berintegrasi dengan Dashboard
-- [x] responsive layout
-- [x] audit history
-- [x] mengikuti Design System
-
----
-
-## Final Principle
-
-Presensi adalah salah satu modul yang paling sering digunakan di Twosraku. Modul ini harus mengutamakan kecepatan, kesederhanaan, dan keandalan. Default Hadir meminimalkan input data - guru hanya perlu mengubah siswa yang tidak hadir.
-
-**Data Integration:** Semua data siswa dan kelas berasal dari database Supabase. Hook useAttendance menangani fetching, caching, dan state management. Data presensi disimpan ke tabel `attendances`.
-
----
-
-Last Updated: 2026-08-04 | Version: 3.0
-# End of Attendance Module
+# End of Attendance Module (Compact)

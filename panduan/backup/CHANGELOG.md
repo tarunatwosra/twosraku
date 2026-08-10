@@ -28,6 +28,18 @@ Berisi catatan semua perubahan yang dilakukan pada file-file panduan. Setiap kal
 
 <!-- Changelog entries will be added below this line -->
 
+## 2026-08-10 (Rekap Presensi Mobile - Class Summary)
+
+### attendance.md (19-feature-specifications/)
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-08-10 |
+| Perubahan | ENHANCED RECAP MOBILE v3.4: (1) Tambah Class Summary Card dengan ringkasan statistik kelas (H/S/I/A breakdown + circular progress). (2) View mode tabs dengan icon (Calendar/BookOpen/BarChart3). (3) Gender badge (L/P) di student cards. (4) Status pills dengan icon di detail modal. (5) Improved visual hierarchy. |
+| Backup | attendance-001.md (v3.3) |
+| Catatan | Files: app/mobile/rekap/page.tsx |
+
+---
+
 ## 2026-08-06
 
 ### student-registry.md (19-feature-specifications/)

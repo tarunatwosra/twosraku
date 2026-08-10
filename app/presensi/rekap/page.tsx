@@ -23,7 +23,7 @@ import {
   ThermometerSun,
   X,
 } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn, formatLocalDate } from "@/lib/utils"
 
 type ViewMode = "daily" | "weekly" | "monthly"
 
@@ -38,7 +38,7 @@ export default function AttendanceRecapPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth()
   const { getDailyRecap, getWeeklyRecap, getMonthlyRecap, getTrendData, loading } = useAttendanceRecap()
 
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0])
+  const [selectedDate, setSelectedDate] = useState(formatLocalDate())
   const [recapData, setRecapData] = useState<DailyRecap | null>(null)
   const [weeklyData, setWeeklyData] = useState<any>(null)
   const [monthlyData, setMonthlyData] = useState<any>(null)
@@ -109,7 +109,7 @@ export default function AttendanceRecapPage() {
 
   // Navigate dates
   const navigateDate = (direction: "prev" | "next") => {
-    const date = new Date(selectedDate)
+    const date = new Date(selectedDate + "T00:00:00")
     if (viewMode === "daily") {
       date.setDate(date.getDate() + (direction === "next" ? 1 : -1))
     } else if (viewMode === "weekly") {
@@ -117,7 +117,7 @@ export default function AttendanceRecapPage() {
     } else if (viewMode === "monthly") {
       date.setMonth(date.getMonth() + (direction === "next" ? 1 : -1))
     }
-    setSelectedDate(date.toISOString().split("T")[0])
+    setSelectedDate(formatLocalDate(date))
   }
 
   // Format date for display

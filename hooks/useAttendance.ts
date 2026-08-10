@@ -16,6 +16,7 @@ import {
   getActiveSemester,
 } from "@/lib/attendance"
 import type { Class } from "@/types/database"
+import { formatLocalDate, parseLocalDate } from "@/lib/utils"
 
 // Type untuk kelas dengan major
 interface ClassWithMajor extends Class {
@@ -48,7 +49,7 @@ export function useAttendance() {
   const [classes, setClasses] = useState<ClassWithMajor[]>([])
   const [state, setState] = useState<AttendanceState>({
     classId: "",
-    date: new Date().toISOString().split("T")[0],
+    date: formatLocalDate(),
     records: [],
     isSubmitted: false,
     academicYearId: null,
@@ -433,7 +434,7 @@ export function useAttendanceRecap() {
       for (let i = 0; i < 7; i++) {
         const date = new Date(start)
         date.setDate(date.getDate() + i)
-        const dateStr = date.toISOString().split("T")[0]
+        const dateStr = formatLocalDate(date)
 
         const dayRecap = await getDailyRecap(dateStr)
         if (dayRecap) {
@@ -492,7 +493,7 @@ export function useAttendanceRecap() {
         // Skip weekends
         if (dayOfWeek === 0 || dayOfWeek === 6) continue
 
-        const dateStr = date.toISOString().split("T")[0]
+        const dateStr = formatLocalDate(date)
         const dayRecap = await getDailyRecap(dateStr)
         if (dayRecap) {
           days.push(dayRecap)
@@ -535,12 +536,12 @@ export function useAttendanceRecap() {
   // Get trend data (last 7 days)
   const getTrendData = useCallback(async (baseDate: string) => {
     const trend = []
-    const base = new Date(baseDate)
+    const base = parseLocalDate(baseDate)
 
     for (let i = 6; i >= 0; i--) {
       const date = new Date(base)
       date.setDate(date.getDate() - i)
-      const dateStr = date.toISOString().split("T")[0]
+      const dateStr = formatLocalDate(date)
       const dayOfWeek = date.getDay()
 
       // Skip weekends (or show 100% for display)

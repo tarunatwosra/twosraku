@@ -249,7 +249,7 @@ export function AttendanceSummary({ studentId, academicYearId }: AttendanceSumma
       try {
         // Build query
         let query = supabase
-          .from("attendance")
+          .from("attendances")
           .select("*")
           .eq("student_id", studentId)
           .order("date", { ascending: false })
@@ -284,7 +284,10 @@ export function AttendanceSummary({ studentId, academicYearId }: AttendanceSumma
 
         setRecentRecords(records)
       } catch (err) {
-        console.error("Error fetching attendance:", err)
+        const errorMessage = err instanceof Error ? err.message :
+                           (err as { message?: string })?.message ||
+                           "Terjadi kesalahan yang tidak diketahui"
+        console.error("Error fetching attendance:", errorMessage, err)
         setError("Gagal memuat data absensi")
       } finally {
         setLoading(false)

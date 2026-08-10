@@ -24,7 +24,7 @@ import {
   Save,
   X,
 } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn, formatLocalDate } from "@/lib/utils"
 
 export default function CharacterInputPage() {
   const router = useRouter()
@@ -72,7 +72,7 @@ export default function CharacterInputPage() {
     const newRecord: Omit<CharacterRecord, "id" | "createdAt" | "updatedAt"> = {
       studentId: "demo-student",
       behaviorTypeId: selectedBehavior.id,
-      date: new Date().toISOString().split("T")[0],
+      date: formatLocalDate(),
       reporterId: "admin",
       status: "submitted",
     }

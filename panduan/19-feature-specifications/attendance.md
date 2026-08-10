@@ -1,6 +1,6 @@
 # Attendance Module (Presensi)
-Version: 3.1
-Updated: 2026-08-05
+Version: 3.4
+Updated: 2026-08-10
 
 **Purpose:** Modul Presensi adalah modul operasional untuk mencatat, memantau, dan melaporkan kehadiran siswa. Menyediakan catatan akurat untuk setiap siswa dan menjadi sumber utama untuk laporan kehadiran, statistik dashboard, dan pemantauan karakter.
 
@@ -190,6 +190,96 @@ Updated: 2026-08-05
   <Card className="p-4">        ← Filter Tabs Card
   <Card className="p-0">        ← Attendance Table
 </div>
+```
+
+### 5. Rekapitulasi Mobile (`/mobile/rekap`)
+
+**Layout Structure:**
+```
+<div>
+  <Header: Judul + Kembali>
+  <Class Selector: Tombol pilih kelas (prioritas pertama)>
+  <Period Navigator: Navigasi bulan/semester/tahun>
+  <View Mode Tabs: Bulanan | Semester | Tahunan>
+  <Class Summary Card: Ringkasan statistik kelas (H/S/I/A + persentase)>
+  <Student List: Card per siswa dengan persentase>
+  <Student Detail Modal: Riwayat presensi per tanggal>
+</div>
+```
+
+**Filters:**
+1. **Kelas** - Dropdown di posisi pertama (atas) - PRIORITAS UTAMA
+2. **Periode** - Navigasi dengan tabs: Bulanan, Semester, Tahunan
+   - Bulanan: Juli-Desember (Ganjil), Januari-Juni (Genap)
+   - Semester: 6 bulan penuh
+   - Tahunan: 12 bulan
+
+**Features:**
+- Filter **Kelas** di atas filter lainnya (prioritas visual)
+- **Class Summary Card** - Ringkasan statistik kelas dengan:
+  - Total siswa
+  - Persentase kehadiran (circular progress)
+  - Breakdown H/S/I/A dalam grid 4 kolom
+  - Total hari aktif
+- Student cards dengan persentase dan breakdown H/S/I/A
+- Student detail modal dengan riwayat presensi per tanggal
+- Grouping history berdasarkan bulan
+- Loading & empty states
+- Gender badge (L/P) pada student cards
+
+**Class Summary Card Structure:**
+```
+<Card>
+  <Header: TrendingUp icon + "Ringkasan Kelas">
+  <Circular Progress: 52px dengan persentase>
+  <Grid 4 Kolom: H | S | I | A>
+  <Footer: Total hari aktif>
+</Card>
+```
+
+**Color Coding for Percentage:**
+- ≥90%: Green (success)
+- ≥75%: Yellow (warning)
+- <75%: Red (danger)
+
+**UI Colors (Mobile Consistent):**
+```tsx
+// Primary (untuk header, accent)
+bg-[var(--primary-soft)] text-[var(--primary)]
+
+// Success (Hadir)
+bg-[var(--success-soft)] text-[var(--success)]
+
+// Warning (Sakit)
+bg-[var(--warning-soft)] text-[var(--warning)]
+
+// Info (Izin)
+bg-[var(--info-soft)] text-[var(--info)]
+
+// Danger (Alpa)
+bg-[var(--danger-soft)] text-[var(--danger)]
+```
+
+**Status Colors Configuration:**
+```tsx
+const STATUS_COLORS = {
+  present: {
+    active: "bg-[var(--success)] text-white",
+    inactive: "bg-[var(--success-soft)] text-[var(--success)]",
+  },
+  sick: {
+    active: "bg-[var(--warning)] text-white",
+    inactive: "bg-[var(--warning-soft)] text-[var(--warning)]",
+  },
+  permission: {
+    active: "bg-[var(--info)] text-white",
+    inactive: "bg-[var(--info-soft)] text-[var(--info)]",
+  },
+  absent: {
+    active: "bg-[var(--danger)] text-white",
+    inactive: "bg-[var(--danger-soft)] text-[var(--danger)]",
+  },
+};
 ```
 
 ---
@@ -459,7 +549,7 @@ app/mobile/presensi/
 └── input/page.tsx            # Input presensi mobile
 
 app/mobile/rekap/
-└── page.tsx                   # Rekapitulasi Mobile (BARU)
+└── page.tsx                   # Rekapitulasi Mobile (REFACTORED 2026-08-08)
 
 lib/
 └── attendance.ts              # Data layer - database operations
@@ -531,5 +621,5 @@ Presensi adalah salah satu modul yang paling sering digunakan di Twosraku. Modul
 
 ---
 
-Last Updated: 2026-08-04 | Version: 3.0
+Last Updated: 2026-08-10 | Version: 3.4
 # End of Attendance Module

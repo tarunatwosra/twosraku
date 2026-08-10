@@ -18,7 +18,7 @@ import {
   ArrowRight,
   Loader2,
 } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn, formatLocalDate } from "@/lib/utils"
 import type { LucideIcon } from "lucide-react"
 
 type StatColor = "success" | "warning" | "info" | "danger"
@@ -73,9 +73,9 @@ function AbsensiContent() {
 
   // Navigate date
   const navigateDate = useCallback((direction: "prev" | "next") => {
-    const d = new Date(selectedDate)
+    const d = new Date(selectedDate + "T00:00:00")
     d.setDate(d.getDate() + (direction === "next" ? 1 : -1))
-    const newDate = d.toISOString().split("T")[0]
+    const newDate = formatLocalDate(d)
     setSelectedDate(newDate)
     setDate(newDate)
   }, [selectedDate, setDate])

@@ -125,8 +125,10 @@ export function useStudent(id?: string) {
               classes (
                 *,
                 majors (*)
-              )
-            )
+              ),
+              academic_years (*)
+            ),
+            parents (*)
           `)
           .eq("id", id)
           .single()

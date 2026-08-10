@@ -1,6 +1,6 @@
 # Attendance Module (Presensi)
-Version: 2.1
-Updated: 2026-07-08
+Version: 3.0
+Updated: 2026-08-04
 
 **Purpose:** Modul Presensi adalah modul operasional untuk mencatat, memantau, dan melaporkan kehadiran siswa. Menyediakan catatan akurat untuk setiap siswa dan menjadi sumber utama untuk laporan kehadiran, statistik dashboard, dan pemantauan karakter.
 
@@ -9,6 +9,8 @@ Updated: 2026-07-08
 - Tidak mengelola di sini: Perilaku, Nilai, Disiplin (modul terpisah).
 
 **Tujuan Utama:** mencatat kehadiran dengan akurat; mencegah duplikat; menyediakan statistik kehadiran; mendukung pelaporan; berintegrasi dengan Dashboard dan Poin Karakter.
+
+**Data Source:** Semua data siswa dan kelas berasal dari database Supabase (classes, students, student_classes, attendances).
 
 **Supported Users**
 | Role | Access |
@@ -450,6 +452,13 @@ app/presensi/
 ├── rekap/page.tsx             # Rekapitulasi
 └── kelas/[id]/page.tsx        # Detail kelas
 
+app/mobile/presensi/
+├── page.tsx                   # Halaman utama mobile
+└── input/page.tsx            # Input presensi mobile
+
+lib/
+└── attendance.ts              # Data layer - database operations
+
 hooks/
 └── useAttendance.ts           # Attendance hooks (useAttendance, useAttendanceRecap)
 
@@ -460,6 +469,36 @@ panduan/
 └── 19-feature-specifications/
     └── attendance.md          # Panduan ini
 ```
+
+---
+
+## Data Layer (lib/attendance.ts)
+
+Fungsi-fungsi untuk operasi database:
+
+| Function | Description |
+|----------|-------------|
+| `fetchAttendanceClasses()` | Ambil daftar kelas aktif |
+| `fetchStudentsByClass()` | Ambil siswa berdasarkan kelas & tahun ajaran |
+| `fetchAttendanceByDate()` | Ambil presensi tanggal tertentu |
+| `saveAttendance()` | Simpan/update presensi |
+| `getAttendanceStats()` | Hitung statistik kehadiran |
+| `buildAttendanceRecords()` | Bangun record presensi |
+| `getActiveAcademicYear()` | Ambil tahun ajaran aktif |
+| `getActiveSemester()` | Ambil semester aktif |
+
+---
+
+## Database Tables
+
+| Table | Usage |
+|-------|-------|
+| `classes` | Daftar kelas (filter: status='active') |
+| `students` | Data siswa (filter: is_active=true) |
+| `student_classes` | Relasi siswa-kelas + nomor absen |
+| `attendances` | Data presensi per siswa |
+| `academic_years` | Tahun ajaran (filter: is_active=true) |
+| `semesters` | Semester (filter: is_active=true) |
 
 ---
 
@@ -483,7 +522,9 @@ Selesai jika:
 
 Presensi adalah salah satu modul yang paling sering digunakan di Twosraku. Modul ini harus mengutamakan kecepatan, kesederhanaan, dan keandalan. Default Hadir meminimalkan input data - guru hanya perlu mengubah siswa yang tidak hadir.
 
+**Data Integration:** Semua data siswa dan kelas berasal dari database Supabase. Hook useAttendance menangani fetching, caching, dan state management. Data presensi disimpan ke tabel `attendances`.
+
 ---
 
-Last Updated: 2026-07-08 | Version: 2.1
+Last Updated: 2026-08-04 | Version: 3.0
 # End of Attendance Module

@@ -318,15 +318,12 @@ function PersonalInfoSection({ student }: { student: StudentWithClass }) {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InfoItem label="NIS" value={student.student_number} />
-        {student.nisn && <InfoItem label="NISN" value={student.nisn} />}
         <InfoItem label="Nama Lengkap" value={student.full_name} />
         {student.nickname && <InfoItem label="Nama Panggilan" value={student.nickname} />}
         <InfoItem label="Jenis Kelamin" value={GENDER_LABELS[student.gender]} />
         {student.birth_place && <InfoItem label="Tempat Lahir" value={student.birth_place} />}
         <InfoItem label="Tanggal Lahir" value={`${formatDate(student.birth_date)} (${formatAge(student.birth_date)})`} />
         {student.religion && <InfoItem label="Agama" value={student.religion} />}
-        {student.blood_type && <InfoItem label="Golongan Darah" value={student.blood_type} />}
         <InfoItem label="Alamat" value={student.address} fullWidth icon={<MapPin className="w-3 h-3" />} />
         <InfoItem label="No. Telepon" value={student.phone} icon={<Phone className="w-3 h-3" />} />
       </div>
@@ -359,6 +356,7 @@ function AcademicInfoSection({ student }: { student: StudentWithClass }) {
   const getAllClasses = () => {
     return student.student_classes?.map((sc) => ({
       year: sc.academic_year_id,
+      academicYearName: sc.academic_years?.name || "-",
       class: sc.classes
         ? `${sc.classes.majors?.name || ""} ${sc.classes.name || ""}`.trim()
         : "-",
@@ -371,7 +369,8 @@ function AcademicInfoSection({ student }: { student: StudentWithClass }) {
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <InfoItem label="NIS" value={student.student_number} />
-        <InfoItem label="Tahun Ajaran" value={student.student_classes?.[0]?.academic_years?.name || "-"} />
+        {student.nisn && <InfoItem label="NISN" value={student.nisn} />}
+        <InfoItem label="Tahun Ajaran" value={academicYear?.name || "-"} />
         <InfoItem
           label="Status"
           value={
@@ -416,7 +415,10 @@ function AcademicInfoSection({ student }: { student: StudentWithClass }) {
                 key={index}
                 className="flex items-center justify-between p-4 bg-[var(--surface-secondary)]/70 rounded-xl hover:bg-[var(--surface-hover)] transition-colors border border-transparent hover:border-[var(--border-light)]/50"
               >
-                <span className="text-[14px] font-medium text-[var(--text-primary)]">{item.class}</span>
+                <div>
+                  <span className="text-[14px] font-medium text-[var(--text-primary)]">{item.class}</span>
+                  <span className="text-[12px] text-[var(--text-muted)] ml-2">({item.academicYearName})</span>
+                </div>
                 <Badge
                   variant={item.status === "active" ? "success" : "neutral"}
                   className={cn(
@@ -605,16 +607,28 @@ function HealthInfoSection({ student }: { student: StudentWithClass }) {
 
   return (
     <div className="space-y-6">
-      {/* Physical Measurements */}
+      {/* Physical Measurements - Card Badges */}
       <Card variant="elevated" padding="lg">
         <h3 className="text-[16px] font-semibold text-[var(--text-primary)] mb-5 flex items-center gap-2">
           <Ruler className="w-5 h-5 text-[var(--primary)]" />
           Pengukuran Fisik
         </h3>
-        <div className="grid grid-cols-3 gap-4">
-          <InfoItem label="Tinggi Badan" value={student.height_cm ? `${student.height_cm} cm` : "-"} />
-          <InfoItem label="Berat Badan" value={student.weight_kg ? `${student.weight_kg} kg` : "-"} />
-          <InfoItem label="Golongan Darah" value={student.blood_type || "-"} />
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <HealthBadge
+            label="Tinggi Badan"
+            value={student.height_cm ? `${student.height_cm} cm` : null}
+            icon={<Ruler className="w-5 h-5" />}
+          />
+          <HealthBadge
+            label="Berat Badan"
+            value={student.weight_kg ? `${student.weight_kg} kg` : null}
+            icon={<Scale className="w-5 h-5" />}
+          />
+          <HealthBadge
+            label="Gol. Darah"
+            value={student.blood_type || null}
+            icon={<Heart className="w-5 h-5" />}
+          />
         </div>
       </Card>
 
@@ -627,22 +641,22 @@ function HealthInfoSection({ student }: { student: StudentWithClass }) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <HealthBadge
             label="Penglihatan"
-            value={student.vision || "-"}
+            value={student.vision || null}
             icon={<Eye className="w-5 h-5" />}
           />
           <HealthBadge
             label="Pendengaran"
-            value={student.hearing || "-"}
+            value={student.hearing || null}
             icon={<Ear className="w-5 h-5" />}
           />
           <HealthBadge
             label="Gigi & Mulut"
-            value={student.teeth_condition || "-"}
+            value={student.teeth_condition || null}
             icon={<Activity className="w-5 h-5" />}
           />
           <HealthBadge
             label="Cacat Tubuh"
-            value={student.physical_disability || "-"}
+            value={student.physical_disability || null}
             icon={<FileWarning className="w-5 h-5" />}
           />
         </div>

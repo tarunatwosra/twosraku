@@ -2,6 +2,8 @@
  * Mock Data for Attendance
  */
 
+import { formatLocalDate } from "@/lib/utils";
+
 export interface Attendance {
   id: string;
   date: string;
@@ -191,7 +193,7 @@ export function getAllClasses(): string[] {
 
 // Get today's attendance summary
 export function getTodaySummary() {
-  const today = new Date().toISOString().split("T")[0];
+  const today = formatLocalDate();
   const todayData = mockAttendance.filter((a) => a.date === today);
 
   const totalStudents = todayData.reduce((sum, a) => sum + a.totalStudents, 0);

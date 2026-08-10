@@ -499,6 +499,7 @@ export interface StudentWithClass extends Student {
     classes: Class & {
       majors: Major
     }
+    academic_years?: AcademicYear
   })[]
   parents?: Parent[]
 }
