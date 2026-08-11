@@ -1,11 +1,13 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { MobileShell } from "@/components/layout/mobile-shell";
 import { MobileKPICard } from "@/components/dashboard/mobile-kpi-card";
 import { MobileScheduleCard } from "@/components/dashboard/mobile-schedule-card";
 import { MobileAnnouncementsCard } from "@/components/dashboard/mobile-announcements-card";
 import { MobileActivityCard } from "@/components/dashboard/mobile-activity-card";
 import { Card } from "@/components/ui";
+import { getClassesAttendanceStatus, type ClassAttendanceStatus } from "@/lib/attendance-days";
 import {
   Users,
   CalendarCheck,
@@ -13,6 +15,8 @@ import {
   GraduationCap,
   AlertCircle,
   Sun,
+  Loader2,
+  ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -29,8 +33,32 @@ export default function MobileDashboardPage() {
     savingsTotal: 125,
   };
 
-  // Sample pending attendance
-  const pendingAttendance = 3;
+  // Attendance schedule state
+  const [schedule, setSchedule] = useState<ClassAttendanceStatus[]>([]);
+  const [scheduleLoading, setScheduleLoading] = useState(true);
+
+  // Fetch attendance schedule
+  useEffect(() => {
+    const fetchSchedule = async () => {
+      try {
+        const { data } = await getClassesAttendanceStatus();
+        if (data) {
+          // Filter hanya yang ada jadwal presensi hari ini
+          const todaySchedule = data.filter((item) => item.isAttendanceDay);
+          setSchedule(todaySchedule);
+        }
+      } catch (error) {
+        console.error("Error fetching schedule:", error);
+      } finally {
+        setScheduleLoading(false);
+      }
+    };
+
+    fetchSchedule();
+  }, []);
+
+  // Calculate pending attendance
+  const pendingAttendance = schedule.filter((s) => !s.hasAttendanceRecorded).length;
 
   // Get greeting based on time
   const getGreeting = () => {
@@ -107,7 +135,7 @@ export default function MobileDashboardPage() {
       </div>
 
       {/* Pending Attendance Alert - Bold */}
-      {pendingAttendance > 0 && (
+      {pendingAttendance > 0 && !scheduleLoading && (
         <Card className="mb-4 bg-[var(--danger)] border-2 border-[var(--danger)] shadow-[var(--shadow-md)]" padding="md">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-[14px] bg-white/20 flex items-center justify-center flex-shrink-0">
@@ -115,7 +143,7 @@ export default function MobileDashboardPage() {
             </div>
             <div className="flex-1">
               <p className="text-[14px] font-bold text-white">
-                {pendingAttendance} Absensi Belum Diinput
+                {pendingAttendance} Presensi Belum Diinput
               </p>
               <p className="text-[12px] text-white/80">
                 Segera lengkapi untuk hari ini
@@ -123,6 +151,56 @@ export default function MobileDashboardPage() {
             </div>
             <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
               <span className="text-white font-bold text-[14px]">{pendingAttendance}</span>
+            </div>
+          </div>
+          {/* List of classes with pending attendance */}
+          <div className="mt-3 pt-3 border-t border-white/20">
+            <div className="space-y-2">
+              {schedule
+                .filter((s) => !s.hasAttendanceRecorded)
+                .slice(0, 3)
+                .map((item) => (
+                  <div key={item.classId} className="flex items-center justify-between text-white/90">
+                    <span className="text-[13px]">{item.className}</span>
+                    <span className="text-[11px] bg-white/20 px-2 py-0.5 rounded">
+                      {item.majorName}
+                    </span>
+                  </div>
+                ))}
+              {pendingAttendance > 3 && (
+                <p className="text-[12px] text-white/70 text-center">
+                  +{pendingAttendance - 3} kelas lainnya
+                </p>
+              )}
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Schedule Loading */}
+      {scheduleLoading && (
+        <Card className="mb-4 bg-[var(--surface-secondary)] border border-[var(--border-light)]" padding="md">
+          <div className="flex items-center gap-3">
+            <Loader2 className="w-5 h-5 animate-spin text-[var(--text-muted)]" />
+            <p className="text-[13px] text-[var(--text-muted)]">Memuat jadwal presensi...</p>
+          </div>
+        </Card>
+      )}
+
+      {/* No Schedule Today */}
+      {!scheduleLoading && schedule.length === 0 && (
+        <Card className="mb-4 bg-[var(--info-soft)] border border-[var(--info)]" padding="md">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-[14px] bg-[var(--info)] flex items-center justify-center flex-shrink-0">
+              <CalendarCheck className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <p className="text-[13px] font-medium text-[var(--info)]">
+                Tidak Ada Jadwal Presensi
+              </p>
+              <p className="text-[12px] text-[var(--info)] opacity-80">
+                Tidak ada kelas yang dijadwalkan presensi hari ini
+              </p>
             </div>
           </div>
         </Card>

@@ -64,6 +64,26 @@ Contoh:
 
 Aksi: tambah/edit kelas; hapus kelas (soft delete jika punya siswa, hard delete jika kosong). Integrasi: kelas yang dibuat di sini muncul di dropdown "Kelas" saat tambah/edit siswa di Buku Induk.
 
+**5. Jadwal Presensi** — mengatur hari-hari spesifik kapan setiap kelas melakukan presensi. Fitur ini memungkinkan kelas tidak perlu presensi setiap hari. Data dari tabel `class_attendance_days`.
+
+| Field | Tipe | Required | Deskripsi |
+|-------|------|----------|-----------|
+| Kelas | Select | ✅ | Pilih kelas |
+| Hari Presensi | Checkbox | ✅ | Senin-Sabtu (default: Senin-Jumat) |
+
+**Business Rules:**
+- Weekend (Minggu) tidak bisa dipilih
+- Default untuk kelas baru: Senin-Jumat (5x seminggu)
+- Jadwal presensi mempengaruhi validasi di halaman presensi
+- Dashboard menampilkan peringatan untuk kelas yang belum diinput presensinya
+
+**Integrasi:**
+- Halaman Presensi: Validasi tanggal sebelum input presensi
+- Dashboard Desktop: Widget jadwal presensi
+- Dashboard Mobile: Alert jadwal presensi yang belum diinput
+
+**Catatan:** Tab Jadwal Presensi ditambahkan pada versi 2.3 (2026-08-11).
+
 **Business Rules:**
 - **Kelas adalah entitas STATIS** — kelas tidak terikat tahun ajaran
 - Siswa terikat tahun ajaran melalui tabel `student_classes`
@@ -186,6 +206,13 @@ Settings is not a preferences page — it is the centralized configuration engin
 
 ### Changelog
 
+**v2.3 (2026-08-11):**
+1. Tab baru "Jadwal Presensi" ditambahkan di Settings Academic
+2. Fitur memungkinkan mengatur hari spesifik presensi per kelas
+3. Validasi jadwal presensi di halaman input presensi
+4. Widget jadwal presensi di Dashboard Desktop
+5. Alert jadwal presensi di Dashboard Mobile
+
 **v2.2 (2026-07-31):**
 1. Tahun Ajaran sekarang diambil dari database (`academic_years`) bukan hardcoded
 2. Kelas tidak lagi terikat tahun ajaran (`academic_year_id` dihapus dari `classes`)
@@ -202,5 +229,5 @@ Settings is not a preferences page — it is the centralized configuration engin
 **Catatan:** Tingkat (grade) tidak lagi disimpan di tabel terpisah — informasi tingkat diambil dari nama kelas.
 
 ---
-Last Updated: 2026-07-31 | Version: 2.2
+Last Updated: 2026-08-11 | Version: 2.3
 # End of Settings Module (Compact)

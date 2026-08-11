@@ -21,6 +21,7 @@ import {
   CalendarWidget,
   AnnouncementsWidget,
   GlobalSearch,
+  AttendanceScheduleWidget,
 } from "@/components/dashboard"
 import {
   Users,
@@ -319,9 +320,9 @@ export default function DashboardPage() {
           <NotificationsPanel />
         </div>
 
-        {/* Announcements Widget */}
+        {/* Attendance Schedule Widget */}
         <div>
-          <AnnouncementsWidget />
+          <AttendanceScheduleWidget />
         </div>
 
         {/* Savings Overview Widget */}

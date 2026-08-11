@@ -64,6 +64,38 @@ export interface Class {
   majors?: Major
 }
 
+// ============================================
+// CLASS ATTENDANCE DAYS (Jadwal Presensi)
+// ============================================
+
+export type DayOfWeek = 1 | 2 | 3 | 4 | 5 | 6 | 7 // 1=Senin, 7=Minggu
+
+export interface ClassAttendanceDay {
+  id: UUID
+  class_id: UUID
+  day_of_week: DayOfWeek
+  created_at: Timestamp
+  updated_at: Timestamp
+  // Relations
+  classes?: Class
+}
+
+// Helper untuk konversi day number ke nama hari
+export const DAY_NAMES: Record<DayOfWeek, string> = {
+  1: "Senin",
+  2: "Selasa",
+  3: "Rabu",
+  4: "Kamis",
+  5: "Jumat",
+  6: "Sabtu",
+  7: "Minggu",
+}
+
+// Helper untuk cek apakah hari adalah weekend
+export const isWeekend = (dayOfWeek: DayOfWeek): boolean => {
+  return dayOfWeek === 6 || dayOfWeek === 7
+}
+
 export interface Student {
   id: UUID
   student_number: string

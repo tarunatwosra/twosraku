@@ -6,9 +6,11 @@ import { useRouter } from "next/navigation"
 import { AppShell } from "@/components/layout"
 import { Card } from "@/components/ui"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/hooks/useAuth"
 import { useAttendance, useAttendanceRecap } from "@/hooks/useAttendance"
 import { ATTENDANCE_STATUS_CONFIG, type AttendanceStatus } from "@/types/attendance"
+import { isAttendanceDay } from "@/lib/attendance-days"
 import {
   Calendar,
   Users,
@@ -19,6 +21,7 @@ import {
   FileText,
   ChevronLeft,
   ChevronRight as ChevronRightIcon,
+  Info,
 } from "lucide-react"
 import { cn, formatLocalDate } from "@/lib/utils"
 
@@ -36,11 +39,37 @@ export default function AttendancePage() {
 
   const [selectedDate, setSelectedDate] = useState(formatLocalDate())
   const [selectedClassId, setSelectedClassId] = useState("")
+  const [isAttendanceDayForClass, setIsAttendanceDayForClass] = useState(true)
+  const [checkingSchedule, setCheckingSchedule] = useState(false)
 
   // Set initial date from hook
   useEffect(() => {
     setSelectedDate(date)
   }, [date])
+
+  // Check if selected date is an attendance day for the selected class
+  useEffect(() => {
+    const checkAttendanceDay = async () => {
+      if (!selectedClassId || !selectedDate) {
+        setIsAttendanceDayForClass(true)
+        return
+      }
+
+      setCheckingSchedule(true)
+      try {
+        const dateObj = new Date(selectedDate + "T00:00:00")
+        const isDay = await isAttendanceDay(selectedClassId, dateObj)
+        setIsAttendanceDayForClass(isDay)
+      } catch (error) {
+        console.error("Error checking attendance day:", error)
+        setIsAttendanceDayForClass(true) // Default to true if error
+      } finally {
+        setCheckingSchedule(false)
+      }
+    }
+
+    checkAttendanceDay()
+  }, [selectedClassId, selectedDate])
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -150,14 +179,30 @@ export default function AttendancePage() {
 
               <Button
                 onClick={handleTakeAttendance}
-                disabled={!selectedClassId}
+                disabled={!selectedClassId || !isAttendanceDayForClass || checkingSchedule}
                 className="gap-2 px-6"
+                title={!isAttendanceDayForClass ? "Bukan hari presensi untuk kelas ini" : ""}
               >
                 <Plus className="w-4 h-4" />
                 Ambil Presensi
               </Button>
             </div>
           </div>
+
+          {/* Attendance Day Warning */}
+          {selectedClassId && !isAttendanceDayForClass && !checkingSchedule && (
+            <div className="mt-4 p-4 bg-[var(--warning-soft)] border border-[var(--warning)] rounded-xl flex items-center gap-3">
+              <Info className="w-5 h-5 text-[var(--warning)] flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-[var(--warning)]">
+                  Bukan Hari Presensi
+                </p>
+                <p className="text-xs text-[var(--warning)] opacity-80">
+                  Presensi untuk kelas ini tidak dijadwalkan pada hari yang dipilih. Silakan pilih tanggal lain atau hubungi administrator untuk mengatur jadwal presensi.
+                </p>
+              </div>
+            </div>
+          )}
         </Card>
 
         {/* Quick Actions */}

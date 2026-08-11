@@ -17,3 +17,4 @@ export * from "./character-points-visualization";
 export * from "./calendar-widget";
 export * from "./announcements-widget";
 export * from "./global-search";
+export * from "./attendance-schedule-widget";

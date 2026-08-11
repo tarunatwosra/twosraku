@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/useAuth"
 import { useAttendance } from "@/hooks/useAttendance"
 import { ATTENDANCE_STATUS_CONFIG, type AttendanceStatus } from "@/types/attendance"
+import { isAttendanceDay } from "@/lib/attendance-days"
 import {
   ChevronLeft,
   ChevronRight,
@@ -15,6 +16,8 @@ import {
   Save,
   Loader2,
   Users,
+  Info,
+  AlertTriangle,
 } from "lucide-react"
 import { cn, formatLocalDate } from "@/lib/utils"
 
@@ -371,6 +374,8 @@ function AbsensiInputContent() {
 
   const [isSaving, setIsSaving] = useState(false)
   const [activeFilter, setActiveFilter] = useState<FilterTab>("all")
+  const [isAttendanceDayForClass, setIsAttendanceDayForClass] = useState(true)
+  const [checkingSchedule, setCheckingSchedule] = useState(false)
 
   // Get params from URL
   useEffect(() => {
@@ -379,6 +384,30 @@ function AbsensiInputContent() {
     if (classParam) setClass(classParam)
     if (dateParam) setDate(dateParam)
   }, [searchParams, setClass, setDate])
+
+  // Check if selected date is an attendance day for the selected class
+  useEffect(() => {
+    const checkAttendanceDay = async () => {
+      if (!classId || !date) {
+        setIsAttendanceDayForClass(true)
+        return
+      }
+
+      setCheckingSchedule(true)
+      try {
+        const dateObj = new Date(date + "T00:00:00")
+        const isDay = await isAttendanceDay(classId, dateObj)
+        setIsAttendanceDayForClass(isDay)
+      } catch (error) {
+        console.error("Error checking attendance day:", error)
+        setIsAttendanceDayForClass(true) // Default to true if error
+      } finally {
+        setCheckingSchedule(false)
+      }
+    }
+
+    checkAttendanceDay()
+  }, [classId, date])
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -467,6 +496,21 @@ function AbsensiInputContent() {
 
       {/* Summary Bar */}
       <SummaryBar summary={summary} />
+
+      {/* Non-Attendance Day Warning */}
+      {classId && !isAttendanceDayForClass && !checkingSchedule && (
+        <div className="mx-4 mt-4 p-4 bg-[var(--warning-soft)] border border-[var(--warning)] rounded-xl flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-[var(--warning)] flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-[var(--warning)]">
+              Bukan Hari Presensi
+            </p>
+            <p className="text-xs text-[var(--warning)] opacity-80 mt-1">
+              Presensi untuk kelas ini tidak dijadwalkan pada tanggal yang dipilih. Anda tetap bisa menyimpan presensi jika diperlukan.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Filter Tabs */}
       <FilterTabs

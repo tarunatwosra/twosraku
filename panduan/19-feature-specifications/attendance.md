@@ -449,6 +449,8 @@ const handlePrint = () => {
 | Archived Student | Siswa tidak aktif tidak bisa di-presensi |
 | Default = Hadir | Semua siswa default Hadir |
 | Weekend Skip | Weekend tidak dihitung di weekly/monthly |
+| **Schedule Validation** | Presensi hanya bisa diinput pada hari yang dijadwalkan di Settings Academic |
+| **Non-Schedule Warning** | Jika bukan hari presensi, tampilkan warning dan tetap izinkan save jika diperlukan |
 
 ---
 
@@ -621,5 +623,5 @@ Presensi adalah salah satu modul yang paling sering digunakan di Twosraku. Modul
 
 ---
 
-Last Updated: 2026-08-10 | Version: 3.4
+Last Updated: 2026-08-11 | Version: 3.5
 # End of Attendance Module

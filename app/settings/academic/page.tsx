@@ -9,6 +9,7 @@ import { Modal, ModalFooter } from "@/components/ui/modal"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import { useSettings } from "@/hooks/useSettings"
+import { AttendanceScheduleSettings } from "@/components/settings/attendance-schedule-settings"
 import {
   Save,
   Plus,
@@ -16,6 +17,7 @@ import {
   Edit,
   Users,
   GraduationCap,
+  CalendarDays,
   Loader2,
   AlertCircle,
   CheckCircle,
@@ -43,7 +45,7 @@ import type { Class, Major, AcademicYear } from "@/types/database"
 // TYPES
 // ============================================
 
-type TabType = "year" | "grading" | "major" | "class"
+type TabType = "year" | "grading" | "major" | "class" | "schedule"
 
 interface ClassFormData {
   name: string
@@ -616,6 +618,18 @@ export default function AcademicSettingsPage() {
           >
             Kelas
           </button>
+          <button
+            onClick={() => setActiveTab("schedule")}
+            className={cn(
+              "px-4 py-2 text-sm font-medium rounded-lg transition-colors",
+              activeTab === "schedule"
+                ? "bg-[var(--primary)] text-white"
+                : "bg-[var(--surface-secondary)] text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]"
+            )}
+          >
+            <CalendarDays className="w-4 h-4 mr-1.5 inline" />
+            Jadwal Presensi
+          </button>
         </div>
 
         {/* Academic Years Tab */}
@@ -978,13 +992,10 @@ export default function AcademicSettingsPage() {
           </div>
         )}
 
-        {/* Save Button */}
-        <div className="flex justify-end mt-6">
-          <Button className="gap-2">
-            <Save className="w-4 h-4" />
-            Simpan Perubahan
-          </Button>
-        </div>
+        {/* Schedule Tab */}
+        {activeTab === "schedule" && (
+          <AttendanceScheduleSettings />
+        )}
       </div>
 
       {/* Modals */}
