@@ -53,6 +53,7 @@ interface StudentDetail {
   name: string
   gender: "L" | "P"
   photo?: string
+  periodDates: string[] // All dates in the selected period
   records: {
     date: string
     status: AttendanceStatus
@@ -195,7 +196,7 @@ export default function MobileRecapPresensiPage() {
   const selectedClassName = useMemo(() => {
     if (!selectedClassId) return null
     const cls = classes.find(c => c.id === selectedClassId)
-    return cls ? (cls.major ? `${cls.major} ${cls.name}` : cls.name) : null
+    return cls ? cls.name : null
   }, [selectedClassId, classes])
 
   const getPeriodDates = useCallback((dateStr: string): string[] => {
@@ -355,6 +356,7 @@ export default function MobileRecapPresensiPage() {
 
   const fetchStudentDetail = useCallback(async (studentId: string) => {
     setLoadingDetail(true)
+    setSelectedStudent(null)
     try {
       const dates = getPeriodDates(selectedDate)
 
@@ -371,12 +373,25 @@ export default function MobileRecapPresensiPage() {
         .in("date", dates)
         .order("date", { ascending: true })
 
-      const present = (attendances || []).filter(a => a.status === "present").length
-      const sick = (attendances || []).filter(a => a.status === "sick").length
-      const permission = (attendances || []).filter(a => a.status === "permission").length
-      const absent = (attendances || []).filter(a => a.status === "absent").length
-      const totalDays = present + sick + permission + absent
-      const percentage = totalDays > 0 ? Math.round((present / totalDays) * 100) : 0
+      // Create map of existing records
+      const recordsMap = new Map<string, { status: AttendanceStatus; notes?: string }>()
+      ;(attendances || []).forEach(a => {
+        recordsMap.set(a.date, { status: a.status, notes: a.notes })
+      })
+
+      // Build all dates with status (implied "present" if no record)
+      const allRecords = dates.map(date => ({
+        date,
+        status: recordsMap.get(date)?.status || ("present" as AttendanceStatus),
+        notes: recordsMap.get(date)?.notes
+      }))
+
+      const present = allRecords.filter(r => r.status === "present").length
+      const sick = allRecords.filter(r => r.status === "sick").length
+      const permission = allRecords.filter(r => r.status === "permission").length
+      const absent = allRecords.filter(r => r.status === "absent").length
+      const totalDays = dates.length
+      const percentage = totalDays > 0 ? Math.round(((present + sick + permission + absent) / totalDays) * 100) : 0
 
       setSelectedStudent({
         studentId,
@@ -384,7 +399,8 @@ export default function MobileRecapPresensiPage() {
         name: studentData?.full_name || "Unknown",
         gender: studentData?.gender || "L",
         photo: studentData?.photo_url,
-        records: (attendances || []).map(a => ({ date: a.date, status: a.status, notes: a.notes })),
+        periodDates: dates,
+        records: allRecords,
         statistics: { present, sick, permission, absent, totalDays, percentage },
       })
     } catch (err) { console.error(err) }
@@ -396,11 +412,14 @@ export default function MobileRecapPresensiPage() {
     else if (selectedClassId) { setSelectedClassId(null); setStudents([]); setClassStatistics(null) }
   }
 
-  const groupedRecords = useMemo(() => {
+  // Group records by month for display
+  const groupedByMonth = useMemo(() => {
     if (!selectedStudent) return {}
+
     const groups: Record<string, typeof selectedStudent.records> = {}
     selectedStudent.records.forEach(record => {
-      const monthKey = new Date(record.date).toLocaleDateString("id-ID", { month: "long", year: "numeric" })
+      const date = new Date(record.date)
+      const monthKey = date.toLocaleDateString("id-ID", { month: "long", year: "numeric" })
       if (!groups[monthKey]) groups[monthKey] = []
       groups[monthKey].push(record)
     })
@@ -409,28 +428,13 @@ export default function MobileRecapPresensiPage() {
 
   return (
     <MobileShell>
-      {/* Header */}
-      <div className="mb-4">
-        {(selectedClassId || selectedStudent) && (
-          <button onClick={goBack} className="flex items-center gap-1.5 text-[var(--primary)] text-[13px] font-semibold mb-2">
-            <ChevronLeft className="w-4 h-4" />
-            Kembali
-          </button>
-        )}
-        <div className="flex items-center justify-between">
-          <div>
-            {selectedStudent && <h1 className="text-[18px] font-bold text-[var(--text-primary)]">Detail Presensi</h1>}
-            {selectedClassId && !selectedStudent && <h1 className="text-[18px] font-bold text-[var(--text-primary)]">Rekap Presensi</h1>}
-            {!selectedClassId && !selectedStudent && <h1 className="text-[18px] font-bold text-[var(--text-primary)]">Rekap Presensi</h1>}
-          </div>
-          {selectedClassId && !selectedStudent && (
-            <div className="text-right">
-              <p className="text-[11px] text-[var(--text-muted)]">Total Siswa</p>
-              <p className="text-[16px] font-bold text-[var(--text-primary)]">{students.length}</p>
-            </div>
-          )}
-        </div>
-      </div>
+      {/* Back Button - Only show when viewing student detail */}
+      {selectedStudent && (
+        <button onClick={goBack} className="flex items-center gap-1.5 text-[var(--primary)] text-[13px] font-semibold mb-3">
+          <ChevronLeft className="w-4 h-4" />
+          Kembali
+        </button>
+      )}
 
       {/* Class Selector - First Priority */}
       <button
@@ -609,87 +613,197 @@ export default function MobileRecapPresensiPage() {
               <div className="w-10 h-1 rounded-full bg-[var(--border)]" />
             </div>
 
-            <div className="px-5 pb-4 border-b border-[var(--border-light)]">
+            <div className="px-4 pb-3 border-b border-[var(--border-light)]">
+              {/* Header */}
               <div className="flex items-start justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-[var(--primary)] flex items-center justify-center">
-                    <span className="text-lg font-bold text-white">{selectedStudent.name.charAt(0).toUpperCase()}</span>
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-xl bg-[var(--primary)] flex items-center justify-center">
+                    <span className="text-[15px] font-bold text-white">{selectedStudent.name.charAt(0).toUpperCase()}</span>
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-[var(--text-primary)]">{selectedStudent.name}</h2>
-                    <p className="text-sm text-[var(--text-muted)]">No. Absen: {selectedStudent.studentNumber}</p>
+                    <h2 className="text-[15px] font-bold text-[var(--text-primary)]">{selectedStudent.name}</h2>
+                    <p className="text-[11px] text-[var(--text-muted)]">No. {selectedStudent.studentNumber}</p>
                   </div>
                 </div>
-                <button onClick={() => setSelectedStudent(null)} className="w-10 h-10 rounded-full bg-[var(--surface-secondary)] flex items-center justify-center">
-                  <X className="w-5 h-5 text-[var(--text-muted)]" />
+                <button onClick={() => setSelectedStudent(null)} className="w-8 h-8 rounded-full bg-[var(--surface-secondary)] flex items-center justify-center">
+                  <X className="w-4 h-4 text-[var(--text-muted)]" />
                 </button>
               </div>
 
-              <div className="mt-4 flex items-center gap-4 bg-[var(--surface-secondary)] rounded-2xl p-4">
-                <CircularProgress percentage={selectedStudent.statistics.percentage} size={64} strokeWidth={5} />
-                <div>
-                  <p className="text-xs text-[var(--text-muted)]">Kehadiran</p>
-                  <p className="text-lg font-bold text-[var(--text-primary)]">{selectedStudent.statistics.totalDays} hari</p>
-                  <p className="text-xs text-[var(--text-muted)]">{selectedStudent.statistics.present} hadir</p>
+              {/* Statistics */}
+              <div className="mt-3 bg-[var(--surface-secondary)] rounded-xl p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[12px] font-medium text-[var(--text-secondary)]">Kehadiran</span>
+                  <span className={cn(
+                    "text-[14px] font-bold",
+                    selectedStudent.statistics.percentage >= 90 ? "text-[var(--success)]" :
+                    selectedStudent.statistics.percentage >= 75 ? "text-[var(--warning)]" :
+                    "text-[var(--danger)]"
+                  )}>
+                    {selectedStudent.statistics.percentage}%
+                  </span>
+                </div>
+                <div className="h-2 bg-[var(--border)] rounded-full overflow-hidden">
+                  <div
+                    className={cn(
+                      "h-full rounded-full transition-all",
+                      selectedStudent.statistics.percentage >= 90 ? "bg-[var(--success)]" :
+                      selectedStudent.statistics.percentage >= 75 ? "bg-[var(--warning)]" :
+                      "bg-[var(--danger)]"
+                    )}
+                    style={{ width: `${selectedStudent.statistics.percentage}%` }}
+                  />
                 </div>
               </div>
 
-              {/* Status Badges */}
-              <div className="mt-4 flex gap-2 flex-wrap">
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--success-soft)]">
-                  <CheckCircle2 className="w-4 h-4 text-[var(--success)]" />
-                  <span className="text-xs font-bold text-[var(--success)]">H {selectedStudent.statistics.present}</span>
-                </div>
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--warning-soft)]">
-                  <Stethoscope className="w-4 h-4 text-[var(--warning)]" />
-                  <span className="text-xs font-bold text-[var(--warning)]">S {selectedStudent.statistics.sick}</span>
-                </div>
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--info-soft)]">
-                  <FileText className="w-4 h-4 text-[var(--info)]" />
-                  <span className="text-xs font-bold text-[var(--info)]">I {selectedStudent.statistics.permission}</span>
-                </div>
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--danger-soft)]">
-                  <UserX className="w-4 h-4 text-[var(--danger)]" />
-                  <span className="text-xs font-bold text-[var(--danger)]">A {selectedStudent.statistics.absent}</span>
-                </div>
+              {/* Status Pills */}
+              <div className="mt-2 flex gap-1.5 flex-wrap">
+                <span className="text-[11px] font-semibold px-2 py-1 rounded bg-[var(--success-soft)] text-[var(--success)]">H {selectedStudent.statistics.present}</span>
+                <span className="text-[11px] font-semibold px-2 py-1 rounded bg-[var(--warning-soft)] text-[var(--warning)]">S {selectedStudent.statistics.sick}</span>
+                <span className="text-[11px] font-semibold px-2 py-1 rounded bg-[var(--info-soft)] text-[var(--info)]">I {selectedStudent.statistics.permission}</span>
+                <span className="text-[11px] font-semibold px-2 py-1 rounded bg-[var(--danger-soft)] text-[var(--danger)]">A {selectedStudent.statistics.absent}</span>
               </div>
             </div>
 
-            <div className="overflow-y-auto max-h-[50vh] px-5 py-4">
-              <h3 className="text-sm font-semibold text-[var(--text-secondary)] mb-4 flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
-                Riwayat Presensi
-              </h3>
-
+            {/* Calendar View by Month */}
+            <div className="overflow-y-auto max-h-[55vh] px-4 py-3">
               {loadingDetail ? (
                 <LoadingState />
               ) : (
-                Object.entries(groupedRecords).map(([month, records]) => (
-                  <div key={month} className="mb-4">
-                    <p className="text-xs font-semibold text-[var(--primary)] mb-2">{month}</p>
-                    <div className="space-y-1.5">
-                      {records.map((record, index) => {
-                        const config = STATUS_CONFIG[record.status]
-                        const Icon = config.icon
-                        return (
-                          <div key={index} className="flex items-center justify-between p-3 bg-[var(--surface-secondary)] rounded-xl">
-                            <div className="flex items-center gap-3">
-                              <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", config.bgColor)}>
-                                <Icon className={cn("w-4 h-4", config.textColor)} />
-                              </div>
-                              <span className="text-sm text-[var(--text-secondary)]">
-                                {new Date(record.date).toLocaleDateString("id-ID", { weekday: "short", day: "numeric", month: "short" })}
-                              </span>
-                            </div>
-                            <span className={cn("text-xs font-bold px-2.5 py-1 rounded-full", config.bgColor, config.textColor)}>
-                              {config.shortLabel}
-                            </span>
-                          </div>
-                        )
-                      })}
+                <>
+                  {/* Legend */}
+                  <div className="flex items-center justify-center gap-3 mb-4 pb-3 border-b border-[var(--border-light)]">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-3 h-3 rounded-full bg-[var(--success)]" />
+                      <span className="text-[10px] text-[var(--text-muted)]">Hadir</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-3 h-3 rounded-full bg-[var(--warning)]" />
+                      <span className="text-[10px] text-[var(--text-muted)]">Sakit</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-3 h-3 rounded-full bg-[var(--info)]" />
+                      <span className="text-[10px] text-[var(--text-muted)]">Izin</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-3 h-3 rounded-full bg-[var(--danger)]" />
+                      <span className="text-[10px] text-[var(--text-muted)]">Alpa</span>
                     </div>
                   </div>
-                ))
+
+                  {/* Month Calendars */}
+                  {Object.entries(groupedByMonth).map(([month, records]) => {
+                    // Get year and month index from month string
+                    const parts = month.split(' ')
+                    const year = parseInt(parts[parts.length - 1])
+                    const monthName = parts.slice(0, -1).join(' ')
+                    const monthIndex = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'].indexOf(monthName)
+
+                    if (monthIndex === -1) return null
+
+                    // First day of month
+                    const firstDayOfMonth = new Date(year, monthIndex, 1)
+                    let firstWeekday = firstDayOfMonth.getDay()
+                    if (firstWeekday === 0) firstWeekday = 7
+                    const startOffset = firstWeekday - 1
+
+                    // Create calendar cells
+                    const daysInMonth = new Date(year, monthIndex + 1, 0).getDate()
+                    const cells: React.ReactNode[] = []
+
+                    // Empty cells before first day
+                    for (let i = 0; i < startOffset; i++) {
+                      cells.push(<div key={`empty-${i}`} className="aspect-square" />)
+                    }
+
+                    // Day cells
+                    for (let day = 1; day <= daysInMonth; day++) {
+                      const dateStr = `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
+                      const record = records.find(r => r.date === dateStr)
+                      const status = record?.status || ("present" as AttendanceStatus)
+                      const config = STATUS_CONFIG[status]
+                      const dateObj = new Date(year, monthIndex, day)
+                      const isWeekend = dateObj.getDay() === 0 || dateObj.getDay() === 6
+
+                      cells.push(
+                        <div
+                          key={day}
+                          className={cn(
+                            "relative aspect-square flex flex-col items-center justify-center rounded-xl transition-all duration-200",
+                            isWeekend ? "opacity-30" : "",
+                            status === "present" ? "bg-[var(--success)]/10 text-[var(--success)]" :
+                            status === "sick" ? "bg-[var(--warning)]/10 text-[var(--warning)]" :
+                            status === "permission" ? "bg-[var(--info)]/10 text-[var(--info)]" :
+                            "bg-[var(--danger)]/10 text-[var(--danger)]"
+                          )}
+                        >
+                          <span className="text-[12px] font-semibold leading-none">{day}</span>
+                          <span className="text-[9px] font-bold leading-none mt-0.5">{config.shortLabel}</span>
+                        </div>
+                      )
+                    }
+
+                    // Count statistics for this month
+                    const monthStats = {
+                      hadir: records.filter(r => {
+                        const d = new Date(r.date)
+                        return d.getMonth() === monthIndex && r.status === "present"
+                      }).length,
+                      sakit: records.filter(r => {
+                        const d = new Date(r.date)
+                        return d.getMonth() === monthIndex && r.status === "sick"
+                      }).length,
+                      izin: records.filter(r => {
+                        const d = new Date(r.date)
+                        return d.getMonth() === monthIndex && r.status === "permission"
+                      }).length,
+                      alpa: records.filter(r => {
+                        const d = new Date(r.date)
+                        return d.getMonth() === monthIndex && r.status === "absent"
+                      }).length,
+                    }
+
+                    return (
+                      <div key={month} className="mb-5 last:mb-0">
+                        {/* Month Header */}
+                        <div className="flex items-center justify-between mb-3">
+                          <div>
+                            <h3 className="text-[15px] font-bold text-[var(--text-primary)]">{monthName}</h3>
+                            <p className="text-[11px] text-[var(--text-muted)]">{year}</p>
+                          </div>
+                          <div className="flex items-center gap-2 text-[10px]">
+                            <span className="px-2 py-1 rounded-full bg-[var(--success)]/10 text-[var(--success)] font-semibold">{monthStats.hadir}</span>
+                            <span className="px-2 py-1 rounded-full bg-[var(--warning)]/10 text-[var(--warning)] font-semibold">{monthStats.sakit}</span>
+                            <span className="px-2 py-1 rounded-full bg-[var(--info)]/10 text-[var(--info)] font-semibold">{monthStats.izin}</span>
+                            <span className="px-2 py-1 rounded-full bg-[var(--danger)]/10 text-[var(--danger)] font-semibold">{monthStats.alpa}</span>
+                          </div>
+                        </div>
+
+                        {/* Calendar Card */}
+                        <div className="bg-[var(--surface-secondary)] rounded-2xl p-3 shadow-sm">
+                          {/* Day Headers */}
+                          <div className="grid grid-cols-7 gap-1.5 mb-2">
+                            {['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'].map((day, idx) => (
+                              <div
+                                key={day}
+                                className={cn(
+                                  "text-center text-[10px] font-semibold py-1",
+                                  idx === 5 ? "text-[var(--info)]" : idx === 6 ? "text-[var(--danger)]" : "text-[var(--text-muted)]"
+                                )}
+                              >
+                                {day}
+                              </div>
+                            ))}
+                          </div>
+                          {/* Calendar Grid */}
+                          <div className="grid grid-cols-7 gap-1.5">
+                            {cells}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </>
               )}
             </div>
           </div>
@@ -728,7 +842,7 @@ export default function MobileRecapPresensiPage() {
                         <Users className={cn("w-5 h-5", selectedClassId === cls.id ? "text-white" : "text-[var(--text-muted)]")} />
                       </div>
                       <div className="text-left">
-                        <p className="text-[14px] font-semibold text-[var(--text-primary)]">{cls.major ? `${cls.major} ${cls.name}` : cls.name}</p>
+                        <p className="text-[14px] font-semibold text-[var(--text-primary)]">{cls.name}</p>
                         <p className="text-[12px] text-[var(--text-muted)]">{cls.studentCount} siswa</p>
                       </div>
                     </div>
