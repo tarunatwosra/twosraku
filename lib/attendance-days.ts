@@ -94,6 +94,11 @@ export async function setAttendanceDaysForClass(
   console.log(`[AttendanceDays] setAttendanceDaysForClass called:`, { classId, days })
 
   try {
+    // Validasi classId
+    if (!classId || classId.trim() === '') {
+      return { success: false, error: "Class ID tidak valid" }
+    }
+
     // Hapus jadwal existing
     console.log(`[AttendanceDays] Deleting existing attendance days for class ${classId}`)
     const { error: deleteError } = await supabase
@@ -103,9 +108,9 @@ export async function setAttendanceDaysForClass(
 
     if (deleteError) {
       console.error(`[AttendanceDays] Delete error:`, deleteError)
-      return { success: false, error: deleteError.message }
+      // Lanjut meskipun delete gagal (mungkin belum ada data)
     }
-    console.log(`[AttendanceDays] Delete successful`)
+    console.log(`[AttendanceDays] Delete completed`)
 
     // Jika ada jadwal baru, insert
     if (days.length > 0) {
@@ -113,8 +118,6 @@ export async function setAttendanceDaysForClass(
       const insertData = days.map((day) => ({
         class_id: classId,
         day_of_week: day,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
       }))
 
       console.log(`[AttendanceDays] Insert data:`, insertData)
@@ -125,8 +128,12 @@ export async function setAttendanceDaysForClass(
         .select()
 
       if (insertError) {
-        console.error(`[AttendanceDays] Insert error:`, insertError)
-        return { success: false, error: insertError.message }
+        console.error(`[AttendanceDays] Insert error details:`, JSON.stringify(insertError, null, 2))
+        // Cek apakah RLS issue
+        if (insertError.message?.includes('row-level security') || insertError.code === '42501') {
+          return { success: false, error: "Akses ditolak. Pastikan RLS dimatikan atau policy dibuat." }
+        }
+        return { success: false, error: insertError.message || "Gagal menyimpan data" }
       }
       console.log(`[AttendanceDays] Insert successful, result:`, insertDataResult)
     } else {
@@ -134,9 +141,9 @@ export async function setAttendanceDaysForClass(
     }
 
     return { success: true, error: null }
-  } catch (err) {
+  } catch (err: any) {
     console.error(`[AttendanceDays] Catch error:`, err)
-    return { success: false, error: "Terjadi kesalahan saat menyimpan jadwal presensi" }
+    return { success: false, error: err?.message || "Terjadi kesalahan saat menyimpan jadwal presensi" }
   }
 }
 

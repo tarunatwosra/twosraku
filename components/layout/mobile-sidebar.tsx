@@ -79,10 +79,23 @@ interface MobileSidebarProps {
 
 export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
   const pathname = usePathname();
-  const [expandedSections, setExpandedSections] = useState<string[]>([
-    "AKADEMIK",
-    "ADMINISTRASI",
-  ]);
+
+  // Helper to find which section contains the current pathname
+  const getSectionForPath = (path: string): string | null => {
+    for (const section of navigationSections) {
+      if (section.items.some((item) => item.href === path || (path.startsWith(item.href) && item.href !== "/"))) {
+        return section.title;
+      }
+    }
+    return null;
+  };
+
+  const activeSection = getSectionForPath(pathname);
+
+  // Initialize expanded sections - only the active section
+  const [expandedSections, setExpandedSections] = useState<string[]>(
+    activeSection ? [activeSection] : []
+  );
 
   // Close on route change
   useEffect(() => {
@@ -100,6 +113,14 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
       document.body.style.overflow = "";
     };
   }, [isOpen]);
+
+  // Update expanded section when pathname changes
+  useEffect(() => {
+    const newActiveSection = getSectionForPath(pathname);
+    if (newActiveSection && !expandedSections.includes(newActiveSection)) {
+      setExpandedSections([newActiveSection]);
+    }
+  }, [pathname]);
 
   const toggleSection = (section: string) => {
     setExpandedSections((prev) =>

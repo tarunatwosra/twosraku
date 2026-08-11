@@ -31,7 +31,7 @@ import {
   Bell,
   User,
 } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/hooks/useAuth"
 
@@ -122,15 +122,34 @@ export function Sidebar({ isCollapsed = false, onCollapsedChange }: SidebarProps
   const pathname = usePathname()
   const router = useRouter()
   const { user, logout } = useAuth()
-  const [expandedSections, setExpandedSections] = useState<string[]>([
-    "AKADEMIK",
-    "PRESENSI",
-    "PENILAIAN",
-    "POIN KARAKTER",
-    "ADMINISTRASI",
-    "LAPORAN",
-  ])
+
+  // Helper to find which section contains the current pathname
+  const getSectionForPath = (path: string): string | null => {
+    for (const section of navigationSections) {
+      if (section.items.some((item) => item.href === path || (path.startsWith(item.href) && item.href !== "/"))) {
+        return section.title
+      }
+    }
+    // Default to AKADEMIK for root path
+    if (path === "/") return "AKADEMIK"
+    return null
+  }
+
+  const activeSection = getSectionForPath(pathname)
+
+  // Initialize expanded sections - only the active section
+  const [expandedSections, setExpandedSections] = useState<string[]>(
+    activeSection ? [activeSection] : []
+  )
   const [isProfileOpen, setIsProfileOpen] = useState(false)
+
+  // Update expanded section when pathname changes
+  useEffect(() => {
+    const newActiveSection = getSectionForPath(pathname)
+    if (newActiveSection && !expandedSections.includes(newActiveSection)) {
+      setExpandedSections([newActiveSection])
+    }
+  }, [pathname])
 
   const toggleSection = (section: string) => {
     setExpandedSections((prev) =>
