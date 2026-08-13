@@ -1,101 +1,50 @@
 "use client"
 
+/**
+ * Reading: Settings overview page untuk administrator sekolah
+ * Bahasa visual: Card-based overview dengan quick access
+ * Dial: ENERGI 2 / RITME 2 / GERAK 1
+ */
+
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useAuth } from "@/hooks/useAuth"
-import { AppShell } from "@/components/layout"
 import { Card } from "@/components/ui"
-import { Badge } from "@/components/ui/badge"
 import {
   Settings,
   Building2,
   GraduationCap,
   Palette,
   Users,
-  Bell,
-  Shield,
-  Database,
-  FileText,
-  Globe,
-  Calendar,
-  ChevronRight,
   QrCode,
+  Info,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-const settingsNav = [
+const mainSettings = [
   {
     title: "Umum",
-    description: "Nama aplikasi, zona waktu, format tanggal",
+    description: "Nama aplikasi, zona waktu, format",
     href: "/settings/general",
-    icon: <Settings className="w-5 h-5" />,
-    badge: null,
+    icon: Settings,
   },
   {
     title: "Profil Sekolah",
-    description: "Nama sekolah, NPSN, alamat, logo",
+    description: "NPSN, alamat, logo, visi misi",
     href: "/settings/school",
-    icon: <Building2 className="w-5 h-5" />,
-    badge: null,
+    icon: Building2,
   },
   {
     title: "Akademik",
-    description: "Tahun ajaran, semester, sistem penilaian",
+    description: "Tahun ajaran, penilaian, jurusan",
     href: "/settings/academic",
-    icon: <GraduationCap className="w-5 h-5" />,
-    badge: null,
+    icon: GraduationCap,
   },
   {
-    title: "Registrasi Siswa",
-    description: "Pengaturan registrasi mandiri via QR",
+    title: "Registrasi",
+    description: "QR code, registrasi mandiri",
     href: "/settings/registration",
-    icon: <QrCode className="w-5 h-5" />,
-    badge: null,
-  },
-  {
-    title: "Tampilan",
-    description: "Tema, warna, kepadatan",
-    href: "/settings/appearance",
-    icon: <Palette className="w-5 h-5" />,
-    badge: null,
-  },
-  {
-    title: "Pengguna",
-    description: "Manajemen akun pengguna",
-    href: "/settings/users",
-    icon: <Users className="w-5 h-5" />,
-    badge: null,
-  },
-]
-
-const systemNav = [
-  {
-    title: "Notifikasi",
-    description: "Pengaturan notifikasi",
-    href: "/settings/notifications",
-    icon: <Bell className="w-5 h-5" />,
-    badge: null,
-  },
-  {
-    title: "Keamanan",
-    description: "Kebijakan sandi, sesi, 2FA",
-    href: "/settings/security",
-    icon: <Shield className="w-5 h-5" />,
-    badge: null,
-  },
-  {
-    title: "Backup",
-    description: "Cadangan database",
-    href: "/settings/backup",
-    icon: <Database className="w-5 h-5" />,
-    badge: null,
-  },
-  {
-    title: "Template",
-    description: "Template laporan dan dokumen",
-    href: "/settings/templates",
-    icon: <FileText className="w-5 h-5" />,
-    badge: null,
+    icon: QrCode,
   },
 ]
 
@@ -103,127 +52,86 @@ export default function SettingsPage() {
   const pathname = usePathname()
   const { user } = useAuth()
 
+  const isActive = (href: string) => pathname === href
+
   return (
-    <AppShell title="Pengaturan" description="Konfigurasi aplikasi">
-      <div className="max-w-4xl">
-        {/* User Info */}
-        <Card className="p-4 mb-6 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-[var(--primary)] flex items-center justify-center text-white font-semibold">
-            {user?.name?.charAt(0) || "U"}
+    <div className="max-w-4xl space-y-6">
+      {/* Welcome Card */}
+      <Card className="p-8 border border-[var(--border-default)]">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-12 h-12 rounded-2xl bg-[var(--primary-soft)] flex items-center justify-center">
+            <Settings className="w-6 h-6 text-[var(--primary)]" />
           </div>
-          <div className="flex-1">
-            <p className="font-medium text-[var(--text-primary)]">
-              {user?.name || "User"}
-            </p>
-            <p className="text-sm text-[var(--text-muted)]">
-              @{user?.username || "user"} • {user?.role || "guest"}
-            </p>
-          </div>
-          <Badge variant="neutral">{user?.role}</Badge>
-        </Card>
-
-        {/* Settings Navigation */}
-        <div className="space-y-6">
-          {/* Main Settings */}
           <div>
-            <h2 className="text-sm font-medium text-[var(--text-muted)] uppercase tracking-wide mb-3">
-              Pengaturan Utama
-            </h2>
-            <div className="grid gap-3">
-              {settingsNav.map((item) => (
-                <Link key={item.href} href={item.href}>
-                  <Card
-                    className={cn(
-                      "p-4 hover:border-[var(--primary)] transition-colors cursor-pointer",
-                      pathname === item.href && "border-[var(--primary)] bg-[var(--primary-soft)]"
-                    )}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div
-                        className={cn(
-                          "w-10 h-10 rounded-lg flex items-center justify-center",
-                          pathname === item.href
-                            ? "bg-[var(--primary)] text-white"
-                            : "bg-[var(--surface-secondary)] text-[var(--text-secondary)]"
-                        )}
-                      >
-                        {item.icon}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium text-[var(--text-primary)]">
-                            {item.title}
-                          </p>
-                          {item.badge && (
-                            <Badge variant="default" className="text-xs">
-                              {item.badge}
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-sm text-[var(--text-muted)]">
-                          {item.description}
-                        </p>
-                      </div>
-                      <ChevronRight className="w-5 h-5 text-[var(--text-muted)]" />
-                    </div>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          {/* System Settings */}
-          <div>
-            <h2 className="text-sm font-medium text-[var(--text-muted)] uppercase tracking-wide mb-3">
-              Sistem
-            </h2>
-            <div className="grid gap-3">
-              {systemNav.map((item) => (
-                <Link key={item.href} href={item.href}>
-                  <Card
-                    className={cn(
-                      "p-4 hover:border-[var(--primary)] transition-colors cursor-pointer opacity-60",
-                      pathname === item.href && "border-[var(--primary)] bg-[var(--primary-soft)]"
-                    )}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div
-                        className={cn(
-                          "w-10 h-10 rounded-lg flex items-center justify-center",
-                          pathname === item.href
-                            ? "bg-[var(--primary)] text-white"
-                            : "bg-[var(--surface-secondary)] text-[var(--text-secondary)]"
-                        )}
-                      >
-                        {item.icon}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium text-[var(--text-primary)]">
-                            {item.title}
-                          </p>
-                          {item.badge && (
-                            <Badge variant="default" className="text-xs">
-                              {item.badge}
-                            </Badge>
-                          )}
-                          <Badge variant="secondary" className="text-xs">
-                            Segera
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-[var(--text-muted)]">
-                          {item.description}
-                        </p>
-                      </div>
-                      <ChevronRight className="w-5 h-5 text-[var(--text-muted)]" />
-                    </div>
-                  </Card>
-                </Link>
-              ))}
-            </div>
+            <h2 className="text-xl font-bold text-[var(--text-primary)]">Pengaturan Sistem</h2>
+            <p className="text-sm text-[var(--text-muted)]">Twosraku</p>
           </div>
         </div>
+        <p className="text-[14px] text-[var(--text-secondary)] leading-relaxed max-w-lg">
+          Kelola semua konfigurasi aplikasi dari satu tempat. Pengaturan di sini menentukan
+          bagaimana sistem berperilaku tanpa menyentuh data operasional.
+        </p>
+      </Card>
+
+      {/* Quick Access Cards */}
+      <div className="grid grid-cols-2 gap-4">
+        {mainSettings.map((item) => {
+          const Icon = item.icon
+          const active = isActive(item.href)
+          return (
+            <Link key={item.href} href={item.href}>
+              <Card
+                className={cn(
+                  "p-5 transition-colors duration-200 cursor-pointer",
+                  active
+                    ? "ring-2 ring-[var(--primary)] bg-[var(--primary-soft)]"
+                    : "hover:bg-[var(--surface-hover)]"
+                )}
+              >
+                <div className="flex items-start gap-4">
+                  <div
+                    className={cn(
+                      "w-12 h-12 rounded-2xl flex items-center justify-center",
+                      active
+                        ? "bg-[var(--primary)] text-white"
+                        : "bg-[var(--surface-secondary)] text-[var(--text-secondary)]"
+                    )}
+                  >
+                    <Icon className="w-6 h-6" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-[var(--text-primary)] mb-0.5">
+                      {item.title}
+                    </p>
+                    <p className="text-[12px] text-[var(--text-muted)]">
+                      {item.description}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            </Link>
+          )
+        })}
       </div>
-    </AppShell>
+
+      {/* Info Card */}
+      <Card className="p-5">
+        <div className="flex items-start gap-4">
+          <div className="w-10 h-10 rounded-xl bg-[var(--info-soft)] flex items-center justify-center flex-shrink-0">
+            <Info className="w-5 h-5 text-[var(--info)]" />
+          </div>
+          <div>
+            <p className="font-medium text-[var(--text-primary)] mb-1">
+              Akun Anda
+            </p>
+            <p className="text-[13px] text-[var(--text-muted)] leading-relaxed">
+              {user?.role === "admin"
+                ? "Sebagai administrator, Anda memiliki akses penuh ke semua pengaturan sistem."
+                : "Hubungi administrator untuk mengubah pengaturan sistem."}
+            </p>
+          </div>
+        </div>
+      </Card>
+    </div>
   )
 }

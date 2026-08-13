@@ -1,69 +1,30 @@
 "use client"
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { ChevronRight, Home } from "lucide-react"
+/**
+ * Reading: Settings layout dengan sidebar navigation
+ * Bahasa visual: Sidebar + content layout
+ * Dial: ENERGI 2 / RITME 2 / GERAK 1
+ */
 
-const breadcrumbMap: Record<string, string> = {
-  general: "Umum",
-  school: "Profil Sekolah",
-  academic: "Akademik",
-  appearance: "Tampilan",
-  users: "Pengguna",
-  notifications: "Notifikasi",
-  security: "Keamanan",
-  backup: "Backup",
-  templates: "Template",
-}
+import { AppShell } from "@/components/layout"
+import { SettingsSidebar } from "../components/settings/settings-sidebar"
 
 export default function SettingsLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const pathname = usePathname()
-  const segments = pathname.split("/").filter(Boolean)
-
-  // Generate breadcrumbs
-  const breadcrumbs = segments.slice(1).map((segment, index) => {
-    const path = "/" + segments.slice(1, index + 2).join("/")
-    const label = breadcrumbMap[segment] || segment
-    return { path, label }
-  })
-
   return (
-    <>
-      {/* Breadcrumb */}
-      {breadcrumbs.length > 0 && (
-        <div className="mb-4">
-          <nav className="flex items-center gap-2 text-sm">
-            <Link
-              href="/settings"
-              className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
-            >
-              <Home className="w-4 h-4" />
-            </Link>
-            {breadcrumbs.map((crumb, index) => (
-              <div key={crumb.path} className="flex items-center gap-2">
-                <ChevronRight className="w-4 h-4 text-[var(--text-muted)]" />
-                {index === breadcrumbs.length - 1 ? (
-                  <span className="text-[var(--text-secondary)] font-medium">
-                    {crumb.label}
-                  </span>
-                ) : (
-                  <Link
-                    href={crumb.path}
-                    className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
-                  >
-                    {crumb.label}
-                  </Link>
-                )}
-              </div>
-            ))}
-          </nav>
+    <AppShell title="Pengaturan" description="Konfigurasi aplikasi">
+      <div className="flex gap-6 max-w-7xl">
+        {/* Left Sidebar */}
+        <SettingsSidebar />
+
+        {/* Right Content */}
+        <div className="flex-1 min-w-0">
+          {children}
         </div>
-      )}
-      {children}
-    </>
+      </div>
+    </AppShell>
   )
 }

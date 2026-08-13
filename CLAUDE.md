@@ -88,6 +88,7 @@ panduan/
 3. **Konsisten dengan design tokens** yang sudah didefinisikan
 4. **Gunakan komponen** dari library yang sudah ada sebelum membuat komponen baru
 5. **Ikuti coding standards** yang sudah ditetapkan
+6. **⚠️ ANTISLOP.md untuk UI/UX** - Jika tugas melibatkan UI/UX, BACASELALU `ANTISLOP.md` sebagai filter dan TANYAKAN ke user kapan filter dipakai (saat pengerjaan atau setelah selesai) **SEBELUM mulai coding**
 
 ---
 
@@ -240,13 +241,20 @@ panduan/backup/
 
 ## 🏗️ Struktur Proyek
 
-- [src/](src/) - Source code aplikasi
+- [app/](app/) - Source code aplikasi
 - [panduan/](panduan/) - Dokumentasi panduan (WAJIB DIBACA)
-- [tests/](tests/) - Unit & integration tests
 - [public/](public/) - Static assets
+
+## 🎨 Filter ANTISLOP untuk UI/UX
+
+> **⚠️ ATURAN KRITIS - JANGAN DILEWATKAN!**
+> Jika tugas melibatkan UI/UX, baca `ANTISLOP.md` **SEBELUM** mulai coding.
+
+Lihat aturan #6 di bagian **Aturan Wajib** di atas.
 
 ## Catatan Penting
 
 - Twosraku adalah aplikasi Flutter (mobile-first)
 - Menggunakan Clean Architecture
 - Selalu konsultasikan panduan **yang relevan** sebelum mengimplementasi fitur baru
+
