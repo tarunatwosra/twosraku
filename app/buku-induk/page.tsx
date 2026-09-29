@@ -1,7 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef } from "react"
-import Link from "next/link"
+import { useState, useEffect, useCallback } from "react"
 import {
   Search,
   Filter,
@@ -11,7 +10,6 @@ import {
   UserPlus,
   Archive,
   MoreHorizontal,
-  Loader2,
   CheckCircle,
   ChevronLeft,
   ChevronRight,
@@ -20,11 +18,27 @@ import {
   Pencil,
   LayoutGrid,
   List as ListIcon,
-  UserRound,
+  Table as TableIcon,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { AppShell } from "@/components/layout"
 import { Button, Avatar, Badge, Skeleton } from "@/components/ui"
+import {
+  Checkbox,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui"
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui"
 import { NoDataState, NoResultsState } from "@/components/ui/empty-state"
 import { QuickViewModal } from "@/components/buku-induk/QuickViewModal"
 import { ExportButton } from "@/components/buku-induk/ExportButton"
@@ -45,13 +59,27 @@ const STATUS_OPTIONS = [
   { value: "false", label: "Nonaktif" },
 ]
 
-// View mode: grid (cards) or list (compact rows)
-type ViewMode = "grid" | "list"
+// View mode: list, grid, or table
+type ViewMode = "list" | "grid" | "table"
+
+// Table column definitions
+const ALL_COLUMNS = [
+  { key: "name", label: "Nama" },
+  { key: "nis", label: "NIS" },
+  { key: "nisn", label: "NISN" },
+  { key: "class", label: "Kelas" },
+  { key: "major", label: "Jurusan" },
+  { key: "gender", label: "L/P" },
+  { key: "birth", label: "Tempat/Tgl Lahir" },
+  { key: "parent", label: "Nama Wali" },
+  { key: "status", label: "Status" },
+]
+const DEFAULT_COLUMNS = ALL_COLUMNS.map((c) => c.key)
 
 // ============================================
-// ACTION DROPDOWN - Touch Friendly
+// ROW ACTION DROPDOWN - Using DropdownMenu
 // ============================================
-function ActionDropdown({
+function RowActionDropdown({
   student,
   onQuickView,
   onEdit,
@@ -62,67 +90,45 @@ function ActionDropdown({
   onEdit: () => void
   onArchive: () => void
 }) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false)
-      }
-    }
-    document.addEventListener("mousedown", handler)
-    return () => document.removeEventListener("mousedown", handler)
-  }, [open])
-
   return (
-    <div className="relative" ref={ref}>
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-11 h-11 rounded-[14px] flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition-all touch-target"
-        aria-label="Menu aksi"
-      >
-        <MoreHorizontal className="w-5 h-5" />
-      </button>
-
-      {open && (
-        <div className="absolute right-0 top-full mt-2 z-30 bg-white rounded-[18px] shadow-lg border border-[var(--border-light)] py-2 w-52 overflow-hidden animate-scale-in">
-          <button
-            onClick={() => { onQuickView(); setOpen(false) }}
-            className="w-full flex items-center gap-3 px-4 py-3 text-[14px] text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] transition-colors"
-          >
-            <Eye className="w-4 h-4 text-[var(--primary)]" /> Quick View
-          </button>
-          <Link
-            href={`/buku-induk/${student.id}/`}
-            onClick={() => setOpen(false)}
-            className="flex items-center gap-3 px-4 py-3 text-[14px] text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] transition-colors"
-          >
-            <UserRound className="w-4 h-4 text-[var(--info)]" /> Lihat Profil
-          </Link>
-          <Link
-            href={`/buku-induk/${student.id}/edit`}
-            onClick={() => setOpen(false)}
-            className="flex items-center gap-3 px-4 py-3 text-[14px] text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] transition-colors"
-          >
-            <Pencil className="w-4 h-4 text-[var(--warning)]" /> Edit Data
-          </Link>
-          <div className="h-px bg-[var(--border-light)] my-2" />
-          <button
-            onClick={() => { onArchive(); setOpen(false) }}
-            className="w-full flex items-center gap-3 px-4 py-3 text-[14px] text-[var(--danger)] hover:bg-[var(--danger-soft)] transition-colors"
-          >
-            <Archive className="w-4 h-4" /> Arsipkan
-          </button>
-        </div>
-      )}
-    </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          className="w-8 h-8 rounded-[8px] flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition-colors"
+          aria-label="Menu aksi"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <MoreHorizontal className="w-4 h-4" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="right">
+        <DropdownMenuItem
+          onClick={() => onQuickView()}
+          icon={<Eye className="w-4 h-4 text-[var(--primary)]" />}
+        >
+          Lihat Detail
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => onEdit()}
+          icon={<Pencil className="w-4 h-4 text-[var(--warning)]" />}
+        >
+          Edit Data
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={() => onArchive()}
+          variant="danger"
+          icon={<Archive className="w-4 h-4" />}
+        >
+          Arsipkan
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 
 // ============================================
-// STUDENT CARD - List View
+// STUDENT CARD - List View (Compact)
 // ============================================
 function StudentCard({
   student,
@@ -142,6 +148,7 @@ function StudentCard({
   isLast: boolean
 }) {
   const { academicYear } = useAcademicYear()
+  const router = useRouter()
 
   const activeClass = student.student_classes?.find(
     (sc) => sc.academic_year_id === academicYear?.id && sc.status === "active"
@@ -154,75 +161,94 @@ function StudentCard({
     ? new Date(student.birth_date).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
     : null
 
+  const handleRowClick = () => {
+    router.push(`/buku-induk/${student.id}/`)
+  }
+
   return (
-    <div className={cn(
-      "group relative flex items-center gap-4 p-4",
-      "hover:bg-[var(--surface-hover)] transition-colors",
-      selected && "bg-[var(--primary-soft)]",
-      !isLast && "border-b border-[var(--border-light)]"
-    )}>
-      {/* Checkbox - Touch friendly */}
+    <div
+      onClick={handleRowClick}
+      className={cn(
+        "group relative flex items-center gap-3 py-2.5 px-4 cursor-pointer",
+        "hover:bg-muted/50 transition-colors",
+        selected && "bg-[var(--primary-soft)]",
+        !isLast && "border-b border-[var(--border-light)]"
+      )}
+    >
+      {/* Checkbox */}
       <button
-        onClick={onSelect}
-        className={cn(
-          "flex-shrink-0 w-6 h-6 min-w-[44px] min-h-[44px]",
-          "rounded-[12px] border-2 flex items-center justify-center transition-all",
-          "focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2",
-          selected
-            ? "bg-[var(--primary)] border-[var(--primary)]"
-            : "border-[var(--border-strong)] hover:border-[var(--primary)]"
-        )}
+        onClick={(e) => {
+          e.stopPropagation()
+          onSelect()
+        }}
+        className="flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center"
         aria-label={selected ? "Batalkan pilihan" : "Pilih siswa"}
       >
-        {selected && (
-          <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-          </svg>
-        )}
+        <Checkbox
+          checked={selected}
+          onCheckedChange={onSelect}
+          aria-label={selected ? "Batalkan pilihan" : "Pilih siswa"}
+        />
       </button>
 
       {/* Avatar */}
       <Avatar
         fallback={student.full_name}
         src={student.photo_url}
-        size="md"
-        className="w-12 h-12 text-base flex-shrink-0"
+        className="w-9 h-9 flex-shrink-0 overflow-hidden"
+        showIcon={false}
       />
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-3">
-          <h3 className="text-[15px] font-semibold text-[var(--text-primary)] truncate">
+        {/* Line 1: Name + Badge */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold text-[var(--text-primary)] truncate">
             {student.full_name}
-          </h3>
+          </span>
           <Badge variant={student.is_active ? "success" : "neutral"} size="sm">
             {student.is_active ? "Aktif" : "Nonaktif"}
           </Badge>
         </div>
-        <div className="flex items-center gap-4 mt-1 text-[13px] text-[var(--text-secondary)]">
-          <span className="font-mono bg-[var(--surface-secondary)] px-2 py-0.5 rounded-[8px] text-[12px]">
+        {/* Line 2: NIS, Class, Birth */}
+        <div className="flex items-center gap-3 text-xs text-[var(--text-secondary)] mt-0.5">
+          <span className="font-mono bg-[var(--surface-secondary)] px-1.5 py-0.5 rounded text-[11px]">
             {student.student_number}
           </span>
           {className && (
-            <span className="text-[var(--primary)] font-medium">{className}</span>
+            <span className="text-blue-700 font-medium">{className}</span>
           )}
           <span>{birthDate || "—"}</span>
         </div>
       </div>
 
       {/* Gender Badge */}
-      <div
+      <span
         className={cn(
-          "flex-shrink-0 w-9 h-9 rounded-[12px] flex items-center justify-center text-[12px] font-bold",
-          student.gender === "male" ? "bg-[var(--primary-soft)] text-[var(--primary)]" : "bg-pink-50 text-pink-500"
+          "flex-shrink-0 w-6 h-6 rounded flex items-center justify-center text-xs font-semibold",
+          student.gender === "male"
+            ? "bg-blue-50 text-blue-600"
+            : "bg-pink-50 text-pink-500"
         )}
       >
         {student.gender === "male" ? "L" : "P"}
-      </div>
+      </span>
 
-      {/* Actions - Visible on hover, always visible on mobile */}
-      <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity md:opacity-100">
-        <ActionDropdown
+      {/* Edit Icon - Always visible on desktop */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation()
+          router.push(`/buku-induk/${student.id}/edit`)
+        }}
+        className="hidden md:flex flex-shrink-0 w-8 h-8 items-center justify-center rounded-[8px] text-[var(--text-secondary)] hover:text-[var(--warning)] hover:bg-[var(--surface-hover)] transition-colors"
+        aria-label="Edit"
+      >
+        <Pencil className="w-4 h-4" />
+      </button>
+
+      {/* Actions Dropdown */}
+      <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+        <RowActionDropdown
           student={student}
           onQuickView={onQuickView}
           onEdit={onEdit}
@@ -234,7 +260,7 @@ function StudentCard({
 }
 
 // ============================================
-// STUDENT GRID CARD - Grid View (Mobile Friendly)
+// STUDENT GRID CARD - Grid View
 // ============================================
 function StudentGridCard({
   student,
@@ -252,6 +278,7 @@ function StudentGridCard({
   onArchive: () => void
 }) {
   const { academicYear } = useAcademicYear()
+  const router = useRouter()
 
   const activeClass = student.student_classes?.find(
     (sc) => sc.academic_year_id === academicYear?.id && sc.status === "active"
@@ -302,13 +329,13 @@ function StudentGridCard({
           </Badge>
           <span className={cn(
             "w-7 h-7 rounded-[8px] flex items-center justify-center text-[11px] font-bold",
-            student.gender === "male" ? "bg-[var(--primary-soft)] text-[var(--primary)]" : "bg-pink-50 text-pink-500"
+            student.gender === "male" ? "bg-blue-50 text-blue-600" : "bg-pink-50 text-pink-500"
           )}>
             {student.gender === "male" ? "L" : "P"}
           </span>
         </div>
         {className && (
-          <p className="text-[12px] text-[var(--primary)] font-medium truncate">
+          <p className="text-[12px] text-blue-700 font-medium truncate">
             {className}
           </p>
         )}
@@ -343,6 +370,180 @@ function StudentGridCard({
 }
 
 // ============================================
+// STUDENT TABLE VIEW
+// ============================================
+function StudentTable({
+  students,
+  selectedIds,
+  visibleColumns,
+  onToggleOne,
+  onToggleAll,
+  onQuickView,
+}: {
+  students: StudentWithClass[]
+  selectedIds: Set<string>
+  visibleColumns: string[]
+  onToggleOne: (id: string) => void
+  onToggleAll: () => void
+  onQuickView: (id: string) => void
+}) {
+  const { academicYear } = useAcademicYear()
+  const router = useRouter()
+
+  const allSelected = students.length > 0 && students.every((s) => selectedIds.has(s.id))
+  const someSelected = students.some((s) => selectedIds.has(s.id)) && !allSelected
+  const visibleCols = ALL_COLUMNS.filter((c) => visibleColumns.includes(c.key))
+
+  return (
+    <div className="overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-10 pl-4">
+              <Checkbox
+                checked={allSelected}
+                indeterminate={someSelected}
+                onCheckedChange={onToggleAll}
+                aria-label="Pilih semua"
+              />
+            </TableHead>
+            {visibleCols.map((col) => (
+              <TableHead key={col.key}>{col.label}</TableHead>
+            ))}
+            <TableHead className="w-24 text-right pr-4">Aksi</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {students.map((s, i) => (
+            <TableRow
+              key={s.id}
+              className={cn("cursor-pointer", i % 2 === 1 && "bg-[var(--surface-secondary)]/50")}
+              onClick={() => router.push(`/buku-induk/${s.id}/`)}
+            >
+              <TableCell className="pl-4" onClick={(e) => e.stopPropagation()}>
+                <Checkbox
+                  checked={selectedIds.has(s.id)}
+                  onCheckedChange={() => onToggleOne(s.id)}
+                />
+              </TableCell>
+
+              {/* Nama */}
+              {visibleColumns.includes("name") && (
+                <TableCell onClick={(e) => e.stopPropagation()}>
+                  <span className="font-medium">{s.full_name}</span>
+                </TableCell>
+              )}
+
+              {/* NIS */}
+              {visibleColumns.includes("nis") && (
+                <TableCell onClick={(e) => e.stopPropagation()}>
+                  <span className="font-mono text-[12px]">{s.student_number}</span>
+                </TableCell>
+              )}
+
+              {/* NISN */}
+              {visibleColumns.includes("nisn") && (
+                <TableCell onClick={(e) => e.stopPropagation()}>
+                  <span className="font-mono text-[12px]">{s.nisn || "—"}</span>
+                </TableCell>
+              )}
+
+              {/* Kelas */}
+              {visibleColumns.includes("class") && (
+                <TableCell onClick={(e) => e.stopPropagation()}>
+                  {(() => {
+                    const ac = s.student_classes?.find(
+                      (sc) => sc.academic_year_id === academicYear?.id && sc.status === "active"
+                    )
+                    return (
+                      <span className="text-blue-700">
+                        {ac?.classes?.name || "—"}
+                      </span>
+                    )
+                  })()}
+                </TableCell>
+              )}
+
+              {/* Jurusan */}
+              {visibleColumns.includes("major") && (
+                <TableCell onClick={(e) => e.stopPropagation()}>
+                  {(() => {
+                    const ac = s.student_classes?.find(
+                      (sc) => sc.academic_year_id === academicYear?.id && sc.status === "active"
+                    )
+                    return <span>{ac?.classes?.majors?.name || "—"}</span>
+                  })()}
+                </TableCell>
+              )}
+
+              {/* L/P */}
+              {visibleColumns.includes("gender") && (
+                <TableCell onClick={(e) => e.stopPropagation()}>
+                  <span
+                    className={cn(
+                      "inline-flex w-5 h-5 rounded flex items-center justify-center text-[11px] font-semibold",
+                      s.gender === "male" ? "bg-blue-50 text-blue-600" : "bg-pink-50 text-pink-500"
+                    )}
+                  >
+                    {s.gender === "male" ? "L" : "P"}
+                  </span>
+                </TableCell>
+              )}
+
+              {/* Tempat/Tgl Lahir */}
+              {visibleColumns.includes("birth") && (
+                <TableCell onClick={(e) => e.stopPropagation()}>
+                  {s.birth_place || s.birth_date
+                    ? [s.birth_place, s.birth_date ? new Date(s.birth_date).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : null]
+                        .filter(Boolean)
+                        .join(", ")
+                    : "—"}
+                </TableCell>
+              )}
+
+              {/* Nama Wali */}
+              {visibleColumns.includes("parent") && (
+                <TableCell onClick={(e) => e.stopPropagation()}>
+                  {s.parents?.[0]?.full_name || "—"}
+                </TableCell>
+              )}
+
+              {/* Status */}
+              {visibleColumns.includes("status") && (
+                <TableCell onClick={(e) => e.stopPropagation()}>
+                  <Badge variant={s.is_active ? "success" : "neutral"} size="sm">
+                    {s.is_active ? "Aktif" : "Nonaktif"}
+                  </Badge>
+                </TableCell>
+              )}
+
+              {/* Aksi */}
+              <TableCell onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center gap-1 justify-end">
+                  <button
+                    onClick={() => router.push(`/buku-induk/${s.id}/edit`)}
+                    className="w-7 h-7 flex items-center justify-center rounded text-[var(--text-secondary)] hover:text-[var(--warning)] hover:bg-[var(--surface-hover)]"
+                    aria-label="Edit"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                  <RowActionDropdown
+                    student={s}
+                    onQuickView={() => onQuickView(s.id)}
+                    onEdit={() => router.push(`/buku-induk/${s.id}/edit`)}
+                    onArchive={() => handleArchiveOne(s.full_name, s.id)}
+                  />
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  )
+}
+
+// ============================================
 // MAIN PAGE
 // ============================================
 export default function BukuIndukPage() {
@@ -350,7 +551,7 @@ export default function BukuIndukPage() {
   const { academicYear } = useAcademicYear()
 
   const [page, setPage] = useState(1)
-  const [perPage, setPerPage] = useState(20)
+  const [perPage, setPerPage] = useState(50)
   const [search, setSearch] = useState("")
   const [gender, setGender] = useState("")
   const [status, setStatus] = useState("")
@@ -368,8 +569,44 @@ export default function BukuIndukPage() {
   const [majorId, setMajorId] = useState("")
   const [classId, setClassId] = useState("")
   const [viewMode, setViewMode] = useState<ViewMode>("list")
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(DEFAULT_COLUMNS)
   const { majors } = useMajors()
   const { classes } = useClasses({ majorId: majorId || undefined })
+
+  // Load saved preferences from localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedView = localStorage.getItem("buku-induk-view-mode")
+      if (savedView === "list" || savedView === "grid" || savedView === "table") {
+        setViewMode(savedView)
+      }
+      const savedCols = localStorage.getItem("buku-induk-table-columns")
+      if (savedCols) {
+        try {
+          const parsed = JSON.parse(savedCols)
+          if (Array.isArray(parsed) && parsed.every((c) => typeof c === "string")) {
+            setVisibleColumns(parsed)
+          }
+        } catch {
+          // ignore parse errors
+        }
+      }
+    }
+  }, [])
+
+  // Save viewMode to localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("buku-induk-view-mode", viewMode)
+    }
+  }, [viewMode])
+
+  // Save visibleColumns to localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("buku-induk-table-columns", JSON.stringify(visibleColumns))
+    }
+  }, [visibleColumns])
 
   // Debounce search
   useEffect(() => {
@@ -630,6 +867,18 @@ export default function BukuIndukPage() {
                 <ListIcon className="w-5 h-5" />
               </button>
               <button
+                onClick={() => setViewMode("table")}
+                className={cn(
+                  "p-2 rounded-[10px] transition-colors",
+                  viewMode === "table"
+                    ? "bg-white shadow-sm text-[var(--primary)]"
+                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                )}
+                aria-label="Tampilan tabel"
+              >
+                <TableIcon className="w-5 h-5" />
+              </button>
+              <button
                 onClick={() => setViewMode("grid")}
                 className={cn(
                   "p-2 rounded-[10px] transition-colors",
@@ -642,6 +891,39 @@ export default function BukuIndukPage() {
                 <LayoutGrid className="w-5 h-5" />
               </button>
             </div>
+
+            {/* Column Toggle - Only visible in table view */}
+            {viewMode === "table" && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="text-[12px]">
+                    Kolom
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="right">
+                  {ALL_COLUMNS.map((col) => (
+                    <DropdownMenuItem
+                      key={col.key}
+                      onClick={() => {
+                        setVisibleColumns((prev) =>
+                          prev.includes(col.key)
+                            ? prev.filter((c) => c !== col.key)
+                            : [...prev, col.key]
+                        )
+                      }}
+                      preventClose
+                      className="py-2"
+                    >
+                      <Checkbox
+                        checked={visibleColumns.includes(col.key)}
+                        className="mr-3 flex-shrink-0"
+                      />
+                      {col.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
 
             <ExportButton
               students={students}
@@ -780,20 +1062,15 @@ export default function BukuIndukPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={toggleAll}
-              className={cn(
-                "w-6 h-6 rounded-[12px] border-2 flex items-center justify-center transition-all",
-                "focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2",
-                selectedIds.size === students.length && students.length > 0
-                  ? "bg-[var(--primary)] border-[var(--primary)]"
-                  : "border-[var(--border-strong)] hover:border-[var(--primary)]"
-              )}
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center"
               aria-label={selectedIds.size === students.length ? "Batalkan semua" : "Pilih semua"}
             >
-              {selectedIds.size === students.length && students.length > 0 && (
-                <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                </svg>
-              )}
+              <Checkbox
+                checked={selectedIds.size === students.length && students.length > 0}
+                indeterminate={selectedIds.size > 0 && selectedIds.size < students.length}
+                onCheckedChange={toggleAll}
+                aria-label={selectedIds.size === students.length ? "Batalkan semua" : "Pilih semua"}
+              />
             </button>
             <span className="text-[13px] text-[var(--text-secondary)]">
               {selectedIds.size > 0
@@ -801,10 +1078,10 @@ export default function BukuIndukPage() {
                 : `${totalCount} siswa`}
             </span>
           </div>
-          <span className="text-[12px] text-[var(--text-muted)]">{academicYear?.name || ""}</span>
+          <span className="text-[12px] text-[var(--text-muted)]">Tahun ajaran aktif: {academicYear?.name || "—"}</span>
         </div>
 
-        {/* Student List/Grid */}
+        {/* Student List/Grid/Table */}
         <div>
           {loading ? (
             // Skeleton Loading
@@ -824,17 +1101,55 @@ export default function BukuIndukPage() {
                   </div>
                 ))}
               </div>
+            ) : viewMode === "table" ? (
+              // Table skeleton
+              <div className="overflow-x-auto p-4">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="pl-4"><Skeleton className="h-4 w-4" /></TableHead>
+                      {visibleColumns.includes("name") && <TableHead><Skeleton className="h-4 w-20" /></TableHead>}
+                      {visibleColumns.includes("nis") && <TableHead><Skeleton className="h-4 w-16" /></TableHead>}
+                      {visibleColumns.includes("nisn") && <TableHead><Skeleton className="h-4 w-16" /></TableHead>}
+                      {visibleColumns.includes("class") && <TableHead><Skeleton className="h-4 w-12" /></TableHead>}
+                      {visibleColumns.includes("major") && <TableHead><Skeleton className="h-4 w-20" /></TableHead>}
+                      {visibleColumns.includes("gender") && <TableHead><Skeleton className="h-4 w-8" /></TableHead>}
+                      {visibleColumns.includes("birth") && <TableHead><Skeleton className="h-4 w-32" /></TableHead>}
+                      {visibleColumns.includes("parent") && <TableHead><Skeleton className="h-4 w-24" /></TableHead>}
+                      {visibleColumns.includes("status") && <TableHead><Skeleton className="h-4 w-16" /></TableHead>}
+                      <TableHead className="w-24"><Skeleton className="h-4 w-12" /></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {Array.from({ length: 8 }).map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell className="pl-4"><Skeleton className="h-4 w-4" /></TableCell>
+                        {visibleColumns.includes("name") && <TableCell><Skeleton className="h-4 w-32" /></TableCell>}
+                        {visibleColumns.includes("nis") && <TableCell><Skeleton className="h-4 w-16" /></TableCell>}
+                        {visibleColumns.includes("nisn") && <TableCell><Skeleton className="h-4 w-16" /></TableCell>}
+                        {visibleColumns.includes("class") && <TableCell><Skeleton className="h-4 w-12" /></TableCell>}
+                        {visibleColumns.includes("major") && <TableCell><Skeleton className="h-4 w-20" /></TableCell>}
+                        {visibleColumns.includes("gender") && <TableCell><Skeleton className="h-4 w-5" /></TableCell>}
+                        {visibleColumns.includes("birth") && <TableCell><Skeleton className="h-4 w-32" /></TableCell>}
+                        {visibleColumns.includes("parent") && <TableCell><Skeleton className="h-4 w-24" /></TableCell>}
+                        {visibleColumns.includes("status") && <TableCell><Skeleton className="h-6 w-12" /></TableCell>}
+                        <TableCell><Skeleton className="h-4 w-8" /></TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             ) : (
               // List skeleton
               Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-4 p-4 border-b border-[var(--border-light)]">
-                  <Skeleton className="w-6 h-6 rounded-[12px]" />
-                  <Skeleton className="w-12 h-12 rounded-[18px]" />
+                <div key={i} className="flex items-center gap-3 py-2.5 px-4 border-b border-[var(--border-light)]">
+                  <Skeleton className="w-4 h-4 rounded" />
+                  <Skeleton className="w-9 h-9 rounded-xl" />
                   <div className="flex-1 space-y-2">
                     <Skeleton className="h-4 w-40" />
                     <Skeleton className="h-3 w-64" />
                   </div>
-                  <Skeleton className="w-9 h-9 rounded-[12px]" />
+                  <Skeleton className="w-6 h-6 rounded" />
                 </div>
               ))
             )
@@ -870,6 +1185,16 @@ export default function BukuIndukPage() {
                 />
               ))}
             </div>
+          ) : viewMode === "table" ? (
+            // Table View
+            <StudentTable
+              students={students}
+              selectedIds={selectedIds}
+              visibleColumns={visibleColumns}
+              onToggleOne={toggleOne}
+              onToggleAll={toggleAll}
+              onQuickView={(id) => setQuickViewId(id)}
+            />
           ) : (
             // List View
             students.map((s, i) => (

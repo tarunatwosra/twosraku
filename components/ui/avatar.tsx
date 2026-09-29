@@ -67,14 +67,12 @@ const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
     };
 
     const getFallbackText = () => {
-      if (fallback) return fallback;
-      return alt
-        .split(" ")
-        .map((word) => word[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2);
-    };
+      const name = fallback || alt || ""
+      const words = name.trim().split(/\s+/)
+      const first = words[0]?.[0] || ""
+      const second = words[1]?.[0] || ""
+      return (first + second).toUpperCase()
+    }
 
     return (
       <div
@@ -109,7 +107,7 @@ const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
           ) : showIcon ? (
             <User className={cn("text-[var(--primary)]", iconSizes[size])} />
           ) : (
-            <span className="select-none">{getFallbackText()}</span>
+            <span className="select-none leading-none text-xs font-semibold">{getFallbackText()}</span>
           )}
 
           {/* Subtle overlay on hover for interactive feedback */}

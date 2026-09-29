@@ -8,3 +8,6 @@ export * from "./pagination";
 export * from "./modal";
 export * from "./skeleton";
 export * from "./empty-state";
+export * from "./checkbox";
+export * from "./dropdown-menu";
+export * from "./table";
