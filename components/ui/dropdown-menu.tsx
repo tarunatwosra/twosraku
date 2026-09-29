@@ -121,7 +121,7 @@ function DropdownMenuTrigger({ children, asChild }: DropdownMenuTriggerProps) {
 }
 
 // ============================================
-// DropdownMenuContent
+// DropdownMenuContent (always render hooks first)
 // ============================================
 
 interface DropdownMenuContentProps {
@@ -134,25 +134,28 @@ function DropdownMenuContent({ children, className, align = "right" }: DropdownM
   const { open, setOpen, portalRoot } = React.useContext(DropdownMenuContext)
   const ref = React.useRef<HTMLDivElement>(null)
 
-  if (!open || !portalRoot) return null
-
-  // Calculate position
+  // ALL hooks MUST be called before any early returns (Rules of Hooks)
   React.useEffect(() => {
-    const trigger = ref.current?.previousElementSibling as HTMLElement
-    if (!trigger || !ref.current) return
+    if (!open || !ref.current) return
 
-    const rect = trigger.getBoundingClientRect()
     const content = ref.current
+    const trigger = document.querySelector(`[data-dropdown-trigger]`) as HTMLElement | null
 
-    if (align === "right") {
-      content.style.right = `${window.innerWidth - rect.right}px`
-      content.style.left = "auto"
-    } else {
-      content.style.left = `${rect.left}px`
-      content.style.right = "auto"
+    if (trigger) {
+      const rect = trigger.getBoundingClientRect()
+      if (align === "right") {
+        content.style.right = `${window.innerWidth - rect.right}px`
+        content.style.left = "auto"
+      } else {
+        content.style.left = `${rect.left}px`
+        content.style.right = "auto"
+      }
+      content.style.top = `${rect.bottom + 4}px`
     }
-    content.style.top = `${rect.bottom + 4}px`
-  }, [align])
+  }, [open, align])
+
+  // Exit AFTER all hooks are called
+  if (!open || !portalRoot) return null
 
   return createPortal(
     <div
