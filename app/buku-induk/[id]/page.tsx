@@ -7,22 +7,19 @@ import {
   Pencil,
   Trash2,
   ArrowLeft,
-  Mail,
-  Phone,
-  MapPin,
-  Calendar,
-  User,
-  BookOpen,
-  AlertCircle,
   Download,
   History,
   Clock,
   UserPlus,
-  MoreVertical,
+  MoreHorizontal,
   Heart,
-  Award,
-  FileText,
+  User,
+  BookOpen,
+  AlertCircle,
   Activity,
+  FileText,
+  Calendar,
+  Award,
   Stethoscope,
   Ruler,
   Scale,
@@ -30,6 +27,9 @@ import {
   Ear,
   FileWarning,
   AlertTriangle,
+  Phone,
+  Mail,
+  MapPin,
 } from "lucide-react"
 import { AppShell } from "@/components/layout"
 import { Card, Button, Badge, Avatar } from "@/components/ui"
@@ -43,60 +43,22 @@ import { AssessmentSummary } from "@/components/buku-induk/AssessmentSummary"
 import { CharacterSummary } from "@/components/buku-induk/CharacterSummary"
 import { PrintStudentCardButton } from "@/components/buku-induk/PrintStudentCard"
 
-// ============================================
-// STATUS HELPERS
-// ============================================
-
-const GENDER_LABELS = {
-  male: "Laki-laki",
-  female: "Perempuan",
-} as const
-
-function getStatusVariant(isActive: boolean): "success" | "neutral" {
-  return isActive ? "success" : "neutral"
-}
-
-function getStatusLabel(isActive: boolean): string {
-  return isActive ? "Aktif" : "Tidak Aktif"
-}
-
-// ============================================
-// FORMAT HELPERS
-// ============================================
+const GENDER_LABELS = { male: "Laki-laki", female: "Perempuan" } as const
 
 function formatDate(date: string | null): string {
-  if (!date) return "-"
-
-  // Parse YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss format correctly
-  // new Date("YYYY-MM-DD") parses as UTC, causing off-by-one errors
-  // We need to parse it as local time
-  const dateStr = date.split("T")[0] // Get just the date part
+  if (!date) return "—"
+  const dateStr = date.split("T")[0]
   const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/)
   if (match) {
     const [, year, month, day] = match
-    const localDate = new Date(
-      parseInt(year),
-      parseInt(month) - 1,
-      parseInt(day)
-    )
-    return localDate.toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    })
+    const localDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
+    return localDate.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
   }
-
-  // Fallback for other formats
-  return new Date(date).toLocaleDateString("id-ID", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  })
+  return new Date(date).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
 }
 
 function formatAge(birthDate: string | null): string {
-  if (!birthDate) return "-"
-  // Parse YYYY-MM-DD format correctly
+  if (!birthDate) return "—"
   const dateStr = birthDate.split("T")[0]
   const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/)
   if (match) {
@@ -106,18 +68,13 @@ function formatAge(birthDate: string | null): string {
     const age = Math.floor((today.getTime() - birth.getTime()) / (365.25 * 24 * 60 * 60 * 1000))
     return `${age} tahun`
   }
-  // Fallback
-  const birth = new Date(birthDate)
-  const today = new Date()
-  const age = Math.floor((today.getTime() - birth.getTime()) / (365.25 * 24 * 60 * 60 * 1000))
-  return `${age} tahun`
+  return "—"
 }
 
 // ============================================
-// COMPONENTS
+// PROFILE HEADER
 // ============================================
-
-function StudentHeader({ student }: { student: StudentWithClass }) {
+function ProfileHeader({ student }: { student: StudentWithClass }) {
   const router = useRouter()
   const { academicYear } = useAcademicYear()
   const [showActions, setShowActions] = useState(false)
@@ -128,828 +85,454 @@ function StudentHeader({ student }: { student: StudentWithClass }) {
   )
   const className = activeClass?.classes
     ? `${activeClass.classes.majors?.name || ""} ${activeClass.classes.name || ""}`.trim()
-    : "-"
+    : null
 
   const handleArchive = async () => {
-    if (!confirm("Apakah Anda yakin ingin mengarsipkan siswa ini?")) return
+    if (!confirm("Arsipkan siswa ini?")) return
     setIsArchiving(true)
     const result = await archiveStudent(student.id)
     setIsArchiving(false)
-    if (result.success) {
-      router.push("/buku-induk")
-    } else {
-      alert(result.error || "Gagal mengarsipkan siswa")
-    }
+    if (result.success) router.push("/buku-induk")
+    else alert(result.error || "Gagal")
   }
 
   return (
-    <Card variant="elevated" padding="lg" className="relative overflow-hidden">
-      {/* Background gradient decoration */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-[var(--primary)]/5 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
+    <div className="bg-white rounded-3xl border border-[var(--border-light)] overflow-hidden shadow-sm">
+      {/* Top accent line */}
+      <div className="h-1.5 bg-gradient-to-r from-[var(--primary)] via-indigo-400 to-purple-400" />
 
-      <div className="relative flex items-start gap-6">
-        {/* Avatar */}
-        <div className="relative">
-          <Avatar
-            fallback={student.full_name}
-            src={student.photo_url}
-            size="lg"
-            className="w-24 h-24 text-2xl ring-4 ring-white shadow-xl"
-          />
-          {/* Gender indicator */}
-          <div className={cn(
-            "absolute -bottom-1 -right-1 w-7 h-7 rounded-xl flex items-center justify-center border-2 border-white shadow-sm",
-            student.gender === "male" ? "bg-blue-500 text-white" : "bg-pink-500 text-white"
-          )}>
-            <span className="text-[10px] font-bold">
+      <div className="p-6">
+        <div className="flex items-start gap-5">
+          {/* Avatar */}
+          <div className="relative">
+            <Avatar
+              fallback={student.full_name}
+              src={student.photo_url}
+              size="lg"
+              className="w-18 h-18 text-xl bg-gradient-to-br from-[var(--primary)]/10 to-[var(--primary)]/5"
+            />
+            {/* Gender badge */}
+            <div className={cn(
+              "absolute -bottom-1 -right-1 w-6 h-6 rounded-xl flex items-center justify-center text-[10px] font-bold text-white shadow-sm",
+              student.gender === "male" ? "bg-blue-500" : "bg-pink-400"
+            )}>
               {student.gender === "male" ? "L" : "P"}
-            </span>
+            </div>
           </div>
-        </div>
 
-        {/* Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
-              {/* Name & Badge */}
-              <div className="flex items-center gap-3 mb-3">
-                <h2 className="text-[26px] font-bold text-[var(--text-primary)]">
-                  {student.full_name}
-                </h2>
-                <Badge
-                  variant={getStatusVariant(student.is_active)}
-                  className={cn(
-                    "px-3 py-1.5 text-[12px] font-semibold rounded-full",
-                    student.is_active
-                      ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
-                      : "bg-slate-100 text-slate-600 border border-slate-200"
+          {/* Info */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                {/* Name & Status */}
+                <div className="flex items-center gap-3 mb-1">
+                  <h1 className="text-2xl font-bold text-[var(--text-primary)]">{student.full_name}</h1>
+                  <span className={cn(
+                    "px-2.5 py-1 text-[11px] font-semibold rounded-full",
+                    student.is_active ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"
+                  )}>
+                    {student.is_active ? "Aktif" : "Nonaktif"}
+                  </span>
+                </div>
+
+                {/* NIS & Class */}
+                <div className="flex items-center gap-3 text-[13px] text-[var(--text-secondary)] mb-3">
+                  <span className="font-mono font-medium bg-[var(--surface-secondary)] px-2 py-0.5 rounded-md">{student.student_number}</span>
+                  {className && (
+                    <>
+                      <span className="text-[var(--border-default)]">·</span>
+                      <span className="font-medium text-[var(--primary)]">{className}</span>
+                    </>
                   )}
-                >
-                  {getStatusLabel(student.is_active)}
-                </Badge>
-              </div>
-
-              {/* NIS & NIK */}
-              <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-[var(--text-secondary)] mb-3">
-                <div className="flex items-center gap-2 bg-[var(--surface-secondary)] px-3 py-1.5 rounded-lg">
-                  <BookOpen className="w-4 h-4 text-[var(--text-muted)]" />
-                  <span className="font-mono font-medium">NIS: {student.student_number}</span>
                 </div>
-              </div>
 
-              {/* Personal Info */}
-              <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-[var(--text-secondary)] mb-3">
-                <div className="flex items-center gap-2">
-                  <Heart className="w-4 h-4 text-[var(--text-muted)]" />
+                {/* Meta info */}
+                <div className="flex items-center gap-4 text-[12px] text-[var(--text-muted)]">
                   <span>{GENDER_LABELS[student.gender] || student.gender}</span>
+                  <span className="text-[var(--border-light)]">·</span>
+                  <span>{formatDate(student.birth_date)}</span>
+                  <span className="text-[var(--border-light)]">·</span>
+                  <span>{formatAge(student.birth_date)}</span>
+                  {student.birth_place && (
+                    <>
+                      <span className="text-[var(--border-light)]">·</span>
+                      <span>{student.birth_place}</span>
+                    </>
+                  )}
+                  {student.phone && (
+                    <>
+                      <span className="text-[var(--border-light)]">·</span>
+                      <span>{student.phone}</span>
+                    </>
+                  )}
                 </div>
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-[var(--text-muted)]" />
-                  <span>{formatDate(student.birth_date)} ({formatAge(student.birth_date)})</span>
-                </div>
-                {student.birth_place && (
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-[var(--text-muted)]" />
-                    <span>{student.birth_place}</span>
-                  </div>
-                )}
               </div>
 
-              {/* Class & Contact */}
-              <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-[var(--text-secondary)]">
-                {className !== "-" && (
-                  <div className="flex items-center gap-2">
-                    <BookOpen className="w-4 h-4 text-[var(--primary)]" />
-                    <span className="font-medium text-[var(--primary)]">{className}</span>
-                  </div>
-                )}
-                {/* Note: email column was removed from students table */}
-                {student.phone && (
-                  <div className="flex items-center gap-2">
-                    <Phone className="w-4 h-4 text-[var(--text-muted)]" />
-                    <span>{student.phone}</span>
-                  </div>
+              {/* Actions */}
+              <div className="relative">
+                <Button variant="ghost" size="sm" onClick={() => setShowActions(!showActions)} className="w-10 h-10">
+                  <MoreHorizontal className="w-5 h-5" />
+                </Button>
+                {showActions && (
+                  <>
+                    <div className="fixed inset-0 z-10" onClick={() => setShowActions(false)} />
+                    <div className="absolute right-0 top-full mt-2 z-20 bg-white rounded-2xl shadow-xl border border-[var(--border-light)] py-2 min-w-[180px] overflow-hidden">
+                      <Link href={`/buku-induk/${student.id}/edit`} className="flex items-center gap-3 px-4 py-2.5 text-[13px] text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]">
+                        <Pencil className="w-4 h-4 text-[var(--primary)]" />Edit Data
+                      </Link>
+                      <PrintStudentCardButton student={student} academicYearName={academicYear?.name} />
+                      <button className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]">
+                        <Download className="w-4 h-4 text-[var(--text-muted)]" />Download
+                      </button>
+                      <Link href={`/buku-induk/${student.id}/history`} className="flex items-center gap-3 px-4 py-2.5 text-[13px] text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]">
+                        <History className="w-4 h-4 text-[var(--text-muted)]" />Riwayat
+                      </Link>
+                      <div className="h-px bg-[var(--border-light)] my-2" />
+                      <button onClick={handleArchive} disabled={isArchiving || !student.is_active} className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] text-red-500 hover:bg-red-50 disabled:opacity-50">
+                        <Trash2 className="w-4 h-4" />{isArchiving ? "Mengarsipkan..." : "Arsipkan"}
+                      </button>
+                    </div>
+                  </>
                 )}
               </div>
-            </div>
-
-            {/* Actions */}
-            <div className="relative">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowActions(!showActions)}
-                className="w-10 h-10 rounded-xl"
-              >
-                <MoreVertical className="w-5 h-5" />
-              </Button>
-
-              {showActions && (
-                <>
-                  <div className="fixed inset-0 z-10" onClick={() => setShowActions(false)} />
-                  <div className="absolute right-0 top-full mt-2 z-20 bg-white rounded-2xl shadow-[0_8px_30px_rgba(15,23,42,0.12)] border border-[var(--border-light)]/50 py-2 min-w-[180px] overflow-hidden animate-in fade-in-0 zoom-in-95 duration-200">
-                    <Link
-                      href={`/buku-induk/${student.id}/edit`}
-                      className="flex items-center gap-3 px-4 py-2.5 text-[14px] text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] transition-colors"
-                    >
-                      <Pencil className="w-4 h-4 text-[var(--primary)]" />
-                      Edit Data
-                    </Link>
-                    <PrintStudentCardButton
-                      student={student}
-                      academicYearName={academicYear?.name}
-                    />
-                    <button className="w-full flex items-center gap-3 px-4 py-2.5 text-[14px] text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] transition-colors">
-                      <Download className="w-4 h-4 text-[var(--info)]" />
-                      Download Data
-                    </button>
-                    <Link
-                      href={`/buku-induk/${student.id}/history`}
-                      className="flex items-center gap-3 px-4 py-2.5 text-[14px] text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] transition-colors"
-                    >
-                      <History className="w-4 h-4 text-[var(--warning)]" />
-                      Riwayat
-                    </Link>
-                    <div className="h-px bg-[var(--border-light)]/60 my-2" />
-                    <button
-                      onClick={handleArchive}
-                      disabled={isArchiving || !student.is_active}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-[14px] text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      {isArchiving ? "Mengarsipkan..." : "Arsipkan"}
-                    </button>
-                  </div>
-                </>
-              )}
             </div>
           </div>
         </div>
       </div>
-    </Card>
-  )
-}
-
-function InfoItem({
-  label,
-  value,
-  fullWidth,
-  icon,
-}: {
-  label: string
-  value: React.ReactNode
-  fullWidth?: boolean
-  icon?: React.ReactNode
-}) {
-  return (
-    <div className={cn(fullWidth ? "md:col-span-2" : "")}>
-      <p className="text-[11px] text-[var(--text-muted)] mb-1.5 uppercase tracking-wide flex items-center gap-1.5">
-        {icon && <span className="w-4 h-4">{icon}</span>}
-        {label}
-      </p>
-      <p className="text-[14px] text-[var(--text-primary)] font-medium">
-        {value || "-"}
-      </p>
     </div>
   )
 }
 
-function PersonalInfoSection({ student }: { student: StudentWithClass }) {
+// ============================================
+// INFO SECTIONS
+// ============================================
+function InfoSection({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InfoItem label="Nama Lengkap" value={student.full_name} />
-        {student.nickname && <InfoItem label="Nama Panggilan" value={student.nickname} />}
-        <InfoItem label="Jenis Kelamin" value={GENDER_LABELS[student.gender]} />
-        {student.birth_place && <InfoItem label="Tempat Lahir" value={student.birth_place} />}
-        <InfoItem label="Tanggal Lahir" value={`${formatDate(student.birth_date)} (${formatAge(student.birth_date)})`} />
-        {student.religion && <InfoItem label="Agama" value={student.religion} />}
-        <InfoItem label="Alamat" value={student.address} fullWidth icon={<MapPin className="w-3 h-3" />} />
-        <InfoItem label="No. Telepon" value={student.phone} icon={<Phone className="w-3 h-3" />} />
+    <div className="bg-white rounded-2xl border border-[var(--border-light)] overflow-hidden shadow-sm">
+      <div className="px-5 py-4 border-b border-[var(--border-light)]/50 flex items-center gap-2">
+        <span className="text-[var(--primary)]">{icon}</span>
+        <h3 className="text-[13px] font-semibold text-[var(--text-primary)]">{title}</h3>
       </div>
-
-      {/* Catatan Lainnya */}
-      {student.notes && (
-        <div className="border-t border-[var(--border-light)] pt-6">
-          <h4 className="text-[14px] font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
-            <FileText className="w-4 h-4 text-[var(--text-muted)]" />
-            Catatan Lainnya
-          </h4>
-          <div className="p-4 bg-amber-50 rounded-xl border border-amber-200">
-            <p className="text-[14px] text-[var(--text-primary)] leading-relaxed whitespace-pre-wrap">
-              {student.notes}
-            </p>
-          </div>
-        </div>
-      )}
+      <div className="p-5">{children}</div>
     </div>
   )
 }
 
-function AcademicInfoSection({ student }: { student: StudentWithClass }) {
+function InfoGrid({ items }: { items: Array<{ label: string; value: string | null }> }) {
+  return (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {items.filter(item => item.value).map((item, i) => (
+        <div key={i}>
+          <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-1">{item.label}</p>
+          <p className="text-[13px] font-medium text-[var(--text-primary)]">{item.value}</p>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function InfoRow({ label, value }: { label: string; value: string | null | React.ReactNode }) {
+  if (!value) return null
+  return (
+    <div className="flex items-start gap-3">
+      <p className="text-[11px] text-[var(--text-muted)] w-20 flex-shrink-0">{label}</p>
+      <p className="text-[13px] text-[var(--text-primary)]">{value}</p>
+    </div>
+  )
+}
+
+// ============================================
+// TABS
+// ============================================
+const tabs = [
+  { id: "personal", label: "Data Siswa", icon: <User className="w-3.5 h-3.5" /> },
+  { id: "parents", label: "Orang Tua", icon: <Heart className="w-3.5 h-3.5" /> },
+  { id: "health", label: "Kesehatan", icon: <Activity className="w-3.5 h-3.5" /> },
+  { id: "documents", label: "Dokumen", icon: <FileText className="w-3.5 h-3.5" /> },
+  { id: "attendance", label: "Absensi", icon: <Calendar className="w-3.5 h-3.5" /> },
+  { id: "assessment", label: "Nilai", icon: <Award className="w-3.5 h-3.5" /> },
+  { id: "character", label: "Karakter", icon: <Heart className="w-3.5 h-3.5" /> },
+  { id: "activity", label: "Aktivitas", icon: <History className="w-3.5 h-3.5" /> },
+]
+
+// ============================================
+// TAB CONTENTS
+// ============================================
+function PersonalTab({ student }: { student: StudentWithClass }) {
   const { academicYear } = useAcademicYear()
-
   const activeClass = student.student_classes?.find(
     (sc) => sc.academic_year_id === academicYear?.id && sc.status === "active"
   )
 
-  const getAllClasses = () => {
-    return student.student_classes?.map((sc) => ({
-      year: sc.academic_year_id,
-      academicYearName: sc.academic_years?.name || "-",
-      class: sc.classes
-        ? `${sc.classes.majors?.name || ""} ${sc.classes.name || ""}`.trim()
-        : "-",
-      status: sc.status,
-      attendanceNumber: sc.attendance_number,
-    })) || []
-  }
-
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InfoItem label="NIS" value={student.student_number} />
-        {student.nisn && <InfoItem label="NISN" value={student.nisn} />}
-        <InfoItem label="Tahun Ajaran" value={academicYear?.name || "-"} />
-        <InfoItem
-          label="Status"
-          value={
-            <Badge
-              variant={getStatusVariant(student.is_active)}
-              className={cn(
-                "px-3 py-1 text-[12px] font-semibold rounded-full",
-                student.is_active
-                  ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
-                  : "bg-slate-100 text-slate-600 border border-slate-200"
-              )}
-            >
-              {getStatusLabel(student.is_active)}
-            </Badge>
-          }
+    <div className="space-y-5">
+      {/* Data Diri */}
+      <InfoSection title="Data Diri" icon={<User className="w-4 h-4" />}>
+        <InfoGrid
+          items={[
+            { label: "Nama Lengkap", value: student.full_name },
+            { label: "Nama Panggilan", value: student.nickname || null },
+            { label: "Jenis Kelamin", value: GENDER_LABELS[student.gender] || student.gender },
+            { label: "Tempat Lahir", value: student.birth_place || null },
+            { label: "Tanggal Lahir", value: formatDate(student.birth_date) },
+            { label: "Usia", value: formatAge(student.birth_date) },
+            { label: "Agama", value: student.religion || null },
+            { label: "Gol. Darah", value: student.blood_type || null },
+          ]}
         />
-        {activeClass && (
-          <>
-            <InfoItem
-              label="Kelas"
-              value={
-                activeClass.classes
-                  ? `${activeClass.classes.majors?.name || ""} ${activeClass.classes.name || ""}`.trim()
-                  : "-"
-              }
-            />
-            <InfoItem label="No. Absen" value={activeClass.attendance_number?.toString()} />
-          </>
-        )}
-      </div>
 
-      {/* Class History */}
-      {getAllClasses().length > 1 && (
-        <div>
-          <h4 className="text-[14px] font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
-            <Clock className="w-4 h-4 text-[var(--text-muted)]" />
-            Riwayat Kelas
-          </h4>
-          <div className="space-y-2">
-            {getAllClasses().map((item, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between p-4 bg-[var(--surface-secondary)]/70 rounded-xl hover:bg-[var(--surface-hover)] transition-colors border border-transparent hover:border-[var(--border-light)]/50"
-              >
-                <div>
-                  <span className="text-[14px] font-medium text-[var(--text-primary)]">{item.class}</span>
-                  <span className="text-[12px] text-[var(--text-muted)] ml-2">({item.academicYearName})</span>
-                </div>
-                <Badge
-                  variant={item.status === "active" ? "success" : "neutral"}
-                  className={cn(
-                    "px-3 py-1 text-[11px] font-semibold rounded-full",
-                    item.status === "active"
-                      ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
-                      : "bg-slate-100 text-slate-600 border border-slate-200"
-                  )}
-                >
-                  {item.status === "active" ? "Aktif" : "Nonaktif"}
-                </Badge>
-              </div>
-            ))}
+        {student.address && (
+          <div className="mt-4 p-4 bg-[var(--surface-secondary)] rounded-xl">
+            <div className="flex items-center gap-2 mb-2">
+              <MapPin className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+              <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">Alamat</p>
+            </div>
+            <p className="text-[13px] text-[var(--text-secondary)] leading-relaxed">{student.address}</p>
           </div>
-        </div>
-      )}
+        )}
+
+        {student.phone && (
+          <div className="mt-3 flex items-center gap-2">
+            <Phone className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+            <p className="text-[12px] text-[var(--text-secondary)]">{student.phone}</p>
+          </div>
+        )}
+
+        {student.notes && (
+          <div className="mt-4 p-4 bg-amber-50 rounded-xl border border-amber-100">
+            <p className="text-[10px] text-amber-600 uppercase tracking-wider mb-2">Catatan</p>
+            <p className="text-[13px] text-[var(--text-primary)] leading-relaxed">{student.notes}</p>
+          </div>
+        )}
+      </InfoSection>
+
+      {/* Data Akademik */}
+      <InfoSection title="Data Akademik" icon={<BookOpen className="w-4 h-4" />}>
+        <InfoGrid
+          items={[
+            { label: "NIS", value: student.student_number },
+            { label: "NISN", value: student.nisn || null },
+            { label: "Tahun Ajaran", value: academicYear?.name || null },
+            ...(activeClass?.classes ? [
+              { label: "Kelas", value: `${activeClass.classes.majors?.name || ""} ${activeClass.classes.name || ""}`.trim() },
+              { label: "No. Absen", value: activeClass.attendance_number?.toString() || null },
+            ] : []),
+          ]}
+        />
+      </InfoSection>
     </div>
   )
 }
 
-function ParentInfoSection({ student }: { student: StudentWithClass }) {
+function ParentsTab({ student }: { student: StudentWithClass }) {
   const parents = student.parents || []
-
   const father = parents.find((p) => p.type === "father")
   const mother = parents.find((p) => p.type === "mother")
   const guardian = parents.find((p) => p.type === "guardian")
 
-  const renderParentCard = (
-    type: string,
-    label: string,
-    parent: (typeof parents)[0] | undefined
-  ) => (
-    <Card variant="soft" padding="md">
-      <h4 className="text-[14px] font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
-        <div className={cn(
-          "w-8 h-8 rounded-lg flex items-center justify-center",
-          type === "father" ? "bg-blue-50 text-blue-600" :
-          type === "mother" ? "bg-pink-50 text-pink-600" :
-          "bg-purple-50 text-purple-600"
-        )}>
-          <User className="w-4 h-4" />
+  const ParentCard = ({ label, parent, color }: { label: string; parent?: typeof parents[0]; color: string }) => (
+    <div className={cn("p-5 rounded-2xl border", parent ? "bg-white border-[var(--border-light)]" : "bg-[var(--surface-secondary)] border-dashed border-[var(--border-light)]")}>
+      <div className="flex items-center gap-3 mb-4">
+        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", color)}>
+          <User className="w-5 h-5" />
         </div>
-        Data {label}
-      </h4>
+        <span className="text-[14px] font-semibold text-[var(--text-primary)]">{label}</span>
+      </div>
       {parent ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InfoItem label="Nama Lengkap" value={parent.full_name} />
-          {parent.nik && <InfoItem label="NIK" value={parent.nik} />}
-          {parent.occupation && <InfoItem label="Pekerjaan" value={parent.occupation} />}
-          {parent.education && <InfoItem label="Pendidikan" value={parent.education} />}
-          {parent.phone && <InfoItem label="No. Telepon" value={parent.phone} icon={<Phone className="w-3 h-3" />} />}
-          {parent.email && <InfoItem label="Email" value={parent.email} icon={<Mail className="w-3 h-3" />} />}
-          {parent.address && (
-            <InfoItem label="Alamat" value={parent.address} fullWidth icon={<MapPin className="w-3 h-3" />} />
-          )}
+        <div className="space-y-3">
+          <InfoRow label="Nama" value={parent.full_name} />
+          {parent.phone && <InfoRow label="Telepon" value={parent.phone} />}
+          {parent.occupation && <InfoRow label="Pekerjaan" value={parent.occupation} />}
         </div>
       ) : (
-        <p className="text-[13px] text-[var(--text-muted)] py-4 text-center bg-[var(--surface-primary)] rounded-lg">
-          Data {label} belum diisi
-        </p>
+        <p className="text-[12px] text-[var(--text-muted)] text-center py-3">Belum ada data</p>
       )}
-    </Card>
+    </div>
   )
 
   return (
     <div className="space-y-4">
-      {renderParentCard("father", "Ayah", father)}
-      {renderParentCard("mother", "Ibu", mother)}
-      {guardian && renderParentCard("guardian", "Wali", guardian)}
+      <ParentCard label="Ayah" parent={father} color="bg-blue-100 text-blue-600" />
+      <ParentCard label="Ibu" parent={mother} color="bg-pink-100 text-pink-500" />
+      {guardian && <ParentCard label="Wali" parent={guardian} color="bg-purple-100 text-purple-600" />}
     </div>
   )
 }
 
-function GuardianSection({ student }: { student: StudentWithClass }) {
-  const parents = student.parents || []
-  const guardian = parents.find((p) => p.type === "guardian")
+function HealthTab({ student }: { student: StudentWithClass }) {
+  const hasHealthData = student.height_cm || student.weight_kg || student.blood_type ||
+    student.vision || student.hearing || student.teeth_condition || student.physical_disability ||
+    student.illness_history || student.allergies || student.health_notes
 
-  const renderGuardianCard = () => {
-    if (guardian) {
-      return (
-        <Card variant="elevated" padding="lg">
-          <div className="flex items-start gap-5">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[var(--primary)]/10 to-[var(--primary)]/5 flex items-center justify-center shadow-sm">
-              <User className="w-8 h-8 text-[var(--primary)]" />
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-1">
-                <h3 className="text-[18px] font-bold text-[var(--text-primary)]">
-                  {guardian.full_name}
-                </h3>
-                <Badge variant="primary" className="text-[11px] px-2 py-0.5 rounded-full">
-                  Wali Siswa
-                </Badge>
-              </div>
-              {guardian.occupation && (
-                <p className="text-[13px] text-[var(--text-muted)] mb-4">{guardian.occupation}</p>
-              )}
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {guardian.nik && <InfoItem label="NIK" value={guardian.nik} />}
-                {guardian.phone && (
-                  <div className="flex items-center gap-2">
-                    <Phone className="w-4 h-4 text-[var(--text-muted)]" />
-                    <span className="text-[14px] text-[var(--text-primary)] font-medium">{guardian.phone}</span>
-                  </div>
-                )}
-                {guardian.email && (
-                  <div className="flex items-center gap-2">
-                    <Mail className="w-4 h-4 text-[var(--text-muted)]" />
-                    <span className="text-[14px] text-[var(--text-primary)]">{guardian.email}</span>
-                  </div>
-                )}
-                {guardian.address && (
-                  <div className="md:col-span-2 flex items-start gap-2">
-                    <MapPin className="w-4 h-4 text-[var(--text-muted)] mt-0.5" />
-                    <span className="text-[14px] text-[var(--text-secondary)]">{guardian.address}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </Card>
-      )
-    }
-
+  if (!hasHealthData) {
     return (
-      <Card variant="soft" padding="lg" className="text-center py-12">
-        <div className="w-16 h-16 rounded-2xl bg-[var(--surface-primary)] flex items-center justify-center mx-auto mb-4">
-          <User className="w-8 h-8 text-slate-400" />
+      <div className="text-center py-16 bg-white rounded-2xl border border-[var(--border-light)]">
+        <div className="w-16 h-16 rounded-3xl bg-[var(--surface-secondary)] flex items-center justify-center mx-auto mb-4">
+          <Heart className="w-8 h-8 text-[var(--text-muted)]" />
         </div>
-        <h3 className="text-[16px] font-semibold text-[var(--text-primary)] mb-2">
-          Data Wali Belum Tersedia
-        </h3>
-        <p className="text-[13px] text-[var(--text-muted)] mb-4">
-          Belum ada data wali yang diisi untuk siswa ini
-        </p>
-        <Button variant="outline" size="sm">
-          <Pencil className="w-4 h-4" />
-          Tambah Data Wali
-        </Button>
-      </Card>
+        <p className="text-[15px] font-semibold text-[var(--text-primary)]">Belum ada data kesehatan</p>
+        <p className="text-[12px] text-[var(--text-muted)] mt-1">Data kesehatan belum diisi</p>
+      </div>
     )
   }
 
-  return (
-    <div className="space-y-4">
-      {renderGuardianCard()}
-
-      <Card variant="soft" padding="md">
-        <h4 className="text-[13px] font-medium text-[var(--text-muted)] mb-3 uppercase tracking-wide">
-          Catatan
-        </h4>
-        <p className="text-[13px] text-[var(--text-secondary)] leading-relaxed">
-          Jika siswa tidak diasuh oleh orang tua kandung, wali yang ditunjuk bertanggung jawab penuh
-          terhadap pendidikan dan perkembangan siswa selama di sekolah.
-        </p>
-      </Card>
-    </div>
-  )
-}
-
-function HealthInfoSection({ student }: { student: StudentWithClass }) {
-  // Helper function for health badges
   const HealthBadge = ({ label, value, icon }: { label: string; value: string | null; icon: React.ReactNode }) => {
     const isNormal = value === "Normal" || value === "Tidak Ada" || value === "-" || !value
     return (
-      <Card variant="soft" padding="md" className="text-center">
-        <div className={cn(
-          "w-10 h-10 rounded-xl mx-auto mb-2 flex items-center justify-center",
-          isNormal ? "bg-emerald-50" : "bg-amber-50"
-        )}>
-          <span className={cn(isNormal ? "text-emerald-600" : "text-amber-600")}>
-            {icon}
-          </span>
+      <div className="p-4 bg-[var(--surface-secondary)] rounded-xl text-center">
+        <div className={cn("w-10 h-10 rounded-xl mx-auto mb-2 flex items-center justify-center", isNormal ? "bg-emerald-100 text-emerald-600" : "bg-amber-100 text-amber-500")}>
+          {icon}
         </div>
-        <p className="text-[11px] text-[var(--text-muted)] uppercase tracking-wide mb-1">{label}</p>
-        <p className={cn(
-          "text-[14px] font-semibold",
-          isNormal ? "text-emerald-700" : "text-amber-700"
-        )}>
-          {value || "-"}
-        </p>
-      </Card>
+        <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-1">{label}</p>
+        <p className={cn("text-[14px] font-semibold", isNormal ? "text-[var(--text-primary)]" : "text-amber-600")}>{value || "—"}</p>
+      </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      {/* Physical Measurements - Card Badges */}
-      <Card variant="elevated" padding="lg">
-        <h3 className="text-[16px] font-semibold text-[var(--text-primary)] mb-5 flex items-center gap-2">
-          <Ruler className="w-5 h-5 text-[var(--primary)]" />
-          Pengukuran Fisik
-        </h3>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <HealthBadge
-            label="Tinggi Badan"
-            value={student.height_cm ? `${student.height_cm} cm` : null}
-            icon={<Ruler className="w-5 h-5" />}
-          />
-          <HealthBadge
-            label="Berat Badan"
-            value={student.weight_kg ? `${student.weight_kg} kg` : null}
-            icon={<Scale className="w-5 h-5" />}
-          />
-          <HealthBadge
-            label="Gol. Darah"
-            value={student.blood_type || null}
-            icon={<Heart className="w-5 h-5" />}
-          />
+    <div className="space-y-5">
+      {/* Pengukuran */}
+      <div>
+        <p className="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-3 flex items-center gap-2">
+          <Ruler className="w-4 h-4" /> Pengukuran
+        </p>
+        <div className="grid grid-cols-3 gap-3">
+          <HealthBadge label="Tinggi" value={student.height_cm ? `${student.height_cm} cm` : null} icon={<Ruler className="w-5 h-5" />} />
+          <HealthBadge label="Berat" value={student.weight_kg ? `${student.weight_kg} kg` : null} icon={<Scale className="w-5 h-5" />} />
+          <HealthBadge label="Gol. Darah" value={student.blood_type || null} icon={<Heart className="w-5 h-5" />} />
         </div>
-      </Card>
+      </div>
 
-      {/* Health Conditions Grid */}
-      <Card variant="elevated" padding="lg">
-        <h3 className="text-[16px] font-semibold text-[var(--text-primary)] mb-5 flex items-center gap-2">
-          <Stethoscope className="w-5 h-5 text-[var(--primary)]" />
-          Kondisi Kesehatan
-        </h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <HealthBadge
-            label="Penglihatan"
-            value={student.vision || null}
-            icon={<Eye className="w-5 h-5" />}
-          />
-          <HealthBadge
-            label="Pendengaran"
-            value={student.hearing || null}
-            icon={<Ear className="w-5 h-5" />}
-          />
-          <HealthBadge
-            label="Gigi & Mulut"
-            value={student.teeth_condition || null}
-            icon={<Activity className="w-5 h-5" />}
-          />
-          <HealthBadge
-            label="Cacat Tubuh"
-            value={student.physical_disability || null}
-            icon={<FileWarning className="w-5 h-5" />}
-          />
+      {/* Kondisi */}
+      <div>
+        <p className="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-3 flex items-center gap-2">
+          <Stethoscope className="w-4 h-4" /> Kondisi
+        </p>
+        <div className="grid grid-cols-4 gap-3">
+          <HealthBadge label="Penglihatan" value={student.vision || null} icon={<Eye className="w-5 h-5" />} />
+          <HealthBadge label="Pendengaran" value={student.hearing || null} icon={<Ear className="w-5 h-5" />} />
+          <HealthBadge label="Gigi" value={student.teeth_condition || null} icon={<Activity className="w-5 h-5" />} />
+          <HealthBadge label="Cacat" value={student.physical_disability || null} icon={<FileWarning className="w-5 h-5" />} />
         </div>
-      </Card>
+      </div>
 
-      {/* Medical History & Notes */}
+      {/* Riwayat */}
       {(student.illness_history || student.allergies || student.health_notes) && (
-        <Card variant="elevated" padding="lg">
-          <h3 className="text-[16px] font-semibold text-[var(--text-primary)] mb-5 flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-amber-500" />
-            Riwayat & Catatan Kesehatan
-          </h3>
-          <div className="space-y-4">
-            {student.illness_history && (
-              <div className="p-4 bg-amber-50 rounded-xl border border-amber-200">
-                <div className="flex items-center gap-2 mb-2">
-                  <AlertTriangle className="w-4 h-4 text-amber-600" />
-                  <p className="text-[13px] font-semibold text-amber-800">Riwayat Sakit</p>
-                </div>
-                <p className="text-[14px] text-[var(--text-primary)] leading-relaxed">
-                  {student.illness_history}
-                </p>
-              </div>
-            )}
-            {student.allergies && (
-              <div className="p-4 bg-red-50 rounded-xl border border-red-200">
-                <div className="flex items-center gap-2 mb-2">
-                  <AlertTriangle className="w-4 h-4 text-red-600" />
-                  <p className="text-[13px] font-semibold text-red-800">Alergi</p>
-                </div>
-                <p className="text-[14px] text-[var(--text-primary)] leading-relaxed">
-                  {student.allergies}
-                </p>
-              </div>
-            )}
-            {student.health_notes && (
-              <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
-                <div className="flex items-center gap-2 mb-2">
-                  <FileText className="w-4 h-4 text-blue-600" />
-                  <p className="text-[13px] font-semibold text-blue-800">Catatan Kesehatan</p>
-                </div>
-                <p className="text-[14px] text-[var(--text-primary)] leading-relaxed">
-                  {student.health_notes}
-                </p>
-              </div>
-            )}
-          </div>
-        </Card>
-      )}
-
-      {/* Empty State */}
-      {!student.height_cm && !student.weight_kg && !student.vision && !student.hearing &&
-       !student.teeth_condition && !student.physical_disability && !student.illness_history &&
-       !student.allergies && !student.health_notes && (
-        <Card variant="soft" padding="lg" className="text-center py-12">
-          <div className="w-16 h-16 rounded-2xl bg-[var(--surface-primary)] flex items-center justify-center mx-auto mb-4">
-            <Heart className="w-8 h-8 text-slate-400" />
-          </div>
-          <h3 className="text-[16px] font-semibold text-[var(--text-primary)] mb-2">
-            Data Kesehatan Belum Tersedia
-          </h3>
-          <p className="text-[13px] text-[var(--text-muted)] mb-4">
-            Belum ada data kesehatan yang diisi untuk siswa ini
+        <div className="space-y-3">
+          <p className="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4" /> Riwayat & Catatan
           </p>
-          <Button variant="outline" size="sm">
-            <Pencil className="w-4 h-4" />
-            Tambah Data Kesehatan
-          </Button>
-        </Card>
+          {student.illness_history && (
+            <div className="p-4 bg-amber-50 rounded-xl border border-amber-100">
+              <p className="text-[10px] text-amber-600 uppercase tracking-wider mb-1">Riwayat Sakit</p>
+              <p className="text-[13px] text-[var(--text-primary)]">{student.illness_history}</p>
+            </div>
+          )}
+          {student.allergies && (
+            <div className="p-4 bg-red-50 rounded-xl border border-red-100">
+              <p className="text-[10px] text-red-600 uppercase tracking-wider mb-1">Alergi</p>
+              <p className="text-[13px] text-[var(--text-primary)]">{student.allergies}</p>
+            </div>
+          )}
+          {student.health_notes && (
+            <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
+              <p className="text-[10px] text-blue-600 uppercase tracking-wider mb-1">Catatan</p>
+              <p className="text-[13px] text-[var(--text-primary)]">{student.health_notes}</p>
+            </div>
+          )}
+        </div>
       )}
     </div>
   )
 }
 
-function ActivitySection({ student }: { student: StudentWithClass }) {
-  const generateTimeline = () => {
-    const items = []
+function ActivityTab({ student }: { student: StudentWithClass }) {
+  const timeline = []
 
-    // Add enrollment activity if student has student_classes with academic_year
-    const activeClass = student.student_classes?.[0]
-    if (activeClass?.academic_years?.name) {
-      items.push({
-        id: "enrollment",
-        title: "Pendaftaran Siswa Baru",
-        description: `Masuk sebagai siswa baru tahun ajaran ${activeClass.academic_years.name}`,
-        date: student.created_at,
-        icon: <UserPlus className="w-4 h-4" />,
-        variant: "success" as const,
+  if (student.student_classes?.[0]?.academic_years?.name) {
+    timeline.push({
+      title: "Pendaftaran",
+      desc: student.student_classes[0].academic_years.name,
+      date: student.created_at,
+      icon: <UserPlus className="w-4 h-4" />,
+      color: "bg-emerald-100 text-emerald-600"
+    })
+  }
+
+  student.student_classes?.forEach((sc) => {
+    if (sc.start_date && sc.classes) {
+      const className = `${sc.classes.majors?.name || ""} ${sc.classes.name || ""}`.trim()
+      timeline.push({
+        title: "Kelas",
+        desc: className,
+        date: sc.start_date,
+        icon: <BookOpen className="w-4 h-4" />,
+        color: "bg-blue-100 text-blue-600"
       })
     }
+  })
 
-    const classHistory = [...(student.student_classes || [])]
-      .filter((sc) => sc.start_date)
-      .sort((a, b) => new Date(b.start_date!).getTime() - new Date(a.start_date!).getTime())
-
-    classHistory.forEach((sc, index) => {
-      const className = sc.classes
-        ? `${sc.classes.majors?.name || ""} ${sc.classes.name || ""}`.trim()
-        : "Kelas"
-
-      items.push({
-        id: `class-${sc.id}`,
-        title: index === 0 ? "Kelas Saat Ini" : "Perpindahan Kelas",
-        description: index === 0 ? `Di kelas ${className}` : `Pindah ke ${className}`,
-        date: sc.start_date || student.updated_at,
-        icon: <BookOpen className="w-4 h-4" />,
-        variant: index === 0 ? "success" as const : "info" as const,
-      })
-    })
-
-    items.push({
-      id: "last-update",
-      title: "Terakhir Diperbarui",
-      description: "Data siswa terakhir diperbarui oleh administrator",
-      date: student.updated_at,
-      icon: <Clock className="w-4 h-4" />,
-      variant: "neutral" as const,
-    })
-
-    return items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-  }
-
-  const timeline = generateTimeline()
-
-  const variantStyles = {
-    success: "bg-gradient-to-br from-emerald-50 to-emerald-100/50 text-emerald-600 border border-emerald-200/50",
-    info: "bg-gradient-to-br from-blue-50 to-blue-100/50 text-blue-600 border border-blue-200/50",
-    warning: "bg-gradient-to-br from-amber-50 to-amber-100/50 text-amber-600 border border-amber-200/50",
-    danger: "bg-gradient-to-br from-red-50 to-red-100/50 text-red-600 border border-red-200/50",
-    neutral: "bg-gradient-to-br from-slate-50 to-slate-100/50 text-slate-600 border border-slate-200/50",
-  }
+  timeline.push({
+    title: "Update Terakhir",
+    desc: "Data siswa diperbarui",
+    date: student.updated_at,
+    icon: <Clock className="w-4 h-4" />,
+    color: "bg-slate-100 text-slate-500"
+  })
 
   return (
-    <div className="space-y-6">
-      {/* Quick Summary */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card variant="soft" padding="md" className="hover:shadow-sm transition-shadow">
-          <p className="text-[11px] text-[var(--text-muted)] mb-2 uppercase tracking-wide">Status</p>
-          <Badge
-            variant={getStatusVariant(student.is_active)}
-            className={cn(
-              "px-3 py-1.5 text-[12px] font-semibold rounded-full",
-              student.is_active
-                ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
-                : "bg-slate-100 text-slate-600 border border-slate-200"
-            )}
-          >
-            {getStatusLabel(student.is_active)}
-          </Badge>
-        </Card>
-        <Card variant="soft" padding="md" className="hover:shadow-sm transition-shadow">
-          <p className="text-[11px] text-[var(--text-muted)] mb-1 uppercase tracking-wide">Tahun Ajaran</p>
-          <p className="text-[18px] font-bold text-[var(--text-primary)]">
-            {student.student_classes?.[0]?.academic_years?.name || "-"}
-          </p>
-        </Card>
-        <Card variant="soft" padding="md" className="hover:shadow-sm transition-shadow">
-          <p className="text-[11px] text-[var(--text-muted)] mb-1 uppercase tracking-wide">Total Kelas</p>
-          <p className="text-[18px] font-bold text-[var(--text-primary)]">
-            {student.student_classes?.length || 0}
-          </p>
-        </Card>
-      </div>
-
-      {/* Timeline */}
-      <Card variant="elevated" padding="lg">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/80 flex items-center justify-center shadow-lg shadow-[var(--primary)]/20">
-            <History className="w-5 h-5 text-white" />
+    <div className="space-y-0">
+      {timeline.map((item, i) => (
+        <div key={i} className="flex gap-4">
+          <div className="flex flex-col items-center">
+            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", item.color)}>
+              {item.icon}
+            </div>
+            {i < timeline.length - 1 && <div className="w-0.5 flex-1 bg-[var(--border-light)] my-2 min-h-[20px]" />}
           </div>
-          <div>
-            <h3 className="text-[16px] font-bold text-[var(--text-primary)]">
-              Riwayat Aktivitas
-            </h3>
-            <p className="text-[12px] text-[var(--text-muted)]">
-              Timeline aktivitas dan perubahan siswa
-            </p>
+          <div className={cn("flex-1 pb-6", i === timeline.length - 1 && "pb-0")}>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[13px] font-medium text-[var(--text-primary)]">{item.title}</p>
+                <p className="text-[12px] text-[var(--text-muted)] mt-0.5">{item.desc}</p>
+              </div>
+              <span className="text-[11px] text-[var(--text-muted)] whitespace-nowrap">
+                {new Date(item.date).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
+              </span>
+            </div>
           </div>
         </div>
-
-        {timeline.length === 0 ? (
-          <div className="text-center py-10">
-            <Clock className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-[14px] text-[var(--text-muted)]">
-              Belum ada riwayat aktivitas
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-0">
-            {timeline.map((item, index) => (
-              <div key={item.id} className="flex gap-4">
-                <div className="flex flex-col items-center">
-                  <div className={cn(
-                    "w-10 h-10 rounded-xl flex items-center justify-center transition-transform hover:scale-105",
-                    variantStyles[item.variant]
-                  )}>
-                    {item.icon}
-                  </div>
-                  {index < timeline.length - 1 && (
-                    <div className="w-0.5 flex-1 bg-[var(--border-light)]/60 my-1 min-h-[32px]" />
-                  )}
-                </div>
-                <div className={cn("flex-1 pb-6", index < timeline.length - 1 ? "" : "pb-0")}>
-                  <div className="flex items-start justify-between gap-4 bg-[var(--surface-secondary)]/50 rounded-xl p-3 hover:bg-[var(--surface-hover)]/50 transition-colors">
-                    <div>
-                      <h4 className="text-[13px] font-semibold text-[var(--text-primary)]">
-                        {item.title}
-                      </h4>
-                      <p className="text-[12px] text-[var(--text-secondary)] mt-0.5">
-                        {item.description}
-                      </p>
-                    </div>
-                    <span className="text-[11px] text-[var(--text-muted)] whitespace-nowrap bg-white px-2.5 py-1 rounded-lg border border-[var(--border-light)]/50">
-                      {new Date(item.date).toLocaleDateString("id-ID", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      })}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </Card>
-
-      {/* Quick Action */}
-      <div className="flex items-center gap-3">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => window.location.href = `/buku-induk/${student.id}/history`}
-        >
-          <History className="w-4 h-4" />
-          Lihat Riwayat Lengkap
-        </Button>
-      </div>
+      ))}
     </div>
   )
 }
 
 // ============================================
-// MAIN PAGE COMPONENT
+// MAIN PAGE
 // ============================================
-
 export default function StudentDetailPage() {
   const params = useParams()
   const router = useRouter()
   const studentId = params.id as string
   const { academicYear } = useAcademicYear()
-
   const { student, loading, error } = useStudent(studentId)
-  const [activeTab, setActiveTab] = useState("personal-academic")
-
-  const tabs = [
-    { id: "personal-academic", label: "Data Pribadi & Akademik", icon: <User className="w-4 h-4" /> },
-    { id: "parents-guardian", label: "Data Orang Tua & Wali", icon: <Heart className="w-4 h-4" /> },
-    { id: "health", label: "Data Kesehatan", icon: <Activity className="w-4 h-4" /> },
-    { id: "documents", label: "Dokumen", icon: <FileText className="w-4 h-4" /> },
-    { id: "attendance", label: "Absensi", icon: <Calendar className="w-4 h-4" /> },
-    { id: "assessment", label: "Penilaian", icon: <Award className="w-4 h-4" /> },
-    { id: "character", label: "Karakter", icon: <Heart className="w-4 h-4" /> },
-    { id: "activity", label: "Aktivitas", icon: <History className="w-4 h-4" /> },
-  ]
+  const [activeTab, setActiveTab] = useState("personal")
 
   // Error state
   if (error) {
     return (
       <AppShell showHeader={true}>
-        <div className="mb-6">
-          <Link
-            href="/buku-induk"
-            className="inline-flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Kembali ke Buku Induk
+        <div className="mb-5">
+          <Link href="/buku-induk" className="inline-flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
+            <ArrowLeft className="w-4 h-4" />Kembali
           </Link>
         </div>
-
-        <Card variant="elevated" className="text-center py-16">
-          <div className="w-20 h-20 rounded-3xl bg-red-50 flex items-center justify-center mx-auto mb-5 shadow-sm">
-            <AlertCircle className="w-10 h-10 text-red-500" />
+        <Card className="text-center py-12">
+          <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="w-7 h-7 text-red-500" />
           </div>
-          <h2 className="text-[20px] font-bold text-[var(--text-primary)] mb-2">
-            Gagal Memuat Data
-          </h2>
-          <p className="text-[14px] text-[var(--text-muted)] mb-6">
-            {error.message || "Terjadi kesalahan saat mengambil data siswa"}
-          </p>
-          <Button variant="outline" onClick={() => router.refresh()}>
-            Coba Lagi
-          </Button>
+          <h2 className="text-[16px] font-semibold text-[var(--text-primary)] mb-1">Gagal Memuat Data</h2>
+          <p className="text-[12px] text-[var(--text-muted)]">{error.message || "Terjadi kesalahan"}</p>
         </Card>
       </AppShell>
     )
@@ -959,52 +542,32 @@ export default function StudentDetailPage() {
   if (loading) {
     return (
       <AppShell showHeader={true}>
-        <div className="mb-6">
-          <Link
-            href="/buku-induk"
-            className="inline-flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Kembali ke Buku Induk
+        <div className="mb-5">
+          <Link href="/buku-induk" className="inline-flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
+            <ArrowLeft className="w-4 h-4" />Kembali
           </Link>
         </div>
-
-        <div className="animate-pulse space-y-6">
-          <div className="h-40 bg-white rounded-3xl shadow-sm border border-[var(--border-light)]/50" />
-          <div className="h-14 bg-white rounded-2xl shadow-sm border border-[var(--border-light)]/50" />
-          <div className="h-80 bg-white rounded-3xl shadow-sm border border-[var(--border-light)]/50" />
+        <div className="space-y-4">
+          <div className="h-40 bg-white rounded-3xl border border-[var(--border-light)] animate-pulse" />
+          <div className="h-14 bg-white rounded-2xl border border-[var(--border-light)] animate-pulse" />
+          <div className="h-96 bg-white rounded-3xl border border-[var(--border-light)] animate-pulse" />
         </div>
       </AppShell>
     )
   }
 
-  // Not found state
+  // Not found
   if (!student) {
     return (
       <AppShell showHeader={true}>
-        <div className="mb-6">
-          <Link
-            href="/buku-induk"
-            className="inline-flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Kembali ke Buku Induk
+        <div className="mb-5">
+          <Link href="/buku-induk" className="inline-flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
+            <ArrowLeft className="w-4 h-4" />Kembali
           </Link>
         </div>
-
-        <Card variant="elevated" className="text-center py-16">
-          <div className="w-20 h-20 rounded-3xl bg-slate-100 flex items-center justify-center mx-auto mb-5">
-            <BookOpen className="w-10 h-10 text-slate-400" />
-          </div>
-          <h2 className="text-[20px] font-bold text-[var(--text-primary)] mb-2">
-            Siswa Tidak Ditemukan
-          </h2>
-          <p className="text-[14px] text-[var(--text-muted)] mb-6">
-            Data siswa dengan ID ini tidak ditemukan dalam sistem
-          </p>
-          <Button onClick={() => router.push("/buku-induk")}>
-            Kembali ke Buku Induk
-          </Button>
+        <Card className="text-center py-12">
+          <h2 className="text-[16px] font-semibold text-[var(--text-primary)] mb-3">Siswa Tidak Ditemukan</h2>
+          <Button onClick={() => router.push("/buku-induk")}>Kembali ke Buku Induk</Button>
         </Card>
       </AppShell>
     )
@@ -1012,73 +575,47 @@ export default function StudentDetailPage() {
 
   return (
     <AppShell showHeader={true}>
-      {/* Breadcrumb */}
-      <div className="mb-6">
-        <Link
-          href="/buku-induk"
-          className="inline-flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Kembali ke Buku Induk
+      {/* Back link */}
+      <div className="mb-5">
+        <Link href="/buku-induk" className="inline-flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
+          <ArrowLeft className="w-4 h-4" />Kembali ke Buku Induk
         </Link>
       </div>
 
-      {/* Student Header */}
-      <StudentHeader student={student} />
+      {/* Profile Header */}
+      <ProfileHeader student={student} />
 
-      {/* Tabs - Modern Pill Style */}
-      <Card variant="soft" padding="sm" className="mt-6">
-        <div className="flex gap-1 overflow-x-auto pb-1">
+      {/* Tabs */}
+      <div className="mt-5 overflow-x-auto">
+        <div className="flex gap-1 p-1.5 bg-white rounded-2xl border border-[var(--border-light)] shadow-sm min-w-max">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "flex items-center gap-2 px-4 py-2.5 text-[13px] font-medium rounded-xl transition-all duration-200 whitespace-nowrap",
+                "flex items-center gap-1.5 px-4 py-2.5 text-[12px] font-medium rounded-xl transition-all",
                 activeTab === tab.id
-                  ? "bg-[var(--primary)] text-white shadow-md shadow-[var(--primary)]/25"
-                  : "text-[var(--text-secondary)] hover:bg-[var(--surface-primary)] hover:text-[var(--text-primary)]"
+                  ? "bg-[var(--primary)] text-white shadow-md"
+                  : "text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]"
               )}
             >
-              <span className={cn(activeTab !== tab.id && "text-[var(--text-muted)]")}>
-                {tab.icon}
-              </span>
+              {tab.icon}
               {tab.label}
             </button>
           ))}
         </div>
-      </Card>
+      </div>
 
       {/* Tab Content */}
-      <div className="mt-6 space-y-6">
-        {activeTab === "personal-academic" && (
-          <Card variant="elevated" padding="lg">
-            <PersonalInfoSection student={student} />
-            <div className="border-t border-[var(--border-light)] my-6" />
-            <AcademicInfoSection student={student} />
-          </Card>
-        )}
-        {activeTab === "parents-guardian" && (
-          <Card variant="elevated" padding="lg">
-            <ParentInfoSection student={student} />
-            <div className="border-t border-[var(--border-light)] my-6" />
-            <GuardianSection student={student} />
-          </Card>
-        )}
-        {activeTab === "health" && (
-          <HealthInfoSection student={student} />
-        )}
+      <div className="mt-5">
+        {activeTab === "personal" && <PersonalTab student={student} />}
+        {activeTab === "parents" && <ParentsTab student={student} />}
+        {activeTab === "health" && <HealthTab student={student} />}
         {activeTab === "documents" && <DocumentsTab studentId={student.id} />}
-        {activeTab === "attendance" && (
-          <AttendanceSummary studentId={student.id} academicYearId={academicYear?.id} />
-        )}
-        {activeTab === "assessment" && (
-          <AssessmentSummary studentId={student.id} academicYearId={academicYear?.id} />
-        )}
-        {activeTab === "character" && (
-          <CharacterSummary studentId={student.id} academicYearId={academicYear?.id} />
-        )}
-        {activeTab === "activity" && <ActivitySection student={student} />}
+        {activeTab === "attendance" && <AttendanceSummary studentId={student.id} academicYearId={academicYear?.id} />}
+        {activeTab === "assessment" && <AssessmentSummary studentId={student.id} academicYearId={academicYear?.id} />}
+        {activeTab === "character" && <CharacterSummary studentId={student.id} academicYearId={academicYear?.id} />}
+        {activeTab === "activity" && <ActivityTab student={student} />}
       </div>
     </AppShell>
   )

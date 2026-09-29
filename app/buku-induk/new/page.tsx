@@ -259,8 +259,8 @@ function FormSection({
   className?: string
 }) {
   return (
-    <div className={cn("mb-6", className)}>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">{children}</div>
+    <div className={cn("mb-4", className)}>
+      <div className="grid grid-cols-2 gap-4">{children}</div>
     </div>
   )
 }
@@ -277,24 +277,16 @@ function FormField({
 
 function SectionDivider({ title, icon }: { title: string; icon?: React.ReactNode }) {
   return (
-    <div className="col-span-2 my-2">
-      <div className="flex items-center gap-4 p-5 bg-gradient-to-r from-[var(--surface-secondary)] via-[var(--surface-hover)]/50 to-[var(--surface-secondary)] rounded-2xl border border-[var(--border-light)]/50 shadow-sm">
-        <div className="w-1 h-10 bg-gradient-to-b from-[var(--primary)] to-[var(--primary)]/50 rounded-full shadow-sm shadow-[var(--primary)]/20" />
-        <div className="flex items-center gap-3">
-          {icon && (
-            <div className="w-9 h-9 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] shadow-sm">
-              {icon}
-            </div>
-          )}
-          <div>
-            <span className="text-[15px] font-bold text-[var(--text-primary)] uppercase tracking-wide">
-              {title}
-            </span>
-            <p className="text-[12px] text-[var(--text-muted)] mt-0.5">
-              Lengkapi data di bawah ini dengan benar
-            </p>
+    <div className="col-span-2">
+      <div className="flex items-center gap-3 py-4 border-b border-[var(--border-light)]">
+        {icon && (
+          <div className="w-8 h-8 rounded-lg bg-[var(--primary-soft)] flex items-center justify-center text-[var(--primary)]">
+            {icon}
           </div>
-        </div>
+        )}
+        <span className="text-[14px] font-semibold text-[var(--text-primary)]">
+          {title}
+        </span>
       </div>
     </div>
   )
@@ -466,21 +458,6 @@ export default function NewStudentPage() {
         </Link>
       </div>
 
-      {/* Page Header */}
-      <div className="mb-8 flex items-center gap-5">
-        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/70 flex items-center justify-center shadow-lg shadow-[var(--primary)]/20">
-          <UserPlus className="w-7 h-7 text-white" />
-        </div>
-        <div>
-          <h1 className="text-[26px] font-bold text-[var(--text-primary)]">
-            Tambah Siswa Baru
-          </h1>
-          <p className="text-[14px] text-[var(--text-muted)] mt-1">
-            Lengkapi formulir di bawah untuk menambahkan siswa ke buku induk
-          </p>
-        </div>
-      </div>
-
       {/* Form */}
       <form onSubmit={handleSubmit}>
         <Card variant="elevated" padding="lg">
@@ -630,7 +607,7 @@ export default function NewStudentPage() {
 
             <FormField fullWidth>
               <div className="flex flex-col gap-1.5">
-                <label className="text-[14px] font-medium text-[var(--text-primary)]">
+                <label className="text-[13px] font-medium text-[var(--text-primary)]">
                   Alamat
                 </label>
                 <textarea
@@ -638,14 +615,14 @@ export default function NewStudentPage() {
                   placeholder="Masukkan alamat lengkap"
                   value={formData.address}
                   onChange={handleChange}
-                  rows={3}
+                  rows={2}
                   className={cn(
-                    "w-full px-4 py-3",
+                    "w-full px-4 py-2.5",
                     "bg-[var(--surface-primary)]",
                     "border border-[var(--border-default)]",
-                    "rounded-[18px]",
-                    "text-[15px] text-[var(--text-primary)]",
-                    "transition-all duration-200",
+                    "rounded-xl",
+                    "text-[14px] text-[var(--text-primary)]",
+                    "transition-all duration-150",
                     "focus:outline-none focus:border-[var(--border-focus)]",
                     "focus:shadow-[0_0_0_3px_rgba(79,124,255,0.1)]",
                     "resize-none"
@@ -662,10 +639,10 @@ export default function NewStudentPage() {
           <FormSection title="">
             <FormField>
               <div className="flex flex-col gap-1.5">
-                <label className="text-[14px] font-medium text-[var(--text-primary)]">
+                <label className="text-[13px] font-medium text-[var(--text-primary)]">
                   Tahun Ajaran
                 </label>
-                <div className="h-[48px] px-4 flex items-center bg-[var(--surface-secondary)] border border-[var(--border-default)] rounded-[18px] text-[15px] text-[var(--text-primary)]">
+                <div className="h-11 px-4 flex items-center bg-[var(--surface-secondary)] border border-[var(--border-default)] rounded-xl text-[14px] text-[var(--text-secondary)]">
                   {academicYear?.name || "Tidak ada tahun ajaran aktif"}
                 </div>
               </div>
@@ -673,7 +650,7 @@ export default function NewStudentPage() {
 
             <FormField fullWidth>
               <div className="flex flex-col gap-1.5">
-                <label className="text-[14px] font-medium text-[var(--text-primary)]">
+                <label className="text-[13px] font-medium text-[var(--text-primary)]">
                   Kelas
                 </label>
                 <select
@@ -681,12 +658,12 @@ export default function NewStudentPage() {
                   value={formData.class_id}
                   onChange={handleChange}
                   className={cn(
-                    "w-full h-[48px] px-4",
+                    "w-full h-11 px-4",
                     "bg-[var(--surface-primary)]",
                     "border border-[var(--border-default)]",
-                    "rounded-[18px]",
-                    "text-[15px] text-[var(--text-primary)]",
-                    "transition-all duration-200",
+                    "rounded-xl",
+                    "text-[14px] text-[var(--text-primary)]",
+                    "transition-all duration-150",
                     "focus:outline-none focus:border-[var(--border-focus)]",
                     "focus:shadow-[0_0_0_3px_rgba(79,124,255,0.1)]",
                     "cursor-pointer"
@@ -852,7 +829,7 @@ export default function NewStudentPage() {
 
             <FormField fullWidth>
               <div className="flex flex-col gap-1.5">
-                <label className="text-[14px] font-medium text-[var(--text-primary)]">
+                <label className="text-[13px] font-medium text-[var(--text-primary)]">
                   Riwayat Sakit
                 </label>
                 <textarea
@@ -862,12 +839,12 @@ export default function NewStudentPage() {
                   onChange={handleChange}
                   rows={2}
                   className={cn(
-                    "w-full px-4 py-3",
+                    "w-full px-4 py-2.5",
                     "bg-[var(--surface-primary)]",
                     "border border-[var(--border-default)]",
-                    "rounded-[18px]",
-                    "text-[15px] text-[var(--text-primary)]",
-                    "transition-all duration-200",
+                    "rounded-xl",
+                    "text-[14px] text-[var(--text-primary)]",
+                    "transition-all duration-150",
                     "focus:outline-none focus:border-[var(--border-focus)]",
                     "focus:shadow-[0_0_0_3px_rgba(79,124,255,0.1)]",
                     "resize-none"
@@ -878,7 +855,7 @@ export default function NewStudentPage() {
 
             <FormField fullWidth>
               <div className="flex flex-col gap-1.5">
-                <label className="text-[14px] font-medium text-[var(--text-primary)]">
+                <label className="text-[13px] font-medium text-[var(--text-primary)]">
                   Alergi
                 </label>
                 <textarea
@@ -888,12 +865,12 @@ export default function NewStudentPage() {
                   onChange={handleChange}
                   rows={2}
                   className={cn(
-                    "w-full px-4 py-3",
+                    "w-full px-4 py-2.5",
                     "bg-[var(--surface-primary)]",
                     "border border-[var(--border-default)]",
-                    "rounded-[18px]",
-                    "text-[15px] text-[var(--text-primary)]",
-                    "transition-all duration-200",
+                    "rounded-xl",
+                    "text-[14px] text-[var(--text-primary)]",
+                    "transition-all duration-150",
                     "focus:outline-none focus:border-[var(--border-focus)]",
                     "focus:shadow-[0_0_0_3px_rgba(79,124,255,0.1)]",
                     "resize-none"
@@ -904,7 +881,7 @@ export default function NewStudentPage() {
 
             <FormField fullWidth>
               <div className="flex flex-col gap-1.5">
-                <label className="text-[14px] font-medium text-[var(--text-primary)]">
+                <label className="text-[13px] font-medium text-[var(--text-primary)]">
                   Catatan Kesehatan
                 </label>
                 <textarea
@@ -914,12 +891,12 @@ export default function NewStudentPage() {
                   onChange={handleChange}
                   rows={2}
                   className={cn(
-                    "w-full px-4 py-3",
+                    "w-full px-4 py-2.5",
                     "bg-[var(--surface-primary)]",
                     "border border-[var(--border-default)]",
-                    "rounded-[18px]",
-                    "text-[15px] text-[var(--text-primary)]",
-                    "transition-all duration-200",
+                    "rounded-xl",
+                    "text-[14px] text-[var(--text-primary)]",
+                    "transition-all duration-150",
                     "focus:outline-none focus:border-[var(--border-focus)]",
                     "focus:shadow-[0_0_0_3px_rgba(79,124,255,0.1)]",
                     "resize-none"
@@ -952,7 +929,7 @@ export default function NewStudentPage() {
 
             <FormField fullWidth>
               <div className="flex flex-col gap-1.5">
-                <label className="text-[14px] font-medium text-[var(--text-primary)]">
+                <label className="text-[13px] font-medium text-[var(--text-primary)]">
                   Catatan Lainnya
                 </label>
                 <textarea
@@ -960,14 +937,14 @@ export default function NewStudentPage() {
                   placeholder="Catatan tambahan (opsional)"
                   value={formData.notes}
                   onChange={handleChange}
-                  rows={3}
+                  rows={2}
                   className={cn(
-                    "w-full px-4 py-3",
+                    "w-full px-4 py-2.5",
                     "bg-[var(--surface-primary)]",
                     "border border-[var(--border-default)]",
-                    "rounded-[18px]",
-                    "text-[15px] text-[var(--text-primary)]",
-                    "transition-all duration-200",
+                    "rounded-xl",
+                    "text-[14px] text-[var(--text-primary)]",
+                    "transition-all duration-150",
                     "focus:outline-none focus:border-[var(--border-focus)]",
                     "focus:shadow-[0_0_0_3px_rgba(79,124,255,0.1)]",
                     "resize-none"
@@ -978,7 +955,7 @@ export default function NewStudentPage() {
           </FormSection>
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-between pt-6 mt-6 border-t border-[var(--border-light)]">
+          <div className="flex items-center justify-end gap-3 pt-4 mt-4 border-t border-[var(--border-light)]">
             <Button
               type="button"
               variant="ghost"

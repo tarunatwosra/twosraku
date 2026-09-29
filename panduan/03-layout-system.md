@@ -78,16 +78,13 @@ Navigation Content:
 - Navigation groups (collapsible sections)
 - User profile at bottom
 - Active item: pill background with primary accent
+- Simplified into 4 main sections for better usability
 
-Navigation Groups:
-- AKADEMIK
-- PRESENSI
-- PENILAIAN
-- POIN KARAKTER
-- AKADEMIK LAINNYA
-- ADMINISTRASI
-- LAPORAN
-- SISTEM
+Navigation Groups (Simplified):
+- UTAMA (Dashboard, Buku Induk)
+- AKADEMIK (Presensi, Penilaian, Poin Karakter)
+- OPERASI (Guru & Staff, Pasukan Khusus, Tabungan, Spiritual)
+- LAINNYA (Laporan, Pengaturan, Notifikasi)
 
 Active nav item:
 - Pill background

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { AppShell } from "@/components/layout"
 import { Card } from "@/components/ui"
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/hooks/useAuth"
 import { useCharacter } from "@/hooks/useCharacter"
-import { type CharacterRecord, type RecordStatus, CATEGORY_COLORS } from "@/types/character"
+import { type CharacterRecord, type RecordStatus } from "@/types/character"
 import {
   Search,
   Filter,
@@ -24,14 +24,14 @@ import {
   FileText,
   CheckCircle2,
   Clock,
-  XCircle,
+  RefreshCw,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export default function CharacterHistoryPage() {
   const router = useRouter()
   const { isAuthenticated, isLoading: authLoading } = useAuth()
-  const { records, categories, behaviors, loading } = useCharacter()
+  const { records, categories, behaviors, loading, refreshData } = useCharacter()
 
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("")
@@ -39,50 +39,40 @@ export default function CharacterHistoryPage() {
   const [selectedDirection, setSelectedDirection] = useState<"positive" | "negative" | "">("")
   const [showFilters, setShowFilters] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize] = useState(25)
+  const [pageSize] = useState(20)
 
-  // Demo records for display
-  const demoRecords = useMemo(() => {
-    const result: Array<CharacterRecord & { behaviorName: string; categoryName: string; pointValue: number; direction: "positive" | "negative" }> = []
-
-    // Generate some demo records
-    for (let i = 1; i <= 50; i++) {
-      const behavior = behaviors[i % behaviors.length]
+  // Transform records with behavior info
+  const transformedRecords = useMemo(() => {
+    return records.map((record) => {
+      const behavior = behaviors.find((b) => b.id === record.behaviorTypeId)
       const category = categories.find((c) => c.id === behavior?.categoryId)
 
-      result.push({
-        id: `record-${i}`,
-        studentId: `student-${(i % 32) + 1}`,
-        behaviorTypeId: behavior?.id || "beh-1",
-        behaviorName: behavior?.name || "Perilaku Demo",
-        categoryName: category?.name || "Kategori",
-        date: new Date(Date.now() - (i * 24 * 60 * 60 * 1000)).toISOString().split("T")[0],
-        reporterId: "admin",
-        status: ["submitted", "approved", "reviewed"][i % 3] as RecordStatus,
-        description: behavior?.description || "",
+      return {
+        ...record,
+        behaviorName: behavior?.name || "Tidak ditemukan",
+        categoryName: category?.name || "Tidak ditemukan",
+        categoryColor: category?.color || "#6B7280",
         pointValue: behavior?.pointValue || 0,
         direction: behavior?.direction || "positive",
-        createdAt: new Date(Date.now() - (i * 24 * 60 * 60 * 1000)).toISOString(),
-        updatedAt: new Date(Date.now() - (i * 24 * 60 * 60 * 1000)).toISOString(),
-      })
-    }
-
-    return result
-  }, [behaviors, categories])
+      }
+    })
+  }, [records, behaviors, categories])
 
   // Filter records
   const filteredRecords = useMemo(() => {
-    return demoRecords.filter((record) => {
+    return transformedRecords.filter((record) => {
       const matchesSearch =
         !searchQuery ||
         record.behaviorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        record.studentId.toLowerCase().includes(searchQuery.toLowerCase())
+        record.studentId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        record.categoryName.toLowerCase().includes(searchQuery.toLowerCase())
+
       const matchesCategory = !selectedCategory || record.behaviorTypeId.includes(selectedCategory)
       const matchesStatus = !selectedStatus || record.status === selectedStatus
       const matchesDirection = !selectedDirection || record.direction === selectedDirection
       return matchesSearch && matchesCategory && matchesStatus && matchesDirection
     })
-  }, [demoRecords, searchQuery, selectedCategory, selectedStatus, selectedDirection])
+  }, [transformedRecords, searchQuery, selectedCategory, selectedStatus, selectedDirection])
 
   // Pagination
   const totalPages = Math.ceil(filteredRecords.length / pageSize)
@@ -91,19 +81,24 @@ export default function CharacterHistoryPage() {
     currentPage * pageSize
   )
 
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, selectedCategory, selectedStatus, selectedDirection])
+
   // Statistics
   const stats = useMemo(() => {
-    const positive = filteredRecords.filter((r) => r.direction === "positive")
-    const negative = filteredRecords.filter((r) => r.direction === "negative")
+    const positive = transformedRecords.filter((r) => r.direction === "positive")
+    const negative = transformedRecords.filter((r) => r.direction === "negative")
 
     return {
-      total: filteredRecords.length,
+      total: transformedRecords.length,
       positive: positive.length,
       negative: negative.length,
       totalPositivePoints: positive.reduce((sum, r) => sum + r.pointValue, 0),
       totalNegativePoints: negative.reduce((sum, r) => sum + Math.abs(r.pointValue), 0),
     }
-  }, [filteredRecords])
+  }, [transformedRecords])
 
   // Get status badge
   const getStatusBadge = (status: RecordStatus) => {
@@ -146,6 +141,9 @@ export default function CharacterHistoryPage() {
     return null
   }
 
+  const hasFilters = searchQuery || selectedCategory || selectedStatus || selectedDirection
+  const hasData = transformedRecords.length > 0
+
   return (
     <AppShell
       title="Riwayat Poin Karakter"
@@ -173,10 +171,20 @@ export default function CharacterHistoryPage() {
               Filter
             </Button>
           </div>
-          <Button variant="outline" className="gap-2">
-            <Download className="w-4 h-4" />
-            Export
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => refreshData()}
+              className="gap-2"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+              Refresh
+            </Button>
+            <Button variant="outline" className="gap-2" disabled={!hasData}>
+              <Download className="w-4 h-4" />
+              Export
+            </Button>
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -209,7 +217,7 @@ export default function CharacterHistoryPage() {
           />
           <StatCard
             title="Disetujui"
-            value={filteredRecords.filter((r) => r.status === "approved").length}
+            value={transformedRecords.filter((r) => r.status === "approved").length}
             icon={<CheckCircle2 className="w-5 h-5" />}
             color="info"
           />
@@ -282,7 +290,7 @@ export default function CharacterHistoryPage() {
         )}
 
         {/* Active Filters */}
-        {(selectedCategory || selectedStatus || selectedDirection) && (
+        {hasFilters && (
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-[13px] text-[var(--text-muted)]">Filter aktif:</span>
             {selectedCategory && (
@@ -349,18 +357,23 @@ export default function CharacterHistoryPage() {
                           <FileText className="w-8 h-8 text-[var(--text-muted)]" />
                         </div>
                         <p className="text-[15px] font-medium text-[var(--text-primary)]">
-                          {searchQuery || selectedCategory || selectedStatus || selectedDirection
-                            ? "Catatan tidak ditemukan"
-                            : "Belum ada catatan poin karakter"}
+                          {hasFilters ? "Catatan tidak ditemukan" : "Belum ada catatan poin karakter"}
                         </p>
                         <p className="text-[13px] text-[var(--text-muted)]">
-                          {searchQuery || selectedCategory || selectedStatus || selectedDirection
-                            ? "Coba ubah filter pencarian"
-                            : "Mulai dengan menambahkan catatan poin karakter"}
+                          {hasFilters ? "Coba ubah filter pencarian" : "Mulai dengan menambahkan catatan poin karakter"}
                         </p>
-                        {!searchQuery && !selectedCategory && !selectedStatus && !selectedDirection && (
+                        {!hasFilters ? (
                           <Button onClick={() => router.push("/poin-karakter/input")}>
                             Tambah Catatan
+                          </Button>
+                        ) : (
+                          <Button variant="outline" onClick={() => {
+                            setSearchQuery("")
+                            setSelectedCategory("")
+                            setSelectedStatus("")
+                            setSelectedDirection("")
+                          }}>
+                            Reset Filter
                           </Button>
                         )}
                       </div>

@@ -18,142 +18,69 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       isLoading = false,
       disabled,
       children,
-      style,
       ...props
     },
     ref
   ) => {
-    // Base styles for all buttons
-    const baseClasses = `
-      inline-flex items-center justify-center gap-2
-      font-medium rounded-[18px]
-      transition-all duration-200 ease-out
-      focus:outline-none focus:ring-2 focus:ring-offset-2
-      disabled:opacity-40 disabled:cursor-not-allowed
-      cursor-pointer
-    `;
-
-    // Variant-specific inline styles
-    const getVariantStyles = (): React.CSSProperties => {
-      switch (variant) {
-        case "primary":
-          return {
-            backgroundColor: "#2563EB",
-            color: "#FFFFFF",
-            fontWeight: 600,
-          };
-        case "secondary":
-          return {
-            backgroundColor: "#F8FAFC",
-            color: "#1E293B",
-            fontWeight: 500,
-            border: "1px solid #E2E8F0",
-          };
-        case "outline":
-          return {
-            backgroundColor: "transparent",
-            color: "#64748B",
-            fontWeight: 500,
-            border: "1px solid #E2E8F0",
-          };
-        case "ghost":
-          return {
-            backgroundColor: "transparent",
-            color: "#64748B",
-            fontWeight: 500,
-            border: "1px solid transparent",
-          };
-        case "danger":
-          return {
-            backgroundColor: "#EF4444",
-            color: "#FFFFFF",
-            fontWeight: 600,
-          };
-        case "success":
-          return {
-            backgroundColor: "#22C55E",
-            color: "#FFFFFF",
-            fontWeight: 600,
-          };
-        default:
-          return {};
-      }
+    // Size classes using design tokens
+    const sizeClasses = {
+      sm: "h-[36px] px-[14px] text-[13px]",
+      md: "h-[44px] px-[22px] text-[15px]",
+      lg: "h-[52px] px-[26px] text-[15px]",
+      icon: "w-[44px] h-[44px] p-0",
     };
 
-    // Hover styles
-    const getHoverStyles = (): React.CSSProperties => {
-      switch (variant) {
-        case "primary":
-          return {
-            backgroundColor: "#1D4ED8",
-            transform: "translateY(-1px)",
-          };
-        case "secondary":
-          return {
-            backgroundColor: "#F1F5F9",
-            borderColor: "#CBD5E1",
-            color: "#1E293B",
-          };
-        case "outline":
-          return {
-            backgroundColor: "#F8FAFC",
-            borderColor: "#CBD5E1",
-            color: "#1E293B",
-          };
-        case "ghost":
-          return {
-            backgroundColor: "#F1F5F9",
-            color: "#1E293B",
-          };
-        case "danger":
-          return {
-            backgroundColor: "#DC2626",
-          };
-        case "success":
-          return {
-            backgroundColor: "#16A34A",
-          };
-        default:
-          return {};
-      }
-    };
-
-    // Size-specific styles
-    const getSizeStyles = (): React.CSSProperties => {
-      switch (size) {
-        case "sm":
-          return { height: "36px", paddingLeft: "14px", paddingRight: "14px", fontSize: "13px" };
-        case "md":
-          return { height: "44px", paddingLeft: "22px", paddingRight: "22px", fontSize: "15px" };
-        case "lg":
-          return { height: "52px", paddingLeft: "26px", paddingRight: "26px", fontSize: "15px" };
-        case "icon":
-          return { width: "40px", height: "40px", padding: "0" };
-        default:
-          return { height: "44px", paddingLeft: "22px", paddingRight: "22px", fontSize: "15px" };
-      }
+    // Variant classes using design tokens
+    const variantClasses = {
+      primary: cn(
+        "bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]",
+        "focus-visible:ring-[var(--primary)]",
+        "hover:-translate-y-[1px] hover:shadow-md"
+      ),
+      secondary: cn(
+        "bg-[var(--surface-secondary)] text-[var(--text-primary)]",
+        "border border-[var(--border-default)]",
+        "hover:bg-[var(--surface-hover)] hover:border-[var(--border-strong)]"
+      ),
+      outline: cn(
+        "bg-transparent text-[var(--text-secondary)]",
+        "border border-[var(--border-default)]",
+        "hover:bg-[var(--surface-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)]"
+      ),
+      ghost: cn(
+        "bg-transparent text-[var(--text-secondary)]",
+        "hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
+      ),
+      danger: cn(
+        "bg-[var(--danger)] text-white hover:bg-[#DC2626]",
+        "focus-visible:ring-[var(--danger)]",
+        "hover:-translate-y-[1px] hover:shadow-md"
+      ),
+      success: cn(
+        "bg-[var(--success)] text-white hover:bg-[#16A34A]",
+        "focus-visible:ring-[var(--success)]",
+        "hover:-translate-y-[1px] hover:shadow-md"
+      ),
     };
 
     return (
       <button
         ref={ref}
-        className={cn(baseClasses, className)}
-        style={{
-          ...getVariantStyles(),
-          ...getSizeStyles(),
-          ...style,
-        }}
+        className={cn(
+          // Base classes
+          "inline-flex items-center justify-center gap-2",
+          "font-semibold rounded-[18px]",
+          "transition-all duration-200 ease-out",
+          "focus:outline-none focus:ring-2 focus:ring-offset-2",
+          "disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none",
+          "cursor-pointer select-none",
+          // Size
+          sizeClasses[size],
+          // Variant
+          variantClasses[variant],
+          className
+        )}
         disabled={disabled || isLoading}
-        onMouseEnter={(e) => {
-          const hoverStyles = getHoverStyles();
-          Object.assign(e.currentTarget.style, hoverStyles);
-        }}
-        onMouseLeave={(e) => {
-          const variantStyles = getVariantStyles();
-          const sizeStyles = getSizeStyles();
-          Object.assign(e.currentTarget.style, variantStyles);
-          Object.assign(e.currentTarget.style, sizeStyles);
-        }}
         {...props}
       >
         {isLoading ? (

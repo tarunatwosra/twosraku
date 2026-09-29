@@ -50,6 +50,9 @@ export interface CharacterRecord {
   studentId: string
   behaviorTypeId: string
   eventId?: string
+  classId?: string
+  academicYearId?: string
+  semesterId?: string
   date: string
   reporterId: string
   description?: string
@@ -58,6 +61,8 @@ export interface CharacterRecord {
   remarks?: string
   approvedBy?: string
   approvedAt?: string
+  reviewedBy?: string
+  reviewedAt?: string
   createdAt: string
   updatedAt: string
 }

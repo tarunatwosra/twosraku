@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { AppShell } from "@/components/layout"
@@ -9,20 +9,46 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/hooks/useAuth"
 import { useCharacterDashboard } from "@/hooks/useCharacter"
-import { CharacterCategoryRecord, BehaviorType } from "@/types/character"
+import {
+  CharacterStatCard,
+  StudentLeaderboard,
+  CategoryGrid,
+  BehaviorCard,
+  PointTrendChart,
+  CategoryBreakdownChart,
+} from "@/components/poin-karakter"
 import {
   Plus,
-  Award,
+  Trophy,
   AlertTriangle,
+  Settings,
+  Calendar,
+  ArrowUpRight,
   TrendingUp,
   TrendingDown,
-  Users,
-  Trophy,
-  ChevronRight,
+  Award,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-export default function CharacterPointsPage() {
+// Mock trend data - replace with real data from API
+const mockTrendData = [
+  { date: "01 Agt", positive: 45, negative: 12 },
+  { date: "02 Agt", positive: 52, negative: 8 },
+  { date: "03 Agt", positive: 38, negative: 15 },
+  { date: "04 Agt", positive: 61, negative: 5 },
+  { date: "05 Agt", positive: 48, negative: 10 },
+  { date: "06 Agt", positive: 55, negative: 7 },
+  { date: "07 Agt", positive: 42, negative: 18 },
+  { date: "08 Agt", positive: 65, negative: 3 },
+  { date: "09 Agt", positive: 58, negative: 9 },
+  { date: "10 Agt", positive: 49, negative: 14 },
+  { date: "11 Agt", positive: 72, negative: 6 },
+  { date: "12 Agt", positive: 63, negative: 11 },
+  { date: "13 Agt", positive: 54, negative: 8 },
+  { date: "14 Agt", positive: 68, negative: 4 },
+]
+
+export default function CharacterPointsDashboardPage() {
   const router = useRouter()
   const { isAuthenticated, isLoading: authLoading } = useAuth()
   const {
@@ -32,7 +58,12 @@ export default function CharacterPointsPage() {
     topPositiveStudents,
     topNegativeStudents,
     statistics,
+    loading,
   } = useCharacterDashboard()
+
+  const getCategoryColor = (categoryId: string) => {
+    return categories.find((c) => c.id === categoryId)?.color || "#6B7280"
+  }
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -56,241 +87,212 @@ export default function CharacterPointsPage() {
     return null
   }
 
+  const displayPositiveBehaviors = positiveBehaviors.slice(0, 4)
+  const displayNegativeBehaviors = negativeBehaviors.slice(0, 4)
+
   return (
-    <AppShell title="Poin Karakter" description="Kelola catatan karakter siswa">
+    <AppShell
+      title="Poin Karakter"
+      description="Kelola dan pantau perkembangan karakter siswa"
+    >
       <div className="space-y-6">
         {/* Quick Actions */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-3">
             <Link href="/poin-karakter/input">
               <Button className="gap-2">
                 <Plus className="w-4 h-4" />
-                Tambah Catatan
+                Input Poin
               </Button>
             </Link>
             <Link href="/poin-karakter/riwayat">
               <Button variant="outline" className="gap-2">
-                <Award className="w-4 h-4" />
+                <Calendar className="w-4 h-4" />
                 Riwayat
+              </Button>
+            </Link>
+            <Link href="/poin-karakter/setting">
+              <Button variant="outline" className="gap-2">
+                <Settings className="w-4 h-4" />
+                Pengaturan
               </Button>
             </Link>
           </div>
         </div>
 
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard
-            title="Poin Positif"
-            value={statistics.totalPositivePoints}
-            subtitle="total poin"
-            icon={<TrendingUp className="w-5 h-5" />}
-            color="success"
-          />
-          <StatCard
-            title="Poin Negatif"
-            value={statistics.totalNegativePoints}
-            subtitle="total poin"
-            icon={<TrendingDown className="w-5 h-5" />}
-            color="danger"
-          />
-          <StatCard
-            title="Total Catatan"
-            value={statistics.totalRecords}
-            subtitle="semua aktivitas"
-            icon={<Award className="w-5 h-5" />}
-            color="primary"
-          />
-          <StatCard
-            title="Net Poin"
-            value={statistics.netPoints}
-            subtitle="poin bersih"
-            icon={<Trophy className="w-5 h-5" />}
-            color={statistics.netPoints >= 0 ? "success" : "danger"}
-          />
-        </div>
-
-        {/* Categories */}
-        <Card className="p-6">
-          <h2 className="text-section-title mb-4">
-            Kategori Karakter
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            {categories.map((category) => (
-              <div
-                key={category.id}
-                className="p-4 rounded-lg border border-[var(--border)] hover:border-[var(--primary)] transition-colors cursor-pointer"
-              >
-                <div
-                  className="w-10 h-10 rounded-lg flex items-center justify-center mb-3"
-                  style={{ backgroundColor: `${category.color}20`, color: category.color }}
-                >
-                  <Award className="w-5 h-5" />
-                </div>
-                <p className="font-medium text-[var(--text-primary)]">
-                  {category.name}
-                </p>
-                <p className="text-sm text-[var(--text-muted)]">
-                  {category.description}
-                </p>
-              </div>
-            ))}
+        {/* Loading State */}
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="w-10 h-10 border-4 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
           </div>
-        </Card>
-
-        {/* Top Students */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Top Positive */}
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-section-title flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-[var(--success)]" />
-                Siswa Berprestise
-              </h2>
+        ) : (
+          <>
+            {/* Statistics Cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <CharacterStatCard
+                title="Poin Positif"
+                value={statistics.totalPositivePoints}
+                subtitle="total akumulasi"
+                icon={<TrendingUp className="w-5 h-5" />}
+                color="success"
+                trend={12}
+              />
+              <CharacterStatCard
+                title="Poin Negatif"
+                value={statistics.totalNegativePoints}
+                subtitle="total akumulasi"
+                icon={<TrendingDown className="w-5 h-5" />}
+                color="danger"
+                trend={-5}
+              />
+              <CharacterStatCard
+                title="Total Catatan"
+                value={statistics.totalRecords}
+                subtitle="semua aktivitas"
+                icon={<Award className="w-5 h-5" />}
+                color="primary"
+              />
+              <CharacterStatCard
+                title="Net Poin"
+                value={statistics.netPoints}
+                subtitle="poin bersih"
+                icon={<Trophy className="w-5 h-5" />}
+                color={statistics.netPoints >= 0 ? "success" : "danger"}
+                trend={8}
+              />
             </div>
-            <div className="space-y-3">
-              {topPositiveStudents.slice(0, 5).map((student, index) => (
-                <div
-                  key={student.id}
-                  className="flex items-center gap-3 p-3 rounded-lg bg-[var(--surface-secondary)]"
-                >
-                  <div
-                    className={cn(
-                      "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold",
-                      index === 0
-                        ? "bg-[var(--warning)] text-white"
-                        : index === 1
-                        ? "bg-[var(--text-muted)] text-white"
-                        : index === 2
-                        ? "bg-[var(--warning-soft)] text-[var(--warning)]"
-                        : "bg-[var(--surface-hover)] text-[var(--text-muted)]"
-                    )}
-                  >
-                    {index + 1}
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-[var(--text-primary)]">
-                      {student.name}
+
+            {/* Leaderboards */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <StudentLeaderboard
+                title="Siswa Berprestise"
+                subtitle="Poin positif tertinggi"
+                students={topPositiveStudents}
+                type="positive"
+                maxDisplay={5}
+                onStudentClick={(id) => router.push(`/buku-induk/${id}`)}
+              />
+              <StudentLeaderboard
+                title="Perlu Perhatian"
+                subtitle="Poin negatif tertinggi"
+                students={topNegativeStudents}
+                type="negative"
+                maxDisplay={5}
+                onStudentClick={(id) => router.push(`/buku-induk/${id}`)}
+              />
+            </div>
+
+            {/* Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <PointTrendChart data={mockTrendData} />
+              <CategoryBreakdownChart
+                data={categories.map((cat) => ({
+                  name: cat.name,
+                  value: Math.floor(Math.random() * 300) + 50,
+                  color: cat.color,
+                }))}
+              />
+            </div>
+
+            {/* Categories */}
+            {categories.length > 0 && (
+              <Card className="p-6">
+                <div className="flex items-center justify-between mb-5">
+                  <div>
+                    <h2 className="text-h5 font-semibold text-[var(--text-primary)]">
+                      Kategori Karakter
+                    </h2>
+                    <p className="text-[13px] text-[var(--text-muted)]">
+                      {categories.length} kategori tersedia
                     </p>
                   </div>
-                  <Badge variant="success">+{student.points}</Badge>
+                  <Link href="/poin-karakter/setting">
+                    <Button variant="ghost" size="sm" className="gap-2">
+                      Kelola
+                      <ArrowUpRight className="w-4 h-4" />
+                    </Button>
+                  </Link>
                 </div>
-              ))}
-            </div>
-          </Card>
+                <CategoryGrid
+                  categories={categories}
+                  onCategoryClick={(id) =>
+                    router.push(`/poin-karakter/setting`)
+                  }
+                />
+              </Card>
+            )}
 
-          {/* Top Negative */}
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-section-title flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-[var(--danger)]" />
-                Perlu Perhatian
-              </h2>
-            </div>
-            <div className="space-y-3">
-              {topNegativeStudents.slice(0, 5).map((student, index) => (
-                <div
-                  key={student.id}
-                  className="flex items-center gap-3 p-3 rounded-lg bg-[var(--surface-secondary)]"
-                >
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[var(--danger-soft)] text-[var(--danger)] text-sm font-bold">
-                    {index + 1}
+            {/* Recent Behaviors */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Positive Behaviors */}
+              <Card className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-[var(--success-soft)] flex items-center justify-center">
+                      <TrendingUp className="w-4 h-4 text-[var(--success)]" />
+                    </div>
+                    <h3 className="text-[16px] font-semibold text-[var(--text-primary)]">
+                      Perilaku Positif
+                    </h3>
                   </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-[var(--text-primary)]">
-                      {student.name}
+                  <Badge variant="success" className="text-[11px]">
+                    {positiveBehaviors.length} Total
+                  </Badge>
+                </div>
+                <div className="space-y-2">
+                  {displayPositiveBehaviors.length > 0 ? (
+                    displayPositiveBehaviors.map((behavior) => (
+                      <BehaviorCard
+                        key={behavior.id}
+                        behavior={behavior}
+                        categoryColor={getCategoryColor(behavior.categoryId)}
+                        compact
+                      />
+                    ))
+                  ) : (
+                    <p className="text-center py-6 text-[var(--text-muted)] text-[14px]">
+                      Belum ada perilaku positif
                     </p>
+                  )}
+                </div>
+              </Card>
+
+              {/* Negative Behaviors */}
+              <Card className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-[var(--danger-soft)] flex items-center justify-center">
+                      <TrendingDown className="w-4 h-4 text-[var(--danger)]" />
+                    </div>
+                    <h3 className="text-[16px] font-semibold text-[var(--text-primary)]">
+                      Perilaku Negatif
+                    </h3>
                   </div>
-                  <Badge variant="danger">-{student.points}</Badge>
+                  <Badge variant="danger" className="text-[11px]">
+                    {negativeBehaviors.length} Total
+                  </Badge>
                 </div>
-              ))}
+                <div className="space-y-2">
+                  {displayNegativeBehaviors.length > 0 ? (
+                    displayNegativeBehaviors.map((behavior) => (
+                      <BehaviorCard
+                        key={behavior.id}
+                        behavior={behavior}
+                        categoryColor={getCategoryColor(behavior.categoryId)}
+                        compact
+                      />
+                    ))
+                  ) : (
+                    <p className="text-center py-6 text-[var(--text-muted)] text-[14px]">
+                      Belum ada perilaku negatif
+                    </p>
+                  )}
+                </div>
+              </Card>
             </div>
-          </Card>
-        </div>
-
-        {/* Recent Behaviors */}
-        <Card className="p-6">
-          <h2 className="text-section-title mb-4">
-            Perilaku Positif
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {positiveBehaviors.slice(0, 6).map((behavior) => (
-              <div
-                key={behavior.id}
-                className="p-3 rounded-lg border border-[var(--border)] hover:border-[var(--success)] transition-colors cursor-pointer"
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <TrendingUp className="w-4 h-4 text-[var(--success)]" />
-                  <Badge variant="success" className="text-caption">
-                    +{behavior.pointValue}
-                  </Badge>
-                </div>
-                <p className="font-medium text-[var(--text-primary)]">
-                  {behavior.name}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          <h2 className="text-section-title mb-4 mt-6">
-            Perilaku Negatif
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {negativeBehaviors.slice(0, 6).map((behavior) => (
-              <div
-                key={behavior.id}
-                className="p-3 rounded-lg border border-[var(--border)] hover:border-[var(--danger)] transition-colors cursor-pointer"
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <TrendingDown className="w-4 h-4 text-[var(--danger)]" />
-                  <Badge variant="danger" className="text-caption">
-                    {behavior.pointValue}
-                  </Badge>
-                </div>
-                <p className="font-medium text-[var(--text-primary)]">
-                  {behavior.name}
-                </p>
-              </div>
-            ))}
-          </div>
-        </Card>
+          </>
+        )}
       </div>
     </AppShell>
-  )
-}
-
-// Stat Card Component
-function StatCard({
-  title,
-  value,
-  subtitle,
-  icon,
-  color,
-}: {
-  title: string
-  value: number
-  subtitle: string
-  icon: React.ReactNode
-  color: "primary" | "success" | "warning" | "danger" | "info"
-}) {
-  const colors = {
-    primary: "bg-[var(--primary-soft)] text-[var(--primary)]",
-    success: "bg-[var(--success-soft)] text-[var(--success)]",
-    warning: "bg-[var(--warning-soft)] text-[var(--warning)]",
-    danger: "bg-[var(--danger-soft)] text-[var(--danger)]",
-    info: "bg-[var(--info-soft)] text-[var(--info)]",
-  }
-
-  return (
-    <Card className="p-4">
-      <div className="flex items-center gap-3">
-        <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", colors[color])}>
-          {icon}
-        </div>
-        <div>
-          <p className="text-stat-lg text-[var(--text-primary)]">{value}</p>
-          <p className="text-caption text-[var(--text-muted)]">{subtitle}</p>
-        </div>
-      </div>
-    </Card>
   )
 }

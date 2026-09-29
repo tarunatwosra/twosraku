@@ -48,8 +48,16 @@ export function MobileBottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-[200] bg-white/50 backdrop-blur-sm border-t border-[var(--border-light)]/60">
-      <div className="flex items-center justify-around h-[72px] px-2">
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-[200] bg-white/90 backdrop-blur-md border-t border-[var(--border-light)]"
+      role="navigation"
+      aria-label="Mobile navigation"
+    >
+      {/* Safe area padding for notched devices */}
+      <div
+        className="flex items-center justify-around h-[72px] px-2 pb-[env(safe-area-inset-bottom,0px)]"
+        style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom))' }}
+      >
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = isActive ? item.activeIcon : item.icon;
@@ -59,16 +67,26 @@ export function MobileBottomNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex flex-col items-center justify-center w-14 h-12 rounded-xl transition-all duration-200",
+                "flex flex-col items-center justify-center",
+                "w-16 h-14 rounded-xl",
+                "transition-all duration-200 ease-out",
+                // Touch target: minimum 44px (WCAG 2.2)
+                "min-w-[44px] min-h-[44px]",
                 isActive
-                  ? "text-[var(--primary)] bg-white shadow-sm"
-                  : "text-[var(--text-muted)] hover:text-[var(--text-secondary)] active:bg-[var(--surface-hover)]"
+                  ? "text-[var(--primary)] bg-[var(--primary-soft)]"
+                  : "text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] active:bg-[var(--surface-active)]"
               )}
+              aria-current={isActive ? "page" : undefined}
             >
-              <Icon className={cn("w-5 h-5", isActive && "scale-110")} />
+              <Icon
+                className={cn(
+                  "w-6 h-6 transition-transform duration-200",
+                  isActive && "scale-110"
+                )}
+              />
               <span
                 className={cn(
-                  "text-[10px] font-medium mt-0.5",
+                  "text-[11px] font-medium mt-1",
                   isActive && "font-semibold"
                 )}
               >

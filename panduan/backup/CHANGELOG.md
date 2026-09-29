@@ -28,6 +28,18 @@ Berisi catatan semua perubahan yang dilakukan pada file-file panduan. Setiap kal
 
 <!-- Changelog entries will be added below this line -->
 
+## 2026-08-14 (Refactor Poin Karakter)
+
+### character-points.md (19-feature-specifications/)
+| Field | Value |
+|-------|-------|
+| Tanggal | 2026-08-14 |
+| Perubahan | COMPLETE REFACTOR v3.0: (1) Dashboard baru dengan stats cards, leaderboards, charts. (2) Input page dengan step-by-step flow (Pilih Siswa → Pilih Perilaku → Detail & Simpan). (3) Setting page baru dengan tabs (Kategori, Perilaku, Pengaturan). (4) Komponen reusable library baru. (5) Sidebar navigation diupdate. |
+| Backup | character-points-001.md (v2.0) |
+| Catatan | Files: app/poin-karakter/*, components/poin-karakter/* (NEW), components/layout/sidebar.tsx |
+
+---
+
 ## 2026-08-10 (Rekap Presensi Mobile - Class Summary)
 
 ### attendance.md (19-feature-specifications/)

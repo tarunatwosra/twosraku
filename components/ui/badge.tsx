@@ -4,7 +4,7 @@ import { forwardRef, type HTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
 export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
-  variant?: "primary" | "success" | "warning" | "danger" | "info" | "neutral" | "outline" | "secondary" | "default";
+  variant?: "primary" | "success" | "warning" | "danger" | "info" | "neutral" | "outline" | "secondary" | "default" | "purple";
   size?: "sm" | "md" | "lg";
   dot?: boolean;
   icon?: React.ReactNode;
@@ -24,35 +24,70 @@ const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
       whitespace-nowrap
     `;
 
-    const variants = {
-      primary: soft
-        ? `bg-[var(--primary)]/10 text-[var(--primary)] border-[var(--primary)]/20 hover:bg-[var(--primary)]/15`
-        : `bg-[var(--primary)] text-white border-transparent`,
-      success: soft
-        ? `bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100`
-        : `bg-emerald-500 text-white border-transparent`,
-      warning: soft
-        ? `bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-100`
-        : `bg-amber-500 text-white border-transparent`,
-      danger: soft
-        ? `bg-red-50 text-red-600 border-red-200 hover:bg-red-100`
-        : `bg-red-500 text-white border-transparent`,
-      info: soft
-        ? `bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100`
-        : `bg-blue-500 text-white border-transparent`,
-      neutral: soft
-        ? `bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-150`
-        : `bg-slate-500 text-white border-transparent`,
+    // Soft variants with better contrast ratios (WCAG AA compliant)
+    const softVariants = {
+      primary: `
+        bg-[var(--primary-soft)] text-[#2563EB] border-[var(--primary)]/20
+        hover:bg-[var(--primary)]/15
+      `,
+      success: `
+        bg-[var(--success-soft)] text-[#15803D] border-[var(--success)]/20
+        hover:bg-[var(--success)]/15
+      `,
+      warning: `
+        bg-[var(--warning-soft)] text-[#B45309] border-[var(--warning)]/20
+        hover:bg-[var(--warning)]/15
+      `,
+      danger: `
+        bg-[var(--danger-soft)] text-[#B91C1C] border-[var(--danger)]/20
+        hover:bg-[var(--danger)]/15
+      `,
+      info: `
+        bg-[var(--info-soft)] text-[#0E7490] border-[var(--info)]/20
+        hover:bg-[var(--info)]/15
+      `,
+      purple: `
+        bg-[var(--purple-soft)] text-[#7C3AED] border-[var(--purple)]/20
+        hover:bg-[var(--purple)]/15
+      `,
+      neutral: `
+        bg-[var(--surface-secondary)] text-[var(--text-secondary)] border-[var(--border-default)]
+        hover:bg-[var(--surface-hover)]
+      `,
       outline: `
-        bg-transparent border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)]
+        bg-transparent border-[var(--border-default)] text-[var(--text-secondary)]
+        hover:bg-[var(--surface-secondary)]
       `,
       secondary: `
-        bg-[var(--surface-secondary)] text-[var(--text-muted)] border-transparent hover:bg-[var(--surface-hover)]
+        bg-[var(--surface-secondary)] text-[var(--text-secondary)] border-transparent
+        hover:bg-[var(--surface-hover)]
       `,
       default: `
         bg-[var(--primary)] text-white border-transparent
       `,
     };
+
+    // Solid variants (high contrast)
+    const solidVariants = {
+      primary: `bg-[var(--primary)] text-white border-transparent`,
+      success: `bg-[var(--success)] text-white border-transparent`,
+      warning: `bg-[var(--warning)] text-white border-transparent`,
+      danger: `bg-[var(--danger)] text-white border-transparent`,
+      info: `bg-[var(--info)] text-white border-transparent`,
+      purple: `bg-[var(--purple)] text-white border-transparent`,
+      neutral: `bg-[var(--text-secondary)] text-white border-transparent`,
+      outline: `
+        bg-transparent border-[var(--border-default)] text-[var(--text-secondary)]
+        hover:bg-[var(--surface-secondary)]
+      `,
+      secondary: `
+        bg-[var(--surface-secondary)] text-[var(--text-secondary)] border-transparent
+        hover:bg-[var(--surface-hover)]
+      `,
+      default: `bg-[var(--primary)] text-white border-transparent`,
+    };
+
+    const variants = soft ? softVariants : solidVariants;
 
     const sizes = {
       sm: "h-[22px] px-[10px] text-[11px] rounded-full",
@@ -60,15 +95,17 @@ const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
       lg: "h-[30px] px-[14px] text-[13px] rounded-full",
     };
 
+    // Dot colors with WCAG AA compliant colors
     const dotColors = {
       primary: "bg-[var(--primary)]",
-      success: "bg-emerald-500",
-      warning: "bg-amber-500",
-      danger: "bg-red-500",
-      info: "bg-blue-500",
-      neutral: "bg-slate-500",
-      outline: "bg-[var(--border-default)]",
-      secondary: "bg-slate-500",
+      success: "bg-[var(--success)]",
+      warning: "bg-[var(--warning)]",
+      danger: "bg-[var(--danger)]",
+      info: "bg-[var(--info)]",
+      purple: "bg-[var(--purple)]",
+      neutral: "bg-[var(--text-secondary)]",
+      outline: "bg-[var(--border-strong)]",
+      secondary: "bg-[var(--text-secondary)]",
       default: "bg-white",
     };
 

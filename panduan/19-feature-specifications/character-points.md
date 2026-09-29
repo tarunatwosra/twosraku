@@ -1,5 +1,5 @@
 # Character Points Module (Poin Karakter) — Compact
-Version: 2.0
+Version: 3.0
 
 **Purpose:** Character Points is a character development engine recording, evaluating, and monitoring student behavior throughout their educational journey. Unlike traditional disciplinary systems, it recognizes both positive and negative behaviors — the goal is continuous character growth, not merely punishing misconduct.
 
@@ -11,77 +11,154 @@ Version: 2.0
 
 **Core Architecture:** Character Category → Behavior Type → Character Event → Student → Character Record → Character Summary.
 
-### Core Concepts
-- **Character Category** — groups similar behaviors (Discipline, Responsibility, Leadership, Courtesy, Integrity, Teamwork, Attendance, Appearance, Safety, Religious Activities). Schools may add categories.
-- **Behavior Type** — defines a measurable behavior (Helping Friends, Excellent Leadership, Outstanding Discipline, Late Arrival, Incomplete Uniform, Bullying, Fighting, Smoking, Cheating). Belongs to one category.
-- **Character Event** — predefined event providing context (Morning Inspection, Flag Ceremony, School Competition, Community Service, Counseling Session, Dormitory Inspection, Leadership Camp).
-- **Character Record** — one recorded behavior; belongs to one Student, one Behavior Type, one Event, one Date, one Reporter.
+---
 
-### Positive & Negative Points
-Every behavior type defines a Point Value and Direction (Positive/Negative). Examples: Helping Friends +10, Winning Competition +50, Excellent Attendance +20, Late Arrival -5, Incomplete Uniform -10, Smoking -100. Schools determine their own point values.
+## Halaman & Fitur
 
-**Business Rules:** every record must reference an existing student; point values determined by Behavior Type; users may not manually modify point values during recording; character history must remain immutable; historical records cannot be deleted.
+### 1. Dashboard (`/poin-karakter`)
 
-**Character Lifecycle:** Behavior Occurs → Record Created → Reviewed → Approved → Included in Summary → Archived.
+**Layout:**
+- Quick Actions (Input Poin, Riwayat, Pengaturan)
+- Statistics Cards (Poin Positif, Poin Negatif, Total Catatan, Net Poin)
+- Leaderboards (Siswa Berprestise, Perlu Perhatian)
+- Charts (Trend 30 Hari, Breakdown per Kategori)
+- Kategori Karakter Grid
+- Recent Behaviors (Positif & Negatif)
 
-**Navigation:** Character Points → Dashboard, Records, Categories, Behavior Types, Events, Reports, Settings.
+**Components:**
+- `CharacterStatCard` - Kartu statistik dengan trend indicator
+- `StudentLeaderboard` - Leaderboard dengan medal styling
+- `PointTrendChart` - Line chart untuk trend poin
+- `CategoryBreakdownChart` - Pie chart untuk breakdown kategori
+- `CategoryGrid` - Grid card untuk kategori
+- `BehaviorCard` - Card untuk menampilkan perilaku
 
-### Character Dashboard
-Displays: Positive/Negative Points, Today's Records, Students Requiring Attention, Top Positive Students, Recent Activities, Pending Reviews, Quick Actions.
+### 2. Input Poin (`/poin-karakter/input`)
 
-### Categories
-Properties: Name, Description, Color, Icon, Status, Display Order.
+**Konsep:** Form step-by-step dengan 3 langkah:
 
-### Behavior Types
-Properties: Category, Name, Description, Point Value, Positive/Negative, Severity, Requires Approval, Requires Counseling, Status.
-**Severity Levels:** Information, Minor, Moderate, Major, Critical — determines notification priority.
+**Step 1: Pilih Siswa**
+- Search input dengan dropdown autocomplete
+- Menampilkan nama, kelas, dan NISN
+- Single student selection
 
-### Character Events
-Properties: Name, Description, Date, Location, Organizer, Academic Year, Semester, Status. Events may be reused.
+**Step 2: Pilih Perilaku**
+- Filter: Semua / Positif / Negatif
+- Filter: Kategori (horizontal scroll chips)
+- Search perilaku
+- Grid card behaviors dengan checkbox
+- Real-time calculation total poin
+
+**Step 3: Detail & Simpan**
+- Summary card dengan student info
+- List perilaku yang dipilih
+- Input keterangan (opsional)
+- Total poin dengan warna kontekstual
+- Tombol Simpan
+
+**Components:**
+- `StudentSearchInput` - Input dengan autocomplete
+- `BehaviorCard` - Card perilaku dengan selection state
+- `PointSummary` - Summary card dengan total
+
+### 3. Pengaturan (`/poin-karakter/setting`)
+
+**Tabs:**
+1. **Kategori** - CRUD kategori karakter
+2. **Perilaku** - CRUD tipe perilaku
+3. **Pengaturan** - Konfigurasi umum
+
+**Kategori Tab:**
+- Grid card dengan icon, warna, dan status
+- Modal untuk create/edit
+- Color picker palette
+- Badge untuk jumlah perilaku
+
+**Perilaku Tab:**
+- Grouped by category
+- Inline edit dan delete buttons
+- Badge untuk arah (positif/negatif) dan poin
+- Severity badge
+
+**Pengaturan Tab:**
+- Batas poin untuk rekomendasi konseling
+- Default poin untuk perilaku positif/negatif
+
+### 4. Riwayat (`/poin-karakter/riwayat`)
+
+(Halaman existing - dapat diintegrasikan dengan komponen baru)
+
+---
+
+## Core Concepts
+
+### Character Category
+- **Properties:** Name, Description, Color, Icon, Status, Display Order
+- **Default Categories:** Disiplin, Tanggung Jawab, Kepemimpinan, Sopan Santun, Integritas, Kerja Tim, Kehadiran, Penampilan
+- **UI:** Color picker dengan predefined palette, icon auto-mapping
+
+### Behavior Type
+- **Properties:** Category, Name, Description, Point Value, Positive/Negative, Severity, Requires Approval, Requires Counseling, Status
+- **Severity Levels:** Minor, Moderate, Major, Critical
+- **Direction:** Positive (+), Negative (-)
+- **UI:** Toggle arah, input poin, severity select
 
 ### Character Record
-Properties: Student, Behavior Type, Event, Date, Reporter, Description, Evidence, Status, Remarks.
-**Evidence (optional):** Photo, PDF, Video (future) — strengthens transparency.
-**Record Status:** Draft → Submitted → Reviewed → Approved → Archived.
+- **Properties:** Student, Behavior Type, Event, Date, Reporter, Description, Evidence, Status, Remarks
+- **Evidence (optional):** Photo, PDF, Video (future)
+- **Record Status:** Draft → Submitted → Reviewed → Approved → Archived
 
 ### Character Summary
 Each student automatically has: Positive/Negative Points, Net Score, Total/Positive/Negative Records, Highest Achievement, Most Frequent Violation, Recent Activities, Character Trend.
-**Formula:** Net Score = Positive Points − Negative Points. Schools may define custom formulas.
+**Formula:** Net Score = Positive Points − Negative Points.
 
-### Counseling Integration
-Certain behaviors auto-recommend counseling (e.g. Negative Points ≥ 100 → Counseling Recommendation). Counseling remains a separate workflow.
+---
 
-### Reward Integration
-Positive achievements may trigger Certificates, Awards, Recognition, Leaderboards. Reward criteria configurable.
+## Navigation Structure
 
-### Search & Filters
-- **Search by:** Student, Behavior, Category, Reporter, Event, Academic Year, Semester.
-- **Filters:** Academic Year, Semester, Class, Major, Category, Behavior Type, Severity, Reporter, Date Range, Status.
+```
+POIN KARAKTER
+├── Dashboard (/poin-karakter)
+├── Input Poin (/poin-karakter/input)
+├── Pengaturan (/poin-karakter/setting)
+│   ├── Kategori
+│   ├── Perilaku
+│   └── Pengaturan
+└── Riwayat (/poin-karakter/riwayat)
+```
 
-### Reports
-Student Character Report, Class Summary, Behavior Summary, Category Summary, Positive/Negative Leaderboard, Counseling Recommendation, Trend Analysis.
+---
 
-### Import & Export
-Import: Excel, CSV — validation required. Export: Excel, CSV, PDF, Print — respects filters.
+## Components Library
 
-### Dashboard Integration
-Displays: Positive/Negative Points, Students Requiring Guidance, Outstanding Students, Recent Character Activities, Trend Analysis. Dashboard performs no calculations.
+| Component | Location | Description |
+|-----------|----------|-------------|
+| `CharacterStatCard` | `components/poin-karakter/stat-card.tsx` | Kartu statistik dengan trend |
+| `StudentLeaderboard` | `components/poin-karakter/student-leaderboard.tsx` | Leaderboard dengan medal |
+| `CategoryGrid` | `components/poin-karakter/category-grid.tsx` | Grid untuk kategori |
+| `BehaviorCard` | `components/poin-karakter/behavior-card.tsx` | Card perilaku |
+| `StudentSearchInput` | `components/poin-karakter/student-search-input.tsx` | Input pencarian siswa |
+| `PointSummary` | `components/poin-karakter/point-summary.tsx` | Summary dengan total poin |
+| `PointTrendChart` | `components/poin-karakter/charts.tsx` | Line chart trend |
+| `CategoryBreakdownChart` | `components/poin-karakter/charts.tsx` | Pie chart breakdown |
 
-### Student Registry Integration
-Character Records reference Student ID. Deleting a student never deletes historical character records.
+---
 
-### Attendance Integration
-Schools may configure: Repeated Absence → Automatic Character Recommendation (requires manual approval).
+## Business Rules
 
-### Assessment Integration
-Character summaries may appear alongside assessment reports. Character Points never modify academic scores automatically.
+1. Every record must reference an existing student
+2. Point values determined by Behavior Type
+3. Users may not manually modify point values during recording
+4. Character history must remain immutable
+5. Historical records cannot be deleted
+6. Negative points ≥ threshold → Counseling Recommendation
 
-### Notifications
-New Record, Review Required, Approval Required, Critical Violation, Outstanding Achievement, Counseling Recommendation.
+---
 
-### Permissions
+## Permissions
+
 | Role | Access |
-|---|---|
+|------|--------|
 | Administrator | Full Access |
 | Vice Principal | Full Access |
 | Counselor | Review |
@@ -90,26 +167,69 @@ New Record, Review Required, Approval Required, Critical Violation, Outstanding 
 | Staff | Read |
 | Students | No Access |
 
-### Audit Log
-Tracks: Created, Updated, Approved, Archived, Reporter, Reviewer, Timestamp, Reason. Historical records are immutable.
+---
 
-### Performance Requirements
-Support 10 million character records; server-side search & filtering; optimized reports; lazy loading.
+## Design System Tokens (v2.0)
 
-### Accessibility
-Keyboard Navigation, Screen Reader Support, High Contrast, Visible Focus, Responsive Layout, WCAG AA.
+| Token | Value |
+|-------|-------|
+| Primary | `#4F7CFF` |
+| Success | `#22C55E` |
+| Danger | `#EF4444` |
+| Warning | `#F59E0B` |
+| Border Radius Card | `28px` |
+| Border Radius Button | `18px` |
+| Border Radius Input | `18px` |
+| Animation | `200ms ease-out` |
 
-### Security
-Role-based Access, Soft Delete, Immutable Audit Trail, Encrypted Communication, Permission Validation.
+---
 
-### Future Enhancements
-AI Behavior Analysis, Behavior Prediction, Parent Notifications, Mobile Reporting, QR Event Recording, Teacher Mobile App, Badge System, Achievement Levels, Behavior Timeline, Student Portfolio, Gamification, House Point System, Dormitory Management.
+## Future Enhancements
 
-### Definition of Done
+- AI Behavior Analysis
+- Behavior Prediction
+- Parent Notifications
+- Mobile Reporting
+- QR Event Recording
+- Teacher Mobile App
+- Badge System
+- Achievement Levels
+- Behavior Timeline
+- Student Portfolio
+- Gamification
+- House Point System
+- Dormitory Management
+
+---
+
+## Definition of Done
+
 Complete when: positive and negative behaviors supported; character history traceable; reports reproducible; permissions enforced; dashboard integration works; performance targets achieved; accessibility standards satisfied; follows the Design System.
 
-### Final Principle
+---
+
+## Final Principle
+
 Character Points is not a punishment system — it is a student character development platform. Every recorded behavior should help teachers understand, guide, and develop students into individuals with strong discipline, responsibility, leadership, and integrity.
 
 ---
-# End of Character Points Module (Compact)
+
+# Changelog
+
+## v3.0 (2026-08-14)
+- Complete refactor with modern UI/UX
+- Added Setting page with Categories & Behaviors management
+- Added step-by-step input flow
+- Added charts (trend, breakdown)
+- Added reusable components library
+- Updated sidebar navigation
+- Follows ANTISLOP design principles
+
+## v2.0
+- Initial structured version
+
+## v1.0
+- Basic character points
+
+---
+# End of Character Points Module (v3.0)

@@ -1,6 +1,6 @@
 # Component Library
-Version: 2.0
-Updated: 2026-07-06
+Version: 2.1
+Updated: 2026-09-14
 
 ---
 
@@ -281,13 +281,21 @@ Icon
 
 Title
 
-Value
+Value (text-stat-lg)
 
 Trend
 
 Optional chart
 
 Large number should be dominant.
+
+Typography:
+- Title: text-[13px] font-medium text-secondary
+- Value: text-stat-lg (28px, bold)
+- Subtitle: text-[13px] text-muted
+- Trend: text-[13px] font-semibold
+
+Colors should use design tokens (primary, success, warning, danger, info, purple).
 
 ---
 
@@ -643,31 +651,124 @@ Current page highlighted
 
 ---
 
-# Empty State
+# Skeleton Loader
 
-Contains
+Used for loading states. Matches the layout of the actual content.
 
-Illustration
+## Components
 
-Title
+### Skeleton
+Base skeleton component with pulse animation.
 
-Description
+```tsx
+<Skeleton className="h-4 w-full max-w-[120px]" />
+```
 
-Primary Action
+### KPICardSkeleton
+Skeleton for KPI cards with icon, title, value placeholders.
 
-Secondary Action
+```tsx
+<KPICardSkeleton />
+```
 
-Centered vertically
+### CardSkeleton
+Skeleton for full cards with header and content area.
+
+```tsx
+<CardSkeleton />
+```
+
+### TableSkeleton
+Skeleton for tables with header and rows.
+
+```tsx
+<TableSkeleton rows={5} columns={5} />
+```
+
+### WidgetSkeleton
+Skeleton for widget components.
+
+```tsx
+<WidgetSkeleton />
+```
+
+### ChartSkeleton
+Skeleton for chart containers.
+
+```tsx
+<ChartSkeleton />
+```
 
 ---
 
-# Loading
+# Empty State
 
-Use Skeleton Loader.
+Displayed when there is no data to show.
 
-Avoid full-page spinner.
+## Component Props
 
-Skeleton should match component layout.
+```tsx
+interface EmptyStateProps {
+  icon?: LucideIcon;
+  title: string;
+  description?: string;
+  action?: {
+    label: string;
+    onClick?: () => void;
+    variant?: "primary" | "secondary" | "outline";
+  };
+  secondaryAction?: {
+    label: string;
+    onClick?: () => void;
+  };
+}
+```
+
+## Usage
+
+```tsx
+<EmptyState
+  icon={Inbox}
+  title="Belum ada data"
+  description="Tambahkan data pertama untuk memulai."
+  action={{ label: "Tambah Data", onClick: handleAdd }}
+/>
+```
+
+## Preset Empty States
+
+### NoDataState
+Generic empty state for no data.
+
+```tsx
+<NoDataState
+  title="Belum ada siswa"
+  description="Tambahkan siswa pertama untuk memulai."
+  onAction={handleAddStudent}
+  actionLabel="Tambah Siswa"
+/>
+```
+
+### NoResultsState
+Empty state for search/filter with no results.
+
+```tsx
+<NoResultsState
+  searchQuery={query}
+  onClear={handleClearSearch}
+/>
+```
+
+### ErrorState
+Empty state for error conditions with retry option.
+
+```tsx
+<ErrorState
+  title="Gagal memuat data"
+  description="Pastikan koneksi internet stabil."
+  onRetry={handleRetry}
+/>
+```
 
 ---
 
@@ -943,6 +1044,94 @@ Required
 Contrast
 
 WCAG AA
+
+---
+
+# Mobile Responsive Guidelines
+
+## Touch Targets
+
+All interactive elements must have minimum 44px touch target (WCAG 2.2):
+
+```css
+/* Minimum touch target */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Recommended touch target */
+.touch-target-lg {
+  min-height: 48px;
+  min-width: 48px;
+}
+```
+
+## Mobile Bottom Navigation
+
+- Fixed at bottom of screen
+- Height: 72px minimum
+- 5 items maximum
+- Icon + label for each item
+- Active state: primary color background
+- Safe area padding for notched devices
+
+Example:
+```tsx
+<nav className="fixed bottom-0 left-0 right-0 z-[200] h-[72px]">
+  <div className="flex items-center justify-around h-[72px]">
+    {navItems.map((item) => (
+      <Link 
+        key={item.href}
+        href={item.href}
+        className="min-w-[44px] min-h-[44px] flex flex-col items-center justify-center"
+      >
+        <Icon className="w-6 h-6" />
+        <span className="text-[11px]">{item.label}</span>
+      </Link>
+    ))}
+  </div>
+</nav>
+```
+
+## Mobile Header
+
+- Fixed at top of screen
+- Height: 56px minimum
+- Logo + page title on left
+- Actions on right
+- Safe area padding for notched devices
+
+## Input Fields
+
+Mobile inputs should use 16px font to prevent iOS zoom:
+
+```css
+@media (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+```
+
+## Responsive Spacing
+
+| Element | Mobile | Tablet | Desktop |
+|---------|--------|--------|---------|
+| Page padding | 16px | 24px | 40px |
+| Card padding | 20px | 24px | 28px |
+| Section gap | 16px | 24px | 32px |
+| Card gap | 16px | 24px | 24px |
+
+## Safe Area Support
+
+For notched devices, use CSS env():
+
+```css
+/* iOS safe areas */
+padding-top: env(safe-area-inset-top);
+padding-bottom: env(safe-area-inset-bottom);
+```
 
 ---
 

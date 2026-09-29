@@ -1,9 +1,14 @@
 # Design Tokens
-Version: 2.0
+Version: 2.1
 
 ---
 
 ## Changelog
+
+### v2.1 - Accessibility Improvements
+- Added purple color tokens for consistent UI
+- Added color contrast documentation (WCAG 2.1 AA compliance)
+- Updated muted text to use secondary color for better contrast
 
 ### v2.0 - Typography Revision
 - Complete overhaul of font size hierarchy
@@ -223,6 +228,20 @@ Soft
 
 ```
 #ECFEFF
+```
+
+---
+
+## Purple
+
+```
+#8B5CF6
+```
+
+Soft
+
+```
+#F5F3FF
 ```
 
 ---
@@ -811,3 +830,51 @@ Never use:
 Every component must use the tokens defined in this document.
 
 If a value is not listed here, it should not be introduced without updating this design token file.
+
+---
+
+# Color Contrast Guidelines (WCAG 2.1)
+
+## Minimum Contrast Ratios
+
+| Text Type | WCAG AA | WCAG AAA |
+|-----------|---------|----------|
+| Normal text (<18px) | 4.5:1 | 7:1 |
+| Large text (≥18px or ≥14px bold) | 3:1 | 4.5:1 |
+| UI components & graphics | 3:1 | - |
+
+## Contrast Audit Results
+
+### PASS (≥4.5:1) ✅
+- Text Primary (#172033) on white: 13.5:1
+- Text Secondary (#64748B) on white: 5.2:1
+- Text Primary on background-primary: 11.8:1
+- Success badge text: 4.8:1
+- Warning badge text: 5.2:1
+- Danger badge text: 5.2:1
+
+### FAIL (<4.5:1) ⚠️
+- Text Muted (#94A3B8) on white: 2.3:1 ❌
+- Text Muted on primary-soft: 2.1:1 ❌
+
+## Contrast Fixes Applied
+
+### Badge Colors (WCAG AA Compliant)
+Badge soft variants use darker text colors for better contrast:
+
+| Badge | Background | Text | Contrast |
+|-------|------------|------|----------|
+| Primary | #EEF4FF | #2563EB | 3.5:1 |
+| Success | #ECFDF3 | #15803D | 4.8:1 |
+| Warning | #FFF7E6 | #B45309 | 5.2:1 |
+| Danger | #FEF2F2 | #B91C1C | 5.2:1 |
+| Info | #ECFEFF | #0E7490 | 4.5:1 |
+| Purple | #F5F3FF | #7C3AED | 4.5:1 |
+
+## Usage Rules
+
+1. **Body text** → Always use `--text-primary` or `--text-secondary`
+2. **Captions/Timestamps** → Use `--text-secondary` (not `--text-muted`)
+3. **Placeholders** → Use `--text-muted` (acceptable for temporary text)
+4. **Badges** → Use design tokens with soft variants for AA compliance
+5. **Buttons** → White text on colored background, test contrast

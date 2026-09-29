@@ -55,11 +55,11 @@ const colorMap = {
     text: "text-[var(--info)]",
   },
   purple: {
-    bg: "bg-purple-50",
-    iconBg: "bg-purple-500",
+    bg: "bg-[var(--purple-soft)]",
+    iconBg: "bg-[var(--purple)]",
     icon: "text-white",
-    chart: "#8b5cf6",
-    text: "text-purple-500",
+    chart: "var(--purple)",
+    text: "text-[var(--purple)]",
   },
 };
 
@@ -106,8 +106,8 @@ export function KPICard({
             {title}
           </p>
 
-          {/* Value */}
-          <p className="text-[32px] font-bold text-[var(--text-primary)] leading-tight mb-2">
+          {/* Value - Using stat-lg typography from design tokens */}
+          <p className="text-stat-lg font-bold text-[var(--text-primary)] leading-tight mb-2">
             {value}
           </p>
 

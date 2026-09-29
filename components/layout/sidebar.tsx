@@ -5,17 +5,13 @@ import { usePathname, useRouter } from "next/navigation"
 import {
   Home,
   BookUser,
-  Users,
   ClipboardCheck,
   BarChart3,
-  Calculator,
-  CalendarDays,
-  BookOpen,
-  School,
+  Award,
   Briefcase,
-  Package,
-  Mail,
-  Megaphone,
+  Shield,
+  PiggyBank,
+  Heart,
   FileText,
   Settings,
   ChevronDown,
@@ -23,13 +19,9 @@ import {
   LogOut,
   GraduationCap,
   PanelLeftClose,
-  Award,
-  PiggyBank,
-  Heart,
-  Shield,
-  ArrowUpDown,
   Bell,
   User,
+  Plus,
 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
@@ -48,67 +40,35 @@ interface NavSection {
 
 const navigationSections: NavSection[] = [
   {
-    title: "AKADEMIK",
+    title: "UTAMA",
     items: [
       { icon: Home, label: "Dashboard", href: "/" },
       { icon: BookUser, label: "Buku Induk", href: "/buku-induk" },
     ],
   },
   {
-    title: "PRESENSI",
+    title: "AKADEMIK",
     items: [
-      { icon: ClipboardCheck, label: "Presensi Siswa", href: "/presensi" },
+      { icon: ClipboardCheck, label: "Presensi", href: "/presensi" },
+      { icon: BarChart3, label: "Penilaian", href: "/penilaian" },
+      { icon: Award, label: "Poin Karakter", href: "/poin-karakter" },
     ],
   },
   {
-    title: "PENILAIAN",
-    items: [
-      { icon: BarChart3, label: "Pusat Penilaian", href: "/penilaian" },
-      { icon: Calculator, label: "Input Nilai Cepat", href: "/penilaian/quick" },
-      { icon: FileText, label: "Hasil Penilaian", href: "/penilaian/hasil" },
-    ],
-  },
-  {
-    title: "POIN KARAKTER",
-    items: [
-      { icon: Award, label: "Dashboard", href: "/poin-karakter" },
-      { icon: Award, label: "Input", href: "/poin-karakter/input" },
-      { icon: Award, label: "Riwayat", href: "/poin-karakter/riwayat" },
-    ],
-  },
-  {
-    title: "AKADEMIK LAINNYA",
-    items: [
-      { icon: CalendarDays, label: "Jadwal Pelajaran", href: "/jadwal" },
-      { icon: BookOpen, label: "Mata Pelajaran", href: "/mapel" },
-      { icon: School, label: "Kelas", href: "/kelas" },
-    ],
-  },
-  {
-    title: "ADMINISTRASI",
+    title: "OPERASI",
     items: [
       { icon: Briefcase, label: "Guru & Staff", href: "/guru-staff" },
       { icon: Shield, label: "Pasukan Khusus", href: "/pasukan-khusus" },
-      { icon: Heart, label: "Spiritual", href: "/spiritual" },
       { icon: PiggyBank, label: "Tabungan", href: "/tabungan" },
-      { icon: Package, label: "Inventaris", href: "/inventaris" },
-      { icon: Mail, label: "Surat", href: "/surat" },
-      { icon: Megaphone, label: "Pengumuman", href: "/pengumuman" },
+      { icon: Heart, label: "Spiritual", href: "/spiritual" },
     ],
   },
   {
-    title: "LAPORAN",
+    title: "LAINNYA",
     items: [
       { icon: FileText, label: "Laporan", href: "/laporan" },
-      { icon: BarChart3, label: "Statistik", href: "/statistik" },
-      { icon: ArrowUpDown, label: "Import & Export", href: "/import-export" },
-    ],
-  },
-  {
-    title: "SISTEM",
-    items: [
-      { icon: Bell, label: "Notifikasi", href: "/notifications" },
       { icon: Settings, label: "Pengaturan", href: "/settings" },
+      { icon: Bell, label: "Notifikasi", href: "/notifications" },
     ],
   },
 ]

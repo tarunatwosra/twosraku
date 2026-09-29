@@ -61,12 +61,14 @@ export function Modal({
       document.body.style.overflow = "hidden"
       document.addEventListener("keydown", handleEscape)
 
-      // Focus first focusable element
+      // Focus first focusable element (excluding close button)
       const focusableElements = modalRef.current?.querySelectorAll(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        'input:not([type="hidden"]), select, textarea, [tabindex]:not([tabindex="-1"])'
       )
       if (focusableElements && focusableElements.length > 0) {
-        (focusableElements[0] as HTMLElement).focus()
+        setTimeout(() => {
+          (focusableElements[0] as HTMLElement).focus()
+        }, 50)
       }
 
       return () => {
@@ -85,7 +87,7 @@ export function Modal({
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-[16px]"
+        className="absolute inset-0 bg-black/20 backdrop-blur-[8px]"
         aria-hidden="true"
       />
 
