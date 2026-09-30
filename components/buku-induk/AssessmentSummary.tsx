@@ -13,6 +13,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { Card, Badge } from "@/components/ui"
+import { TabEmptyState, TabErrorState } from "./DocumentsTab"
 import { supabase } from "@/lib/supabase"
 import { cn } from "@/lib/utils"
 
@@ -314,31 +315,24 @@ export function AssessmentSummary({ studentId, academicYearId }: AssessmentSumma
 
   if (error) {
     return (
-      <Card padding="lg" className="text-center py-8">
-        <AlertCircle className="w-12 h-12 text-[var(--danger)] mx-auto mb-4" />
-        <p className="text-[14px] text-[var(--danger)]">{error}</p>
-      </Card>
+      <TabErrorState
+        title="Data penilaian tidak dapat dimuat"
+        description={error || "Terjadi kesalahan saat mengambil data."}
+        errorDetails={error as string}
+        onRetry={() => window.location.reload()}
+      />
     )
   }
 
   if (scores.length === 0) {
     return (
-      <Card padding="lg" className="text-center py-8">
-        <BookOpen className="w-12 h-12 text-[var(--text-muted)] mx-auto mb-4" />
-        <h3 className="text-[16px] font-medium text-[var(--text-primary)] mb-2">
-          Belum Ada Data Penilaian
-        </h3>
-        <p className="text-[13px] text-[var(--text-muted)] mb-6">
-          Data penilaian akan muncul setelah siswa memiliki nilai di modul penilaian
-        </p>
-        <Link
-          href="/penilaian"
-          className="inline-flex items-center gap-2 text-[var(--primary)] text-[13px] font-medium hover:underline"
-        >
-          Buka Modul Penilaian
-          <ArrowRight className="w-4 h-4" />
-        </Link>
-      </Card>
+      <TabEmptyState
+        title="Belum ada data penilaian"
+        description="Data penilaian akan muncul setelah siswa memiliki nilai di modul penilaian."
+        actionLabel="Buka Modul Penilaian"
+        onAction={() => window.location.href = "/penilaian"}
+        icon={<BookOpen className="w-8 h-8" />}
+      />
     )
   }
 

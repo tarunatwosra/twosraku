@@ -15,6 +15,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { Card, Badge } from "@/components/ui"
+import { TabEmptyState, TabErrorState } from "./DocumentsTab"
 import { supabase } from "@/lib/supabase"
 import { cn } from "@/lib/utils"
 
@@ -286,31 +287,24 @@ export function CharacterSummary({ studentId, academicYearId }: CharacterSummary
 
   if (error) {
     return (
-      <Card padding="lg" className="text-center py-8">
-        <AlertCircle className="w-12 h-12 text-[var(--danger)] mx-auto mb-4" />
-        <p className="text-[14px] text-[var(--danger)]">{error}</p>
-      </Card>
+      <TabErrorState
+        title="Data karakter tidak dapat dimuat"
+        description={error || "Terjadi kesalahan saat mengambil data."}
+        errorDetails={error as string}
+        onRetry={() => window.location.reload()}
+      />
     )
   }
 
   if (records.length === 0) {
     return (
-      <Card padding="lg" className="text-center py-8">
-        <Heart className="w-12 h-12 text-[var(--text-muted)] mx-auto mb-4" />
-        <h3 className="text-[16px] font-medium text-[var(--text-primary)] mb-2">
-          Belum Ada Catatan Karakter
-        </h3>
-        <p className="text-[13px] text-[var(--text-muted)] mb-6">
-          Catatan karakter akan muncul setelah siswa memiliki记录 di modul karakter
-        </p>
-        <Link
-          href="/karakter"
-          className="inline-flex items-center gap-2 text-[var(--primary)] text-[13px] font-medium hover:underline"
-        >
-          Buka Modul Karakter
-          <ArrowRight className="w-4 h-4" />
-        </Link>
-      </Card>
+      <TabEmptyState
+        title="Belum ada catatan karakter"
+        description="Catatan karakter akan muncul setelah siswa memiliki record di modul poin karakter."
+        actionLabel="Buka Modul Karakter"
+        onAction={() => window.location.href = "/poin-karakter"}
+        icon={<Heart className="w-8 h-8" />}
+      />
     )
   }
 

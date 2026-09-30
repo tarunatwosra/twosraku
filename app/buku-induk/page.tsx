@@ -641,6 +641,10 @@ export default function BukuIndukPage() {
       setStudents(result.data)
       setTotalCount(result.pagination.total)
       setTotalPages(result.pagination.totalPages)
+
+      // Store student IDs for navigation in detail page
+      const studentIds = result.data.map((s: StudentWithClass) => s.id)
+      sessionStorage.setItem("buku-induk-list", JSON.stringify({ studentIds }))
     } catch (err) {
       console.error(err)
       setError("Gagal memuat data")

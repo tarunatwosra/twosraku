@@ -15,6 +15,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { Card, Badge } from "@/components/ui"
+import { TabEmptyState, TabErrorState } from "./DocumentsTab"
 import { supabase } from "@/lib/supabase"
 import { cn } from "@/lib/utils"
 
@@ -312,31 +313,24 @@ export function AttendanceSummary({ studentId, academicYearId }: AttendanceSumma
 
   if (error || !stats) {
     return (
-      <Card padding="lg" className="text-center py-8">
-        <AlertCircle className="w-12 h-12 text-[var(--danger)] mx-auto mb-4" />
-        <p className="text-[14px] text-[var(--danger)]">{error || "Data tidak tersedia"}</p>
-      </Card>
+      <TabErrorState
+        title="Data absensi tidak dapat dimuat"
+        description={error || "Terjadi kesalahan saat mengambil data."}
+        errorDetails={error as string}
+        onRetry={() => window.location.reload()}
+      />
     )
   }
 
   if (stats.total === 0) {
     return (
-      <Card padding="lg" className="text-center py-8">
-        <Calendar className="w-12 h-12 text-[var(--text-muted)] mx-auto mb-4" />
-        <h3 className="text-[16px] font-medium text-[var(--text-primary)] mb-2">
-          Belum Ada Data Absensi
-        </h3>
-        <p className="text-[13px] text-[var(--text-muted)] mb-6">
-          Data absensi akan muncul setelah siswa memiliki记录 di modul absensi
-        </p>
-        <Link
-          href="/absensi"
-          className="inline-flex items-center gap-2 text-[var(--primary)] text-[13px] font-medium hover:underline"
-        >
-          Buka Modul Absensi
-          <ArrowRight className="w-4 h-4" />
-        </Link>
-      </Card>
+      <TabEmptyState
+        title="Belum ada data absensi"
+        description="Data absensi akan muncul setelah siswa memiliki record di modul absensi."
+        actionLabel="Buka Modul Absensi"
+        onAction={() => window.location.href = "/absensi"}
+        icon={<Calendar className="w-8 h-8" />}
+      />
     )
   }
 
